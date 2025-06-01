@@ -1,10 +1,10 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import PhotoSelectScreen from '../screens/Places/PhotoSelectScreen';
-import PlaceDetailScreen from '../screens/Places/PlaceDetailScreen';
-import PlaceListScreen from '../screens/Places/PlaceListScreen';
-import PlaceSearchScreen from '../screens/Places/PlaceSearchScreen';
-import PlaceWriteScreen from '../screens/Places/PlaceWriteScreen';
+import PhotoSelectScreen from './screens/Places/PhotoSelectScreen';
+import PlaceDetailScreen from './screens/Places/PlaceDetailScreen';
+import PlaceListScreen from './screens/Places/PlaceListScreen';
+import PlaceSearchScreen from './screens/Places/PlaceSearchScreen';
+import PlaceWriteScreen from './screens/Places/PlaceWriteScreen';
 
 const Stack = createNativeStackNavigator();
 

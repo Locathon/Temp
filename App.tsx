@@ -1,11 +1,19 @@
 import { NavigationContainer } from '@react-navigation/native';
 import React from 'react';
-import TabNavigator from './navigation/TabNavigator';
 
 export default function App() {
   return (
     <NavigationContainer>
-      <TabNavigator />
+      <Tab.Navigator
+  screenOptions={{
+    tabBarStyle: {
+      position: 'fixed',
+      bottom: 0,
+      left: 0,
+      right: 0,
+    },
+  }}
+>
     </NavigationContainer>
   );
 }
