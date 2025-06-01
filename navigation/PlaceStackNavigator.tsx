@@ -10,7 +10,7 @@ const Stack = createNativeStackNavigator();
 
 const PlaceStackNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="PlaceList" screenOptions={{ headerShown: true }}>
+    <Stack.Navigator initialRouteName="PlaceList" screenOptions={{ headerShown: false }}>
       <Stack.Screen name="PlaceList" component={PlaceListScreen} />
       <Stack.Screen name="PlaceWrite" component={PlaceWriteScreen} />
       <Stack.Screen name="PhotoSelect" component={PhotoSelectScreen} />
