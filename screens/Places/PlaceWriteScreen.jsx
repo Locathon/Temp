@@ -15,6 +15,7 @@ const PlaceWriteScreen = ({ navigation, route }) => {
   const [address, setAddress] = useState(''); // 카카오 API로 받아올 주소
   const [content, setContent] = useState('');
   const [photos, setPhotos] = useState([]);
+  const [title, setTitle] = useState('');
 
   // 사진 선택 후 돌아왔을 때 params로부터 받아오기
   useEffect(() => {
@@ -28,6 +29,26 @@ const PlaceWriteScreen = ({ navigation, route }) => {
       <Text style={styles.header}>
         닉네임 ▸ {nickname || '닉네임'}
       </Text>
+
+      {/* 게시글 제목 입력 */}
+      <TextInput
+        placeholder="게시글 제목을 입력해주세요"
+        value={title}
+        onChangeText={title => {
+          setTitle(title);
+        }}
+        style={styles.input}
+      />
+
+      {/* 설명 입력 */}
+      <TextInput
+        placeholder="행궁동의 추천 스팟을 알려주세요!"
+        value={content}
+        onChangeText={setContent}
+        style={styles.textArea}
+        multiline
+        textAlignVertical="top"
+      />
 
       {/* 장소 이름 입력 */}
       <TextInput
@@ -45,17 +66,7 @@ const PlaceWriteScreen = ({ navigation, route }) => {
         <Text style={styles.addressLabel}>주소: {address}</Text>
       ) : (
         <Text style={styles.addressLabel}>주소를 입력한 장소 이름으로 검색합니다</Text>
-      )}
-
-      {/* 설명 입력 */}
-      <TextInput
-        placeholder="행궁동의 추천 스팟을 알려주세요!"
-        value={content}
-        onChangeText={setContent}
-        style={styles.textArea}
-        multiline
-        textAlignVertical="top"
-      />
+      )}  
 
       {/* 사진 추가 */}
       <TouchableOpacity
