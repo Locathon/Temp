@@ -1,76 +1,124 @@
 // app/mypage.tsx
-// 👇 Alert를 react-native에서 명시적으로 import 합니다.
-import { Ionicons } from '@expo/vector-icons'; // 아이콘 사용을 위해 import
-import { Link, useRouter } from 'expo-router';
-import { Alert, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { Href, Link, useRouter } from 'expo-router';
+import React from 'react'; // React import 추가
+import { Alert, Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { useAuth } from '../contexts/AuthContext'; // useAuth 훅을 import 합니다.
+
+interface MenuItem {
+  id: string;
+  title: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  screen: Href;
+  count?: number;
+}
 
 const MyPageScreen = () => {
   const router = useRouter();
-  const isLoggedIn = false; // TODO: 실제 로그인 상태로 교체해야 합니다. (예: useAuth 훅 사용)
+  // 👇 AuthContext에서 실제 로그인 상태와 사용자 정보를 가져옵니다.
+  const { isLoggedIn, userNickname, logout } = useAuth();
+  // const isLoggedIn = false; // 이 줄은 삭제합니다.
+  // const userNickname = '느린행궁러버'; // 이 줄은 삭제합니다.
+  const userProfileImageUrl = null; // TODO: 실제 프로필 이미지 URL (이것도 Context나 다른 곳에서 가져올 수 있습니다)
 
   const handleLogout = () => {
-    // TODO: 실제 로그아웃 로직 구현
-    Alert.alert('로그아웃', '로그아웃 되었습니다.'); // Alert가 이제 정상적으로 인식될 것입니다.
-    // router.replace('/login'); // 로그아웃 후 로그인 화면으로 이동 등
+    Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
+      { text: '취소', style: 'cancel' },
+      {
+        text: '확인',
+        onPress: () => {
+          logout(); // Context의 logout 함수 호출
+          Alert.alert('로그아웃', '로그아웃 되었습니다.');
+          router.replace('/login'); // 로그아웃 후 로그인 화면으로 이동
+        },
+      },
+    ]);
   };
 
-  const menuItems = [
-    { id: '1', title: '내 정보 수정', icon: 'person-circle-outline', screen: '/edit-profile' },
-    { id: '2', title: '내가 등록한 장소', icon: 'location-outline', screen: '/my-places' },
-    { id: '3', title: '내가 만든 코스', icon: 'map-outline', screen: '/my-courses' },
-    { id: '4', title: '고객센터', icon: 'help-circle-outline', screen: '/support' },
-    { id: '5', title: '앱 설정', icon: 'settings-outline', screen: '/settings' },
+  // 로그인 상태에 따라 활동 내역 수치를 다르게 표시 (실제로는 API에서 가져와야 함)
+  const activityStats = {
+    places: isLoggedIn ? 12 : 0,
+    courses: isLoggedIn ? 5 : 0,
+    reviews: isLoggedIn ? 8 : 0,
+  };
+
+  const menuItems: MenuItem[] = [
+    { id: 'reviews', title: '내가 남긴 후기', icon: 'chatbubble-ellipses-outline', screen: '/my-reviews', count: activityStats.reviews },
+    { id: 'places', title: '내가 기록한 장소', icon: 'location-outline', screen: '/my-places', count: activityStats.places },
+    { id: 'courses', title: '내가 기록한 코스', icon: 'map-outline', screen: '/my-courses', count: activityStats.courses },
+    { id: 'guide', title: '행궁 사용 설명서', icon: 'book-outline', screen: '/guide' },
+    { id: 'settings', title: '앱 설정', icon: 'settings-outline', screen: '/settings' },
   ];
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
+      <ScrollView style={styles.container} contentContainerStyle={styles.contentContainer}>
         <View style={styles.profileSection}>
-          <Ionicons name="person-circle" size={80} color="#cccccc" style={styles.profileIcon} />
-          {isLoggedIn ? (
+          {isLoggedIn && userNickname ? ( // 이제 Context의 isLoggedIn과 userNickname을 사용합니다.
             <>
-              <Text style={styles.username}>건호님</Text>
-              <Text style={styles.email}>geonho@example.com</Text>
+              {userProfileImageUrl ? (
+                <Image source={{ uri: userProfileImageUrl }} style={styles.profileImage} />
+              ) : (
+                <Ionicons name="person-circle" size={70} color="#BDBDBD" style={styles.profileIcon} />
+              )}
+              <Text style={styles.nickname}>{userNickname}님</Text> {/* Context에서 가져온 닉네임 */}
+              <Link href="/edit-profile" asChild>
+                <TouchableOpacity style={styles.editProfileButton}>
+                  <Text style={styles.editProfileButtonText}>내 정보 수정</Text>
+                  <Ionicons name="chevron-forward-outline" size={16} color="#828282" />
+                </TouchableOpacity>
+              </Link>
             </>
           ) : (
-            <Text style={styles.loginPrompt}>로그인이 필요합니다.</Text>
+            <>
+              <Ionicons name="person-circle" size={70} color="#BDBDBD" style={styles.profileIcon} />
+              <Text style={styles.loginPrompt}>로그인이 필요합니다.</Text>
+              <Link href="/login" asChild>
+                <TouchableOpacity style={styles.loginButton}>
+                  <Text style={styles.loginButtonText}>로그인 / 회원가입</Text>
+                </TouchableOpacity>
+              </Link>
+            </>
           )}
         </View>
 
-        {isLoggedIn ? (
-          <TouchableOpacity style={[styles.button, styles.logoutButton]} onPress={handleLogout}>
-            <Ionicons name="log-out-outline" size={20} color="#fff" style={styles.buttonIcon} />
-            <Text style={styles.buttonText}>로그아웃</Text>
-          </TouchableOpacity>
-        ) : (
-          <Link href="/login" asChild>
-            <TouchableOpacity style={[styles.button, styles.loginButton]}>
-              <Ionicons name="log-in-outline" size={20} color="#fff" style={styles.buttonIcon} />
-              <Text style={styles.buttonText}>로그인 / 회원가입</Text>
-            </TouchableOpacity>
-          </Link>
+        {isLoggedIn && ( // Context의 isLoggedIn 상태에 따라 활동 내역 표시
+          <View style={styles.activitySection}>
+            {menuItems.slice(0, 3).map((item) => (
+              <Link key={item.id} href={item.screen} asChild>
+                <TouchableOpacity style={styles.activityItem}>
+                  <View style={styles.activityTextContainer}>
+                    <Ionicons name={item.icon} size={22} color="#4F4F4F" style={styles.activityIcon} />
+                    <Text style={styles.activityTitle}>{item.title}</Text>
+                  </View>
+                  <View style={styles.activityCountContainer}>
+                    <Text style={styles.activityCount}>{item.count ?? 0}</Text>
+                    <Ionicons name="chevron-forward-outline" size={20} color="#C7C7CC" />
+                  </View>
+                </TouchableOpacity>
+              </Link>
+            ))}
+          </View>
         )}
 
-        <View style={styles.menuSection}>
-          {menuItems.map((item) => (
-            <Link key={item.id} href={isLoggedIn ? item.screen : '/login'} asChild>
-              <TouchableOpacity style={styles.menuItem}>
-                <Ionicons name={item.icon as any} size={24} color="#4F4F4F" style={styles.menuIcon} />
-                <Text style={styles.menuText}>{item.title}</Text>
+        <View style={styles.menuListSection}>
+          {menuItems.slice(3).map((item) => (
+             <Link key={item.id} href={isLoggedIn || item.id === 'guide' ? item.screen : '/login'} asChild>
+              <TouchableOpacity style={styles.menuListItem}>
+                <Ionicons name={item.icon} size={24} color="#4F4F4F" style={styles.menuListIcon} />
+                <Text style={styles.menuListText}>{item.title}</Text>
                 <Ionicons name="chevron-forward-outline" size={20} color="#C7C7CC" />
               </TouchableOpacity>
             </Link>
           ))}
+          {isLoggedIn && ( // Context의 isLoggedIn 상태에 따라 로그아웃 버튼 표시
+            <TouchableOpacity style={styles.menuListItem} onPress={handleLogout}>
+              <Ionicons name="log-out-outline" size={24} color="#EB5757" style={styles.menuListIcon} />
+              <Text style={[styles.menuListText, styles.logoutText]}>로그아웃</Text>
+              <Ionicons name="chevron-forward-outline" size={20} color="#C7C7CC" />
+            </TouchableOpacity>
+          )}
         </View>
-
-        <View style={styles.tempLinks}>
-          <Text style={styles.tempLinksTitle}>임시 이동 링크 (개발용):</Text>
-          <Link href="/" style={styles.tempLink}>- 홈 (index)</Link>
-          <Link href="/mapTest" style={styles.tempLink}>- 지도 테스트 (mapTest)</Link>
-          <Link href="/login" style={styles.tempLink}>- 로그인 (login)</Link>
-          <Link href="/register" style={styles.tempLink}>- 회원가입 (register)</Link>
-        </View>
-
       </ScrollView>
     </SafeAreaView>
   );
@@ -79,105 +127,123 @@ const MyPageScreen = () => {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: '#F2F2F7',
   },
   container: {
     flex: 1,
   },
+  contentContainer: {
+    paddingBottom: 30,
+  },
   profileSection: {
-    backgroundColor: '#ffffff',
-    paddingVertical: 30,
-    paddingHorizontal: 20,
+    backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    marginBottom: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    paddingVertical: 24,
+    paddingHorizontal: 20,
+    marginBottom: 8,
+  },
+  profileImage: {
+    width: 70,
+    height: 70,
+    borderRadius: 35,
+    marginBottom: 12,
   },
   profileIcon: {
-    marginBottom: 10,
+    marginBottom: 12,
   },
-  username: {
-    fontSize: 22,
+  nickname: {
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
+    color: '#333333',
+    marginBottom: 8,
   },
-  email: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 15,
-  },
-  loginPrompt: {
-    fontSize: 18,
-    color: '#555',
-    marginTop: 10,
-  },
-  button: {
+  editProfileButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    marginHorizontal: 20,
-    marginBottom: 20,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    paddingVertical: 4,
+  },
+  editProfileButtonText: {
+    fontSize: 14,
+    color: '#828282',
+    marginRight: 4,
+  },
+  loginPrompt: {
+    fontSize: 17,
+    color: '#4F4F4F',
+    marginBottom: 16,
   },
   loginButton: {
     backgroundColor: '#007AFF',
+    paddingVertical: 12,
+    paddingHorizontal: 30,
+    borderRadius: 8,
   },
-  logoutButton: {
-    backgroundColor: '#FF3B30',
-  },
-  buttonText: {
-    color: '#fff',
+  loginButtonText: {
+    color: '#FFFFFF',
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 8,
   },
-  buttonIcon: {},
-  menuSection: {
-    backgroundColor: '#ffffff',
+  activitySection: {
+    backgroundColor: '#FFFFFF',
     borderRadius: 10,
-    marginHorizontal: 10,
-    marginBottom: 20,
+    marginHorizontal: 16,
+    marginBottom: 8,
     overflow: 'hidden',
   },
-  menuItem: {
+  activityItem: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E0E0E0',
+  },
+  activityTextContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 18,
-    paddingHorizontal: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EFEFF4',
   },
-  menuIcon: {
-    marginRight: 15,
+  activityIcon: {
+    marginRight: 12,
   },
-  menuText: {
-    flex: 1,
-    fontSize: 17,
-    color: '#000',
-  },
-  tempLinks: {
-    marginTop: 20,
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-  tempLinksTitle: {
+  activityTitle: {
     fontSize: 16,
-    fontWeight: 'bold',
-    marginBottom: 10,
+    color: '#333333',
   },
-  tempLink: {
-    fontSize: 14,
-    color: 'blue',
-    textDecorationLine: 'underline',
-    marginBottom: 5,
+  activityCountContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  activityCount: {
+    fontSize: 16,
+    color: '#828282',
+    marginRight: 4,
+  },
+  menuListSection: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 10,
+    marginHorizontal: 16,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  menuListItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 0.5,
+    borderBottomColor: '#E0E0E0',
+  },
+  menuListIcon: {
+    marginRight: 12,
+  },
+  menuListText: {
+    flex: 1,
+    fontSize: 16,
+    color: '#333333',
+  },
+  logoutText: {
+    color: '#EB5757',
   },
 });
 
