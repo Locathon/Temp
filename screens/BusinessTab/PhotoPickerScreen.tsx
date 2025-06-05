@@ -2,10 +2,12 @@ import React, { useState } from 'react';
 import { View, Text, Button, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { useNavigation } from '@react-navigation/native';
+import type { StackNavigationProp } from '@react-navigation/stack';
 
 const PhotoPickerScreen = () => {
   const [images, setImages] = useState<string[]>([]);
-  const navigation = useNavigation();
+  // Use correct generic type for navigation
+  const navigation = useNavigation<StackNavigationProp<any>>();
 
   const pickImages = async () => {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -21,7 +23,7 @@ const PhotoPickerScreen = () => {
   };
 
   const goToPostDetail = () => {
-    navigation.navigate('PostDetail' as never); // 'PostDetail' should match your navigator screen name
+    navigation.navigate('NewPostScreen', { selectedImages: images });
   };
 
   const renderItem = ({ item }: { item: string }) => (
@@ -31,12 +33,15 @@ const PhotoPickerScreen = () => {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>사진 선택</Text>
-      <Button title="사진 추가하기" onPress={pickImages} />
+      <View style={{ alignSelf: 'center', width: 200, marginBottom: 10 }}>
+        <Button title="사진 추가하기" onPress={pickImages} />
+      </View>
       <FlatList
         data={images}
         renderItem={renderItem}
         keyExtractor={(item, index) => index.toString()}
-        horizontal
+        numColumns={3}
+        contentContainerStyle={{ gap: 10, paddingHorizontal: 20 }}
       />
       <TouchableOpacity style={styles.doneButton} onPress={goToPostDetail}>
         <Text style={styles.doneText}>완료</Text>
@@ -58,7 +63,7 @@ const styles = StyleSheet.create({
   image: {
     width: 100,
     height: 100,
-    marginRight: 10,
+    margin: 5,
   },
   doneButton: {
     marginTop: 20,
