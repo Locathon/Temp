@@ -10,10 +10,11 @@ interface QAItem {
 export default function AutoQnAScreen() {
   const [qnaList, setQnaList] = useState<QAItem[]>([
     { id: '1', question: '영업시간이 어떻게 되나요?', answer: '매일 오전 10시부터 오후 9시까지 운영합니다.' },
-    { id: '2', question: '반려동물 동반 가능한가요?', answer: '네, 테라스 좌석은 반려동물 동반 가능합니다.' },
+    { id: '2', question: '반려동물 동반 가능한가요?', answer: '' },
   ]);
 
   const [newQuestion, setNewQuestion] = useState('');
+  const [selectedQuestion, setSelectedQuestion] = useState<QAItem | null>(null);
 
   const handleAddQuestion = () => {
     if (!newQuestion.trim()) return;
@@ -34,21 +35,37 @@ export default function AutoQnAScreen() {
         data={qnaList}
         keyExtractor={(item) => item.id}
         renderItem={({ item }) => (
-          <View style={styles.qnaBox}>
+          <TouchableOpacity style={styles.qnaBox} onPress={() => setSelectedQuestion(item)}>
             <Text style={styles.question}>Q. {item.question}</Text>
-            <Text style={styles.answer}>A. {item.answer}</Text>
-          </View>
+          </TouchableOpacity>
         )}
         style={styles.qnaList}
         contentContainerStyle={{ paddingBottom: 20 }}
         inverted
       />
+      {selectedQuestion && (
+        <View style={styles.inputRow}>
+          <TextInput
+            style={styles.input}
+            placeholder="답변을 작성하세요"
+            value={selectedQuestion.answer}
+            onChangeText={(text) =>
+              setQnaList(prev =>
+                prev.map(q => q.id === selectedQuestion.id ? { ...q, answer: text } : q)
+              )
+            }
+            keyboardType="default"
+            multiline={true}
+          />
+        </View>
+      )}
       <View style={styles.inputRow}>
         <TextInput
           style={styles.input}
           placeholder="질문을 입력하세요"
           value={newQuestion}
           onChangeText={setNewQuestion}
+          keyboardType="default"
         />
         <TouchableOpacity style={styles.addButton} onPress={handleAddQuestion}>
           <Text style={styles.addButtonText}>추가</Text>
