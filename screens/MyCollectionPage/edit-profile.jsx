@@ -8,7 +8,7 @@ import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } fro
 export default function EditProfileScreen() {
   const router = useRouter();
   const [nickname, setNickname] = useState('현재닉네임'); // TODO: 실제 사용자 닉네임으로 초기화
-  const [profileImage, setProfileImage] = useState<string | null>(null); // TODO: 실제 프로필 이미지 URI로 초기화
+  const [profileImage, setProfileImage] = useState(null); // TODO: 실제 프로필 이미지 URI로 초기화
 
   // const pickImage = async () => {
   //   // TODO: 이미지 피커 권한 요청 및 이미지 선택 로직

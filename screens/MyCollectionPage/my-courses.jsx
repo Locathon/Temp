@@ -11,7 +11,7 @@ const dummyMyCourses = [
 ];
 
 export default function MyCoursesScreen() {
-  const renderCourseItem = ({ item }: { item: {id: string; name: string; placesCount: number; imageUrl: string; totalTime: string;} }) => ( // item 타입 구체화
+  const renderCourseItem = ({ item }) => ( 
     <Link 
       href={{ // 객체 형태로 href 전달
         pathname: '/course-detail/[id]', 
