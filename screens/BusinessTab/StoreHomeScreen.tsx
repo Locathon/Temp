@@ -1,12 +1,14 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet, ScrollView, Image, Dimensions } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { Ionicons } from '@expo/vector-icons';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React from 'react';
+import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 type BusinessStackParamList = {
   EditProfileScreen: undefined;
   AutoQnAScreen: undefined;
   NewPostScreen: { newPost?: { content: string; images: string[] } };
+  RegisterStore: undefined; // ⭐️ 네비게이션 타입에 RegisterStore 추가
 };
 
 export default function StoreHomeScreen() {
@@ -48,9 +50,21 @@ export default function StoreHomeScreen() {
             <Text style={styles.category}>디저트 카페</Text>
           </View>
         </View>
-        <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen')}>
-          <Text style={styles.editText}>프로필 수정</Text>
-        </TouchableOpacity>
+
+        {/* ⭐️ 프로필 수정 및 가게 등록 버튼 컨테이너 */}
+        <View style={styles.buttonGroup}>
+            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen')}>
+              <Ionicons name="create-outline" size={14} color="#333" />
+              <Text style={styles.editText}>프로필 수정</Text>
+            </TouchableOpacity>
+            {/* ⭐️ '가게 등록' 버튼을 여기에 추가합니다! */}
+            <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('RegisterStore')}>
+              {/* ⭐️ 아이콘 이름을 'business-outline'으로 수정 */}
+              <Ionicons name="business-outline" size={14} color="#FFF" />
+              <Text style={styles.registerText}>가게 등록</Text>
+            </TouchableOpacity>
+        </View>
+
 
         <View style={styles.infoRow}>
           <Text>📍 위치 정보</Text>
@@ -120,28 +134,51 @@ export default function StoreHomeScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#fff' },
-  profileBox: { padding: 20, alignItems: 'flex-start', position: 'relative' },
-  // removed storeTitle
+  profileBox: { padding: 20, alignItems: 'flex-start', position: 'relative', borderBottomWidth: 1, borderBottomColor: '#F2F2F2' },
   category: { marginTop: 5, color: '#888' },
 
-  editButton: {
+  // ⭐️ 버튼 그룹 스타일 추가
+  buttonGroup: {
+    flexDirection: 'row',
     position: 'absolute',
     top: 20,
     right: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
+  },
+  editButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
     backgroundColor: '#f0f0f0',
-    borderRadius: 12,
+    borderRadius: 15,
     borderWidth: 1,
     borderColor: '#ccc',
   },
   editText: {
     fontSize: 12,
     color: '#000',
+    marginLeft: 4,
+  },
+  // ⭐️ 가게 등록 버튼 스타일 추가
+  registerButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginLeft: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    backgroundColor: '#2F80ED',
+    borderRadius: 15,
+  },
+  registerText: {
+    fontSize: 12,
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    marginLeft: 4,
   },
 
   qaButton: {
     marginHorizontal: 20,
+    marginTop: 10,
     marginBottom: 10,
     backgroundColor: '#eee',
     padding: 12,
@@ -162,7 +199,6 @@ const styles = StyleSheet.create({
   newPostText: { fontSize: 14 },
   plus: { fontSize: 18, fontWeight: 'bold' },
 
-  // --- new styles for wireframe ---
   profileRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -179,7 +215,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   infoRow: {
-    marginTop: 10,
+    marginTop: 15, // 버튼 그룹과 겹치지 않도록 간격 조정
     gap: 4,
   },
   newPostIcon: {
@@ -211,7 +247,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '500',
   },
-  // for the heart icon
   heart: {},
   dotContainer: {
     flexDirection: 'row',

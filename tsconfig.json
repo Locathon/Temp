@@ -16,5 +16,5 @@
     "**/*.tsx",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-, "navigation/TabNavigator.jsx", "navigation/TabNavigator.jsx", "screens/MyCollectionPage/mypage.jsx", "screens/MyCollectionPage/my-reviews.jsx", "screens/MyCollectionPage/app-setting.jsx", "screens/MyCollectionPage/my-courses.jsx", "screens/MyCollectionPage/edit-profile.jsx", "screens/MyCollectionPage/account-settings.jsx"  ]
+, "navigation/TabNavigator.jsx", "navigation/TabNavigator.jsx", "screens/MyCollectionPage/mypage.jsx", "screens/MyCollectionPage/my-reviews.jsx", "screens/MyCollectionPage/app-setting.jsx", "screens/MyCollectionPage/my-courses.tsx", "screens/MyCollectionPage/edit-profile.jsx", "screens/MyCollectionPage/account-settings.jsx"  ]
 }

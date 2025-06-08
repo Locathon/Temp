@@ -1,6 +1,6 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import React from 'react';
+import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 export default function BusinessHome() {
   const navigation = useNavigation<any>();
@@ -19,6 +19,9 @@ export default function BusinessHome() {
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('QASetupScreen')}>
           <Text style={styles.buttonText}>Q&amp;A 설정</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('RegisterStore')}>
+          <Text style={styles.buttonText}>가게 등록</Text>
+        </TouchableOpacity>
         <TouchableOpacity style={styles.button} onPress={() => navigation.navigate('EditStore')}>
           <Text style={styles.buttonText}>가게 정보 수정</Text>
         </TouchableOpacity>
@@ -26,6 +29,7 @@ export default function BusinessHome() {
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
