@@ -47,6 +47,18 @@ const MyPageScreen = () => {
     screen: 'my-reviews',
     count: activityStats.reviews,
   },
+    {
+      id: 'auth',
+      title: '주민 인증',
+      icon: 'shield-checkmark-outline',
+      screen: 'ResidentAuth', // 2단계에서 네비게이터에 추가한 이름과 동일해야 합니다.
+    },
+    {
+      id: 'settings',
+      title: '앱 설정',
+      icon: 'settings-outline',
+      screen: 'settings',
+    },
   {
     id: 'places',
     title: '내가 기록한 장소',

@@ -4,6 +4,7 @@
     "jsx": "react-native",
     "allowJs": true,
     "strict": true,
+    "esModuleInterop": true, // 👈 이 줄을 추가해주세요!
     "paths": {
       "@/*": [
         "./*"
