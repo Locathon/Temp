@@ -10,7 +10,7 @@ const LoginScreen = () => {
 
   const handleLogin = async () => {
     try {
-      const response = await fetch('http://3.35.27.124//api/members/login', { //ios는 http://localhost:8080/login, 실제 기기는 http://192.168.0.5:8080/login
+      const response = await fetch('http://3.35.27.124:8080/api/members/login', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
@@ -20,6 +20,7 @@ const LoginScreen = () => {
         const data = await response.json();
         await AsyncStorage.setItem('jwt', data.token); // JWT 저장
         Alert.alert('로그인 성공', `${data.email}님 환영합니다.`);
+        console.log(data)
         router.replace("/(tabs)/Courses"); // 화면 이동
       } else {
         const error = await response.json();
