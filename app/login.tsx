@@ -1,16 +1,34 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-
+import { Alert, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const router = useRouter();
 
-  const handleLogin = () => {
-    // ✅ 로그인 성공 시 Courses로 이동
-    router.replace("/(tabs)/Courses");
+  const handleLogin = async () => {
+    try {
+      const response = await fetch('http://3.35.27.124//api/members/login', { //ios는 http://localhost:8080/login, 실제 기기는 http://192.168.0.5:8080/login
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        await AsyncStorage.setItem('jwt', data.token); // JWT 저장
+        Alert.alert('로그인 성공', `${data.email}님 환영합니다.`);
+        router.replace("/(tabs)/Courses"); // 화면 이동
+      } else {
+        const error = await response.json();
+        Alert.alert('로그인 실패', error.message || '이메일 또는 비밀번호 오류');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('오류', '서버에 연결할 수 없습니다.');
+    }
   };
 
   return (
