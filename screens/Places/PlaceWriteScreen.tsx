@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
-import React, { useState } from 'react';
+import * as Location from 'expo-location';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
   Image,
@@ -15,112 +15,179 @@ import {
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
-export default function PlaceWriteScreen() {
-  const navigation = useNavigation();
-  
-  // 폼 상태 관리
-  const [placeName, setPlaceName] = useState('');
-  const [description, setDescription] = useState('');
-  const [address, setAddress] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+// ✅ 여기에 본인의 Google Maps API 키를 입력하세요 (보안상 .env로 관리 권장)
+const GOOGLE_API_KEY = 'AIzaSyA38Wx1aAoueHqiOsWVlTYSIAvRtO6RW6g';
 
-  // 지도에 표시될 임시 위치 정보
-  const [pin, setPin] = useState({
-    latitude: 37.288,
-    longitude: 127.016,
-  });
+export default function PlaceWriteScreen() {
+  const [name, setName] = useState('');
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [pin, setPin] = useState({ latitude: 37.5665, longitude: 127.001 }); // default 수원 행궁동
+
+  useEffect(() => {
+    (async () => {
+      let { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('위치 권한 거부', '지도를 사용하려면 위치 권한이 필요합니다.');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+      const { latitude, longitude } = location.coords;
+      setPin({ latitude, longitude });
+    })();
+  }, []);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (status !== 'granted') {
-      Alert.alert('권한 필요', '장소 사진을 등록하려면 사진첩 접근 권한이 필요합니다.');
+      Alert.alert('권한 필요', '사진첩 접근 권한이 필요합니다.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-
-    if (!result.canceled && images.length < 5) {
+    if (!result.canceled && images.length < 3) {
       setImages([...images, result.assets[0].uri]);
     }
   };
 
-  const handleSavePlace = () => {
-    if (!placeName || !address) {
-      Alert.alert('필수 정보 누락', '장소 이름과 주소는 반드시 입력해야 합니다.');
+  const uploadToS3 = async (uri: string) => {
+    const fakeUrl = `https://my-s3-bucket.s3.amazonaws.com/${Date.now()}.jpg`;
+    console.log('업로드된 이미지 URL:', fakeUrl);
+    return fakeUrl;
+  };
+
+  const searchLocationByName = async () => {
+    if (!name) return;
+
+    try {
+      const res = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          name
+        )}&key=${GOOGLE_API_KEY}`
+      );
+      const json = await res.json();
+      if (json.status === 'OK' && json.results.length > 0) {
+        const location = json.results[0].geometry.location;
+        setPin({ latitude: location.lat, longitude: location.lng });
+      } else {
+        Alert.alert('검색 실패', '입력한 장소를 찾을 수 없습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('오류', '장소 검색 중 문제가 발생했습니다.');
+    }
+  };
+
+  const handleSavePlace = async () => {
+    if (!name || !title || !content) {
+      Alert.alert('입력 필요', '장소 이름, 제목, 내용을 모두 입력해주세요.');
       return;
     }
-    // TODO: 실제 서버로 장소 정보 전송
-    console.log({ placeName, description, address, images, pin });
-    Alert.alert('등록 완료', '새로운 장소가 등록되었습니다.');
-    navigation.goBack();
+
+    try {
+      const imageUrls = await Promise.all(images.map(uploadToS3));
+
+      const placeDto = {
+        name,
+        title,
+        content,
+        latitude: pin.latitude,
+        longitude: pin.longitude,
+        imageUrls,
+      };
+
+      const res = await fetch('http://3.35.27.124/api/places', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(placeDto),
+      });
+
+      if (res.ok) {
+        Alert.alert('등록 완료', '장소가 성공적으로 등록되었습니다.');
+      } else {
+        const error = await res.json();
+        Alert.alert('실패', error.message || '등록에 실패했습니다.');
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('오류', '서버와 연결할 수 없습니다.');
+    }
   };
 
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>새로운 장소 등록</Text>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSavePlace}>
+        <Text style={styles.headerTitle}>장소 추천 등록</Text>
+        <TouchableOpacity onPress={handleSavePlace}>
           <Text style={styles.saveButtonText}>저장</Text>
         </TouchableOpacity>
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.inputGroup}>
-            <TextInput
-                style={styles.titleInput}
-                placeholder="장소 이름을 입력하세요"
-                value={placeName}
-                onChangeText={setPlaceName}
-            />
-            <TextInput
-                style={styles.descriptionInput}
-                placeholder="어떤 곳인지 간단하게 설명해주세요 (선택)"
-                value={description}
-                onChangeText={setDescription}
-                multiline
-            />
+          <Text style={styles.label}>장소 이름</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="예: 수원 화성"
+            value={name}
+            onChangeText={setName}
+            onSubmitEditing={searchLocationByName}
+          />
         </View>
 
         <View style={styles.inputGroup}>
-            <Text style={styles.label}>주소</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="정확한 주소를 입력해주세요"
-                value={address}
-                onChangeText={setAddress}
-            />
-        </View>
-        
-        <View style={styles.inputGroup}>
-          <Text style={styles.label}>위치 선택</Text>
-            <MapView
-                style={styles.map}
-                region={{ ...pin, latitudeDelta: 0.002, longitudeDelta: 0.002 }}
-                onPress={(e) => setPin(e.nativeEvent.coordinate)}
-            >
-                <Marker coordinate={pin} draggable onDragEnd={(e) => setPin(e.nativeEvent.coordinate)} />
-            </MapView>
-            <Text style={styles.mapHelperText}>지도를 움직여 핀을 원하는 위치에 놓으세요.</Text>
+          <Text style={styles.label}>제목</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="장소를 추천하는 제목을 입력하세요"
+            value={title}
+            onChangeText={setTitle}
+          />
         </View>
 
         <View style={styles.inputGroup}>
-            <Text style={styles.label}>사진 추가 (선택)</Text>
-            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
-                {images.map((uri, index) => (
-                    <Image key={index} source={{ uri }} style={styles.previewImage}/>
-                ))}
-                {images.length < 5 && (
-                  <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
-                      <Ionicons name="camera-outline" size={24} color="#828282" />
-                      <Text style={styles.photoButtonText}>{images.length}/5</Text>
-                  </TouchableOpacity>
-                )}
-            </ScrollView>
+          <Text style={styles.label}>내용</Text>
+          <TextInput
+            style={[styles.input, { height: 100 }]}
+            placeholder="자세한 설명을 적어주세요"
+            value={content}
+            onChangeText={setContent}
+            multiline
+          />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>지도에서 위치 선택</Text>
+          <MapView
+            style={styles.map}
+            region={{ ...pin, latitudeDelta: 0.002, longitudeDelta: 0.002 }}
+            onPress={(e) => setPin(e.nativeEvent.coordinate)}
+          >
+            <Marker
+              coordinate={pin}
+              draggable
+              onDragEnd={(e) => setPin(e.nativeEvent.coordinate)}
+            />
+          </MapView>
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>사진 업로드 (최대 3장)</Text>
+          <ScrollView horizontal>
+            {images.map((uri, idx) => (
+              <Image key={idx} source={{ uri }} style={styles.previewImage} />
+            ))}
+            {images.length < 3 && (
+              <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
+                <Ionicons name="camera-outline" size={24} color="#828282" />
+                <Text>{images.length}/3</Text>
+              </TouchableOpacity>
+            )}
+          </ScrollView>
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -128,20 +195,29 @@ export default function PlaceWriteScreen() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  saveButton: { backgroundColor: '#2F80ED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-  saveButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
+  saveButtonText: { color: '#007AFF', fontSize: 16 },
   scrollContainer: { paddingBottom: 40 },
   inputGroup: { paddingHorizontal: 20, marginVertical: 12 },
-  label: { fontSize: 16, fontWeight: '600', color: '#4F4F4F', marginBottom: 10 },
-  titleInput: { fontSize: 22, fontWeight: 'bold', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#EAEAEA' },
-  descriptionInput: { fontSize: 16, paddingTop: 12, color: '#828282' },
-  input: { backgroundColor: '#F2F2F7', borderWidth: 1, borderColor: '#E0E0E0', borderRadius: 8, paddingHorizontal: 15, paddingVertical: 12, fontSize: 16, color: '#333' },
+  label: { fontSize: 16, marginBottom: 8 },
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 8,
+    padding: 12,
+    backgroundColor: '#f9f9f9',
+    fontSize: 16,
+  },
   map: { width: '100%', height: 200, borderRadius: 8 },
-  mapHelperText: { textAlign: 'center', color: '#828282', fontSize: 12, marginTop: 8 },
-  photoButton: { width: 80, height: 80, backgroundColor: '#F2F2F7', borderRadius: 8, justifyContent: 'center', alignItems: 'center', borderWidth: 1, borderColor: '#E0E0E0' },
-  photoButtonText: { fontSize: 12, color: '#828282', marginTop: 4 },
   previewImage: { width: 80, height: 80, borderRadius: 8, marginRight: 8 },
+  photoButton: {
+    width: 80,
+    height: 80,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+  },
 });
