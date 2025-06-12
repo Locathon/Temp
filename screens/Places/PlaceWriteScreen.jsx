@@ -3,7 +3,6 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import React, { useEffect, useState } from 'react';
-
 import {
   Alert,
   Image,
@@ -13,31 +12,31 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View,
+  View
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
 
 // ✅ 여기에 본인의 Google Maps API 키를 입력하세요 (보안상 .env로 관리 권장)
 const GOOGLE_API_KEY = 'AIzaSyA38Wx1aAoueHqiOsWVlTYSIAvRtO6RW6g';
 
-export default function PlaceWriteScreen() {
+export default function PlaceWriteScreen({ navigation }) {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+  const [images, setImages] = useState([]);
   const [pin, setPin] = useState({ latitude: 37.5665, longitude: 127.001 }); // default 수원 행궁동
 
   useEffect(() => {
     (async () => {
-      let { status } = await Location.requestForegroundPermissionsAsync();
+      const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         Alert.alert('위치 권한 거부', '지도를 사용하려면 위치 권한이 필요합니다.');
         return;
       }
-
       const location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-      setPin({ latitude, longitude });
+      if (location?.coords) {
+        setPin({ latitude: location.coords.latitude, longitude: location.coords.longitude });
+      }
     })();
   }, []);
 
@@ -51,25 +50,51 @@ export default function PlaceWriteScreen() {
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 1,
     });
-    if (!result.canceled && images.length < 3) {
+    if (!result.canceled && result.assets?.length > 0) {
+      if (images.length >= 3) {
+        Alert.alert('제한 초과', '사진은 최대 3장까지 업로드할 수 있습니다.');
+        return;
+      }
       setImages([...images, result.assets[0].uri]);
     }
   };
 
-  const uploadToS3 = async (uri: string) => {
-    const fakeUrl = `https://my-s3-bucket.s3.amazonaws.com/${Date.now()}.jpg`;
-    console.log('업로드된 이미지 URL:', fakeUrl);
-    return fakeUrl;
+  const uploadToS3 = async (uri) => {
+    try {
+      const cleanTitle = title.trim().replace(/\s+/g, '_');
+      const filename = `${cleanTitle}/${Date.now()}.jpg`;
+      const s3Url = `https://locathonbucket00.s3.amazonaws.com/${filename}`;
+
+      const response = await fetch(uri);
+      const blob = await response.blob();
+
+      const uploadRes = await fetch(s3Url, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'image/jpeg',
+        },
+        body: blob,
+      });
+
+      if (!uploadRes.ok) {
+        throw new Error('S3 업로드 실패');
+      }
+
+      return s3Url;
+    } catch (error) {
+      console.error('uploadToS3 error:', error);
+      throw error;
+    }
   };
 
   const searchLocationByName = async () => {
-    if (!name) return;
-
+    if (!name.trim()) {
+      Alert.alert('입력 필요', '장소 이름을 입력해주세요.');
+      return;
+    }
     try {
       const res = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          name
-        )}&key=${GOOGLE_API_KEY}`
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(name)}&key=${GOOGLE_API_KEY}`
       );
       const json = await res.json();
       if (json.status === 'OK' && json.results.length > 0) {
@@ -84,59 +109,63 @@ export default function PlaceWriteScreen() {
     }
   };
 
- const handleSavePlace = async () => {
-  if (!name || !title || !content) {
-    Alert.alert('입력 필요', '장소 이름, 제목, 내용을 모두 입력해주세요.');
-    return;
-  }
-
-  try {
-    const token = await AsyncStorage.getItem('jwt'); // JWT 꺼내오기
-
-    if (!token) {
-      Alert.alert('로그인 필요', '장소 등록을 위해 로그인해 주세요.');
+  const handleSavePlace = async () => {
+    if (!name.trim() || !title.trim() || !content.trim()) {
+      Alert.alert('입력 필요', '장소 이름, 제목, 내용을 모두 입력해주세요.');
       return;
     }
 
-    const imageUrls = await Promise.all(images.map(uploadToS3));
-
-    const placeDto = {
-      name,
-      title,
-      content,
-      latitude: pin.latitude,
-      longitude: pin.longitude,
-      imageUrls,
-    };
-
-    console.log('보낼 placeDto:', JSON.stringify(placeDto, null, 2));
-
-    const res = await fetch('http://3.35.27.124:8080/places', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`, // ✅ 토큰 추가
-      },
-      body: JSON.stringify(placeDto),
-    });
-
-    const resText = await res.text();
-
-    if (res.ok) {
-      Alert.alert('등록 완료', '장소가 성공적으로 등록되었습니다.');
-    } else {
-      try {
-        const error = JSON.parse(resText);
-        Alert.alert('실패', error.message || '등록에 실패했습니다.');
-      } catch (e) {
-        Alert.alert('실패', resText || '등록에 실패했습니다.');
+    try {
+      const token = await AsyncStorage.getItem('jwt');
+      if (!token) {
+        Alert.alert('로그인 필요', '장소 등록을 위해 로그인해 주세요.');
+        return;
       }
+
+      const imageUrls = await Promise.all(images.map(uploadToS3));
+
+      const placeDto = {
+        name: name.trim().replace(/\s+/g, ' '),
+        title: title.trim().replace(/\s+/g, ' '),
+        content: content.trim(),
+        latitude: pin.latitude,
+        longitude: pin.longitude,
+        imageUrls: imageUrls,
+      };
+
+      console.log('보낼 placeDto:', JSON.stringify(placeDto, null, 2));
+
+      const res = await fetch('http://3.35.27.124:8080/places', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(placeDto),
+      });
+
+      const resText = await res.text();
+
+      if (res.ok) {
+        Alert.alert('등록 완료', '장소가 성공적으로 등록되었습니다.', [
+          {
+            text: '확인',
+            onPress: () => navigation.navigate('PlaceList', { refresh: true }),
+          },
+        ]);
+      } else {
+        try {
+          const error = JSON.parse(resText);
+          Alert.alert('실패', error.message || '등록에 실패했습니다.');
+        } catch {
+          Alert.alert('실패', resText || '등록에 실패했습니다.');
+        }
+      }
+    } catch (err) {
+      console.error(err);
+      Alert.alert('오류', '서버와 연결할 수 없습니다.');
     }
-  } catch (err) {
-    console.error(err);
-    Alert.alert('오류', '서버와 연결할 수 없습니다.');
-  }
-};
+  };
 
   return (
     <SafeAreaView style={styles.container}>
@@ -156,6 +185,7 @@ export default function PlaceWriteScreen() {
             value={name}
             onChangeText={setName}
             onSubmitEditing={searchLocationByName}
+            returnKeyType="search"
           />
         </View>
 
@@ -177,6 +207,7 @@ export default function PlaceWriteScreen() {
             value={content}
             onChangeText={setContent}
             multiline
+            textAlignVertical="top"
           />
         </View>
 
@@ -197,14 +228,14 @@ export default function PlaceWriteScreen() {
 
         <View style={styles.inputGroup}>
           <Text style={styles.label}>사진 업로드 (최대 3장)</Text>
-          <ScrollView horizontal>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {images.map((uri, idx) => (
               <Image key={idx} source={{ uri }} style={styles.previewImage} />
             ))}
             {images.length < 3 && (
               <TouchableOpacity style={styles.photoButton} onPress={handlePickImage}>
                 <Ionicons name="camera-outline" size={24} color="#828282" />
-                <Text>{images.length}/3</Text>
+                <Text style={{ marginTop: 4 }}>{images.length}/3</Text>
               </TouchableOpacity>
             )}
           </ScrollView>
@@ -239,5 +270,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderRadius: 8,
     backgroundColor: '#f0f0f0',
+    marginRight: 8,
   },
 });

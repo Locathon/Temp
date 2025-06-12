@@ -20,7 +20,6 @@ import {
 type Place = {
   id: string;
   name: string;
-  category: string;
   description: string;
   thumbnail: ImageSourcePropType | string; // URL일 수도 있음
 };
@@ -30,21 +29,18 @@ const DUMMY_PLACES: Place[] = [
   {
     id: '1',
     name: '행궁동 벽화마을',
-    category: '문화/예술',
     description: '골목골목 예쁜 벽화가 가득한 사진 명소',
     thumbnail: require('../../assets/images/mural_village.jpg'), 
   },
   {
     id: '2',
     name: '플라잉수원 (헬륨기구)',
-    category: '체험/활동',
     description: '수원 화성의 아름다운 전경을 하늘에서 감상',
     thumbnail: require('../../assets/images/flying_suwon.jpg'),
   },
   {
     id: '3',
     name: '통닭거리',
-    category: '음식점',
     description: '수원 왕갈비 통닭의 원조, 맛집이 모여있는 거리',
     thumbnail: require('../../assets/images/chicken_street.jpg'),
   },
@@ -74,7 +70,6 @@ export default function PlaceListScreen() {
       });
   }, []);
 
-  // jwtToken이 준비되면 API 호출
   useEffect(() => {
     if (!jwtToken) return; // 토큰 없으면 요청 안함
 
@@ -93,15 +88,19 @@ export default function PlaceListScreen() {
           ? res.data.data
           : [];
 
-       const apiPlaces: Place[] = placesFromApi.map((place: any) => ({
-          id: `api_${place.latitude}_${place.longitude}`, // 고유한 id 생성
+       const apiPlaces: Place[] = placesFromApi.map((place: any) => {
+        console.log('place.imageUrls[0]:', place.imageUrls ? place.imageUrls[0] : '없음');
+
+        return {
+          id: `api_${place.latitude}_${place.longitude}`,
           name: place.name ?? '이름 없음',
-          category: '체험/활동',           // 'category' 대신 title을 넣었음
           description: place.content ?? '',
-          thumbnail: place.imageUrls && place.imageUrls.length > 0
-            ? { uri: place.imageUrls[0] }
-            : require('../../assets/images/flying_suwon.jpg'),
-}));
+          thumbnail:
+            place.imageUrls && place.imageUrls.length > 0 && place.imageUrls[0]
+              ? { uri: place.imageUrls[0] }
+              : require('../../assets/images/flying_suwon.jpg'),
+        };
+      });
 
         setPlaces(apiPlaces);
         console.log('setPlaces 후 places:', apiPlaces);
@@ -116,9 +115,6 @@ export default function PlaceListScreen() {
     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PlaceDetail', { placeId: item.id })}>
       <Image source={typeof item.thumbnail === 'string' ? { uri: item.thumbnail } : item.thumbnail} style={styles.thumbnail} />
       <View style={styles.cardContent}>
-        <View style={styles.cardHeader}>
-          <Text style={styles.cardCategory}>{item.category}</Text>
-        </View>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
       </View>
@@ -141,7 +137,7 @@ export default function PlaceListScreen() {
         data={[...DUMMY_PLACES, ...places]}
         renderItem={renderPlaceItem}
         keyExtractor={(item) => item.id}
-        extraData={places}  // 상태 변화를 감지하도록
+        extraData={places}
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
@@ -167,7 +163,6 @@ const styles = StyleSheet.create({
   thumbnail: { width: '100%', height: 180, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
   cardContent: { padding: 16 },
   cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  cardCategory: { fontSize: 12, color: '#2F80ED', backgroundColor: '#EAF2FF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 8, fontWeight: '600', overflow: 'hidden' },
   cardTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 4 },
   cardDescription: { fontSize: 14, color: '#4F4F4F' },
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: '40%' },
