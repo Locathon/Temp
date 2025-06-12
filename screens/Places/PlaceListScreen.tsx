@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React from 'react';
+import axios from 'axios';
+import React, { useEffect, useState } from 'react';
 
 import {
   FlatList,
@@ -20,7 +22,7 @@ type Place = {
   name: string;
   category: string;
   description: string;
-  thumbnail: ImageSourcePropType;
+  thumbnail: ImageSourcePropType | string; // URL일 수도 있음
 };
 
 // 임시 장소 데이터
@@ -39,7 +41,7 @@ const DUMMY_PLACES: Place[] = [
     description: '수원 화성의 아름다운 전경을 하늘에서 감상',
     thumbnail: require('../../assets/images/flying_suwon.jpg'),
   },
-   {
+  {
     id: '3',
     name: '통닭거리',
     category: '음식점',
@@ -49,22 +51,73 @@ const DUMMY_PLACES: Place[] = [
 ];
 
 type PlaceStackParamList = {
-    PlaceWrite: undefined;
-    PlaceDetail: { placeId: string };
-    PlaceSearch: undefined; // 검색 화면으로 이동할 수 있도록 경로 타입 추가
+  PlaceWrite: undefined;
+  PlaceDetail: { placeId: string };
+  PlaceSearch: undefined;
 };
 
 type PlaceListNavigationProp = NativeStackNavigationProp<PlaceStackParamList>;
 
 export default function PlaceListScreen() {
   const navigation = useNavigation<PlaceListNavigationProp>();
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [jwtToken, setJwtToken] = useState<string | null>(null);
+
+  // AsyncStorage에서 JWT 토큰을 불러오기
+  useEffect(() => {
+    AsyncStorage.getItem('jwt')
+      .then(token => {
+        setJwtToken(token);
+      })
+      .catch(err => {
+        console.error('JWT 토큰 불러오기 실패:', err);
+      });
+  }, []);
+
+  // jwtToken이 준비되면 API 호출
+  useEffect(() => {
+    if (!jwtToken) return; // 토큰 없으면 요청 안함
+
+    axios
+      .get('http://3.35.27.124:8080/places', {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      })
+      .then((res) => {
+        console.log('백엔드 응답:', JSON.stringify(res.data, null, 2));
+
+        const placesFromApi = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+       const apiPlaces: Place[] = placesFromApi.map((place: any) => ({
+          id: `api_${place.latitude}_${place.longitude}`, // 고유한 id 생성
+          name: place.name ?? '이름 없음',
+          category: '체험/활동',           // 'category' 대신 title을 넣었음
+          description: place.content ?? '',
+          thumbnail: place.imageUrls && place.imageUrls.length > 0
+            ? { uri: place.imageUrls[0] }
+            : require('../../assets/images/flying_suwon.jpg'),
+}));
+
+        setPlaces(apiPlaces);
+        console.log('setPlaces 후 places:', apiPlaces);
+      })
+      .catch((err) => {
+        console.error('장소 불러오기 실패:', err);
+      });
+  }, [jwtToken]);
+
 
   const renderPlaceItem = ({ item }: { item: Place }) => (
     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('PlaceDetail', { placeId: item.id })}>
-      <Image source={item.thumbnail} style={styles.thumbnail} />
+      <Image source={typeof item.thumbnail === 'string' ? { uri: item.thumbnail } : item.thumbnail} style={styles.thumbnail} />
       <View style={styles.cardContent}>
         <View style={styles.cardHeader}>
-            <Text style={styles.cardCategory}>{item.category}</Text>
+          <Text style={styles.cardCategory}>{item.category}</Text>
         </View>
         <Text style={styles.cardTitle}>{item.name}</Text>
         <Text style={styles.cardDescription}>{item.description}</Text>
@@ -72,27 +125,30 @@ export default function PlaceListScreen() {
     </TouchableOpacity>
   );
 
+  // DUMMY + 실제 데이터 합치기
+  const combinedPlaces = [...DUMMY_PLACES, ...places];
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.headerTitle}>장소</Text>
-        {/* ⭐️ 검색 아이콘을 눌렀을 때 PlaceSearch 화면으로 이동하도록 수정 */}
         <TouchableOpacity onPress={() => navigation.navigate('PlaceSearch')}>
-            <Ionicons name="search-outline" size={24} color="#333" />
+          <Ionicons name="search-outline" size={24} color="#333" />
         </TouchableOpacity>
       </View>
-      
+
       <FlatList
-        data={DUMMY_PLACES}
+        data={[...DUMMY_PLACES, ...places]}
         renderItem={renderPlaceItem}
-        keyExtractor={item => item.id}
+        keyExtractor={(item) => item.id}
+        extraData={places}  // 상태 변화를 감지하도록
         contentContainerStyle={styles.listContainer}
         ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>아직 등록된 장소가 없어요.</Text>
-            </View>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>아직 등록된 장소가 없어요.</Text>
+          </View>
         }
-      />
+/>
 
       <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('PlaceWrite')}>
         <Ionicons name="add-outline" size={32} color="#FFFFFF" />
@@ -102,6 +158,7 @@ export default function PlaceListScreen() {
 }
 
 const styles = StyleSheet.create({
+  // 기존 스타일 유지
   container: { flex: 1, backgroundColor: '#F2F2F7' },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#EAEAEA' },
   headerTitle: { fontSize: 22, fontWeight: 'bold' },

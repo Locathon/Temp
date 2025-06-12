@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import React, { useEffect, useState } from 'react';
+
 import {
   Alert,
   Image,
@@ -82,41 +84,59 @@ export default function PlaceWriteScreen() {
     }
   };
 
-  const handleSavePlace = async () => {
-    if (!name || !title || !content) {
-      Alert.alert('입력 필요', '장소 이름, 제목, 내용을 모두 입력해주세요.');
+ const handleSavePlace = async () => {
+  if (!name || !title || !content) {
+    Alert.alert('입력 필요', '장소 이름, 제목, 내용을 모두 입력해주세요.');
+    return;
+  }
+
+  try {
+    const token = await AsyncStorage.getItem('jwt'); // JWT 꺼내오기
+
+    if (!token) {
+      Alert.alert('로그인 필요', '장소 등록을 위해 로그인해 주세요.');
       return;
     }
 
-    try {
-      const imageUrls = await Promise.all(images.map(uploadToS3));
+    const imageUrls = await Promise.all(images.map(uploadToS3));
 
-      const placeDto = {
-        name,
-        title,
-        content,
-        latitude: pin.latitude,
-        longitude: pin.longitude,
-        imageUrls,
-      };
+    const placeDto = {
+      name,
+      title,
+      content,
+      latitude: pin.latitude,
+      longitude: pin.longitude,
+      imageUrls,
+    };
 
-      const res = await fetch('http://3.35.27.124/api/places', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(placeDto),
-      });
+    console.log('보낼 placeDto:', JSON.stringify(placeDto, null, 2));
 
-      if (res.ok) {
-        Alert.alert('등록 완료', '장소가 성공적으로 등록되었습니다.');
-      } else {
-        const error = await res.json();
+    const res = await fetch('http://3.35.27.124:8080/places', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`, // ✅ 토큰 추가
+      },
+      body: JSON.stringify(placeDto),
+    });
+
+    const resText = await res.text();
+
+    if (res.ok) {
+      Alert.alert('등록 완료', '장소가 성공적으로 등록되었습니다.');
+    } else {
+      try {
+        const error = JSON.parse(resText);
         Alert.alert('실패', error.message || '등록에 실패했습니다.');
+      } catch (e) {
+        Alert.alert('실패', resText || '등록에 실패했습니다.');
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert('오류', '서버와 연결할 수 없습니다.');
     }
-  };
+  } catch (err) {
+    console.error(err);
+    Alert.alert('오류', '서버와 연결할 수 없습니다.');
+  }
+};
 
   return (
     <SafeAreaView style={styles.container}>
