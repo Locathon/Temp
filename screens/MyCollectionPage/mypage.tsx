@@ -26,8 +26,13 @@ const MyPageScreen = () => {
   const navigation = useNavigation();
   const { isLoggedIn, logout } = useAuth();
 
-  const userNickname = '느린행궁러버';
-  const userProfileImageUrl = null;
+  const userNickname = '성이름';
+  const userProfileImageUrl = require('../../assets/images/default-profile.png');
+
+  <Image
+    source={userProfileImageUrl}
+    style={styles.profileImage}
+  />
 
   const handleLogout = () => {
     Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
@@ -76,43 +81,83 @@ const MyPageScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView>
-        {/* 프로필 섹션 */}
-        <View style={styles.profileSection}>
-          <Image
-            source={userProfileImageUrl ? { uri: userProfileImageUrl } : { uri: 'https://placehold.co/60x60/EFEFEF/AAAAAA?text=P' }}
-            style={styles.profileImage}
-          />
-          <View style={styles.profileInfo}>
-            <Text style={styles.nickname}>{isLoggedIn ? `${userNickname}님` : '로그인이 필요합니다'}</Text>
-            {isLoggedIn && (
-                <TouchableOpacity onPress={() => navigation.navigate('edit_profile' as never)}>
-                    <Text style={styles.editProfileText}>프로필 수정 &gt;</Text>
-                </TouchableOpacity>
-            )}
-          </View>
-          {isLoggedIn && (
-            <TouchableOpacity onPress={handleLogout}>
-              <Ionicons name="log-out-outline" size={24} color="#828282" />
-            </TouchableOpacity>
-          )}
-        </View>
+        {/* 마이페이지 타이틀 */}
+        {/* <Text style={{ fontSize: 18, fontWeight: 'bold', alignSelf: 'center', marginVertical: 12 }}>마이페이지</Text> */}
 
-        {/* 내 활동 섹션 */}
-        <View style={styles.section}>
-            <View style={styles.activityRow}>
-                {activityItems.map(item => (
-                    <TouchableOpacity key={item.id} style={styles.activityItem} onPress={() => navigation.navigate(item.id as never)}>
-                        <Ionicons name={item.icon} size={24} color="#333" />
-                        <Text style={styles.activityTitle}>{item.title}</Text>
-                        <Text style={styles.activityCount}>{item.count}</Text>
-                    </TouchableOpacity>
-                ))}
+        {/* 프로필 카드 */}
+        <View style={{ position: 'relative' }}>
+          <View style={{
+            backgroundColor: '#fff',
+            marginHorizontal: 16,
+            borderRadius: 12,
+            padding: 20,
+            shadowColor: '#000',
+            shadowOpacity: 0.1,
+            shadowRadius: 4,
+            elevation: 3,
+          }}>
+            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+              <Image
+                source={userProfileImageUrl}
+                style={styles.profileImage}
+              />
+              <View style={{ marginLeft: 16 }}>
+                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{userNickname}</Text>
+                <Text style={{ color: '#828282', marginTop: 4 }}>ID12340808</Text>
+              </View>
             </View>
+            <TouchableOpacity
+              style={{
+                position: 'absolute',
+                top: 16,
+                right: 16,
+                width: 36,
+                height: 36,
+                borderRadius: 18,
+                backgroundColor: '#EAF6FF',
+                justifyContent: 'center',
+                alignItems: 'center',
+                zIndex: 10,
+              }}
+              onPress={() => navigation.navigate('edit_profile' as never)}
+            >
+              <Image
+                source={require('../../assets/images/edit.png')}
+                style={{ width: 20, height: 20 }}
+                resizeMode="contain"
+              />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('my-courses' as never)}
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                backgroundColor: '#F7F9FB',
+                borderRadius: 10,
+                paddingVertical: 12,
+                paddingHorizontal: 16,
+                marginTop: 20,
+              }}
+            >
+              <Ionicons name="archive-outline" size={20} color="#00AEEF" style={{ marginRight: 8 }} />
+              <Text style={{ fontSize: 16, color: '#000' }}>마이 컬렉션</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
-        {/* 설정 및 기타 메뉴 섹션 */}
+        {/* 설정 구분선 */}
+        <Text style={{ marginLeft: 16, marginTop: 24, marginBottom: 4, color: '#9E9E9E' }}>설정</Text>
         <View style={styles.menuSection}>
-          {settingItems.map(renderMenuItem)}
+          {renderMenuItem(settingItems[0])}
+          {renderMenuItem(settingItems[1])}
+        </View>
+
+        {/* 고객센터 구분선 */}
+        <Text style={{ marginLeft: 16, marginTop: 24, marginBottom: 4, color: '#9E9E9E' }}>고객센터</Text>
+        <View style={styles.menuSection}>
+          {renderMenuItem(settingItems[2])}
+          {renderMenuItem(settingItems[3])}
         </View>
       </ScrollView>
     </SafeAreaView>
@@ -120,9 +165,9 @@ const MyPageScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
   profileSection: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20, },
-  profileImage: { width: 60, height: 60, borderRadius: 30 },
+  profileImage: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#005B9E' },
   profileInfo: { flex: 1, marginLeft: 16 },
   nickname: { fontSize: 20, fontWeight: 'bold' },
   editProfileText: { fontSize: 14, color: '#828282', marginTop: 4 },
