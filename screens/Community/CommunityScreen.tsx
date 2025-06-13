@@ -13,8 +13,9 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import { useAuth } from '../../contexts/AuthContext'; // AuthContext 훅 import
 
-// Post 타입 정의 (iLiked 추가)
+// --- 기존 Post, ParamList 타입 정의 (변경 없음) ---
 type Post = {
   id: string;
   author: string;
@@ -22,12 +23,11 @@ type Post = {
   content: string;
   images: ImageSourcePropType[];
   likes: number;
-  iLiked: boolean; // 내가 '좋아요'를 눌렀는지 여부
+  iLiked: boolean;
   comments: number;
   timestamp: string;
 };
 
-// 임시 데이터 (iLiked 속성 추가)
 const DUMMY_POSTS: Post[] = [
   {
     id: '1',
@@ -50,7 +50,7 @@ const DUMMY_POSTS: Post[] = [
     content: '방화수류정에서 피크닉하실 분 구해요~ 날씨가 너무 좋네요!',
     images: [],
     likes: 22,
-    iLiked: true, // 테스트용
+    iLiked: true,
     comments: 8,
     timestamp: '30분 전',
   },
@@ -59,11 +59,11 @@ const DUMMY_POSTS: Post[] = [
 type RootStackParamList = {
   PostDetail: { postId: string };
   CreatePost: undefined;
+  Login: undefined; // 로그인 화면으로 이동하기 위해 추가
 };
-
 type CommunityScreenNavigationProp = NativeStackNavigationProp<RootStackParamList>;
 
-// PostCard 컴포넌트: 좋아요 토글 함수를 props로 받음
+// --- 기존 PostCard 컴포넌트 (변경 없음) ---
 const PostCard = ({ post, handleToggleLike }: { post: Post; handleToggleLike: (postId: string) => void }) => {
   const navigation = useNavigation<CommunityScreenNavigationProp>();
   const { width } = Dimensions.get('window');
@@ -149,9 +149,27 @@ const PostCard = ({ post, handleToggleLike }: { post: Post; handleToggleLike: (p
   );
 };
 
+
+// ⭐️ 로그인하지 않았을 때 보여줄 화면 컴포넌트
+const NotLoggedInView = () => {
+    const navigation = useNavigation<CommunityScreenNavigationProp>();
+    return (
+      <View style={styles.notLoggedInContainer}>
+        <Ionicons name="people-circle-outline" size={80} color="#BDBDBD" />
+        <Text style={styles.notLoggedInTitle}>함께 여행을 떠나볼까요?</Text>
+        <Text style={styles.notLoggedInSubtitle}>로그인이 필요한 서비스에요.</Text>
+        <TouchableOpacity style={styles.loginButton} onPress={() => navigation.navigate('Login')}>
+          <Text style={styles.loginButtonText}>로그인/회원가입</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  };
+  
+// ⭐️ 메인 커뮤니티 화면 컴포넌트
 export default function CommunityScreen() {
   const navigation = useNavigation<CommunityScreenNavigationProp>();
   const [posts, setPosts] = useState(DUMMY_POSTS);
+  const { isLoggedIn } = useAuth(); // AuthContext에서 로그인 상태 가져오기
 
   const handleToggleLike = (postId: string) => {
     setPosts(currentPosts =>
@@ -173,39 +191,78 @@ export default function CommunityScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>커뮤니티</Text>
       </View>
-      <FlatList
-        data={posts}
-        renderItem={({ item }) => <PostCard post={item} handleToggleLike={handleToggleLike} />}
-        keyExtractor={item => item.id}
-        contentContainerStyle={{ paddingBottom: 80 }}
-      />
-      <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreatePost')}>
-        <Ionicons name="add" size={32} color="#FFFFFF" />
-      </TouchableOpacity>
+
+      {/* ⭐️ 로그인 상태에 따라 다른 내용을 보여줍니다. */}
+      {isLoggedIn ? (
+        <>
+          <FlatList
+            data={posts}
+            renderItem={({ item }) => <PostCard post={item} handleToggleLike={handleToggleLike} />}
+            keyExtractor={item => item.id}
+            contentContainerStyle={{ paddingBottom: 80 }}
+          />
+          <TouchableOpacity style={styles.fab} onPress={() => navigation.navigate('CreatePost')}>
+            <Ionicons name="add" size={32} color="#FFFFFF" />
+          </TouchableOpacity>
+        </>
+      ) : (
+        <NotLoggedInView />
+      )}
     </SafeAreaView>
   );
 }
 
+// ⭐️ 스타일시트에 로그인 유도 화면 관련 스타일 추가
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F2F2F7' },
-  header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0', backgroundColor: '#FFFFFF' },
-  headerTitle: { fontSize: 22, fontWeight: 'bold' },
-  card: { backgroundColor: '#FFFFFF', padding: 16, marginVertical: 8, marginHorizontal: 16, borderRadius: 10 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
-  author: { fontWeight: 'bold' },
-  timestamp: { fontSize: 12, color: '#828282' },
-  content: { fontSize: 16, lineHeight: 24, marginBottom: 12 },
-  imageSliderContainer: { borderRadius: 10, overflow: 'hidden', marginBottom: 12 },
-  postImage: { height: undefined, aspectRatio: 3 / 4, resizeMode: 'cover' },
-  arrow: { position: 'absolute', top: '50%', marginTop: -22, backgroundColor: 'rgba(0, 0, 0, 0.4)', borderRadius: 22, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
-  arrowLeft: { left: 10 },
-  arrowRight: { right: 10 },
-  paginationContainer: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255, 255, 255, 0.5)', marginHorizontal: 4 },
-  activeDot: { backgroundColor: '#FFFFFF' },
-  cardFooter: { flexDirection: 'row', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F2F2F2' },
-  footerAction: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
-  footerText: { marginLeft: 6, color: '#828282' },
-  fab: { position: 'absolute', right: 20, bottom: 20, backgroundColor: '#2F80ED', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
+    notLoggedInContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+        backgroundColor: '#F2F2F7',
+    },
+    notLoggedInTitle: {
+        fontSize: 20,
+        fontWeight: 'bold',
+        marginTop: 20,
+        color: '#4F4F4F',
+    },
+    notLoggedInSubtitle: {
+        fontSize: 16,
+        color: '#828282',
+        marginTop: 8,
+        marginBottom: 30,
+    },
+    loginButton: {
+        backgroundColor: '#2F80ED',
+        paddingVertical: 12,
+        paddingHorizontal: 40,
+        borderRadius: 25,
+    },
+    loginButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+    },
+    container: { flex: 1, backgroundColor: '#F2F2F7' },
+    header: { padding: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0', backgroundColor: '#FFFFFF' },
+    headerTitle: { fontSize: 22, fontWeight: 'bold' },
+    card: { backgroundColor: '#FFFFFF', padding: 16, marginVertical: 8, marginHorizontal: 16, borderRadius: 10 },
+    cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
+    author: { fontWeight: 'bold' },
+    timestamp: { fontSize: 12, color: '#828282' },
+    content: { fontSize: 16, lineHeight: 24, marginBottom: 12 },
+    imageSliderContainer: { borderRadius: 10, overflow: 'hidden', marginBottom: 12 },
+    postImage: { height: undefined, aspectRatio: 3 / 4, resizeMode: 'cover' },
+    arrow: { position: 'absolute', top: '50%', marginTop: -22, backgroundColor: 'rgba(0, 0, 0, 0.4)', borderRadius: 22, width: 44, height: 44, justifyContent: 'center', alignItems: 'center' },
+    arrowLeft: { left: 10 },
+    arrowRight: { right: 10 },
+    paginationContainer: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
+    dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255, 255, 255, 0.5)', marginHorizontal: 4 },
+    activeDot: { backgroundColor: '#FFFFFF' },
+    cardFooter: { flexDirection: 'row', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F2F2F2' },
+    footerAction: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
+    footerText: { marginLeft: 6, color: '#828282' },
+    fab: { position: 'absolute', right: 20, bottom: 20, backgroundColor: '#2F80ED', width: 60, height: 60, borderRadius: 30, justifyContent: 'center', alignItems: 'center', elevation: 8, shadowColor: '#000', shadowOffset: { width: 0, height: 2 }, shadowOpacity: 0.25, shadowRadius: 3.84 },
 });
