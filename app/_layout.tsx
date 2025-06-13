@@ -1,6 +1,8 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, View } from 'react-native';
+// 1. react-native-safe-area-context에서 SafeAreaProvider를 import 합니다.
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 const RootLayoutNav = () => {
@@ -11,16 +13,11 @@ const RootLayoutNav = () => {
     useEffect(() => {
         if (isLoading) return;
         
-        // 현재 경로가 로그인/회원가입 관련 화면인지 확인합니다.
-        // segments[0]는 현재 URL의 첫 번째 부분을 나타냅니다. (예: 'login')
         const inAuthGroup = segments.length > 0 && (segments[0] === 'login' || segments[0] === 'register');
 
         if (!isLoggedIn && !inAuthGroup) {
-            // 로그인 상태가 아니고, 현재 인증 화면에 있지도 않다면 로그인 화면으로 보냅니다.
             router.replace('/login');
         } else if (isLoggedIn && inAuthGroup) {
-            // 로그인 상태인데, 여전히 인증 화면에 있다면 메인 화면으로 보냅니다.
-            // ('/'는 app/index.tsx를 가리킵니다.)
             router.replace('/');
         }
     }, [isLoggedIn, isLoading, segments]);
@@ -33,10 +30,6 @@ const RootLayoutNav = () => {
         );
     }
     
-    // [오류 수정]
-    // <Stack> 내부에 <Stack.Screen>을 명시적으로 선언하여
-    // Expo Router와 TypeScript가 라우트 목록을 정확하게 인지하도록 합니다.
-    // 이렇게 하면 'never' 타입 오류가 해결됩니다.
     return (
         <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" />
@@ -48,8 +41,12 @@ const RootLayoutNav = () => {
 
 export default function RootLayout() {
   return (
-    <AuthProvider>
-      <RootLayoutNav />
-    </AuthProvider>
+    // 2. AuthProvider의 바깥쪽을 <SafeAreaProvider>로 감싸줍니다.
+    // 이렇게 하면 앱의 모든 화면이 '안전 영역' 정보를 올바르게 계산할 수 있게 됩니다.
+    <SafeAreaProvider>
+        <AuthProvider>
+            <RootLayoutNav />
+        </AuthProvider>
+    </SafeAreaProvider>
   );
 }
