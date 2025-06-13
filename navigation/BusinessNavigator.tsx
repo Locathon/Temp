@@ -3,8 +3,7 @@ import React from 'react';
 
 // 주요 화면 컴포넌트 import
 import AutoQnAScreen from '../screens/BusinessTab/AutoQnAScreen';
-import EditProfileScreen from '../screens/BusinessTab/EditProfileScreen';
-import EditStore from '../screens/BusinessTab/EditStore';
+import { default as EditProfileScreen, default as EditStore } from '../screens/BusinessTab/EditProfileScreen';
 import GenerateMarketingScreen from '../screens/BusinessTab/GenerateMarketingScreen';
 import MarketingDetailScreen from '../screens/BusinessTab/MarketingDetailScreen';
 import NewPostScreen from '../screens/BusinessTab/NewPostScreen';

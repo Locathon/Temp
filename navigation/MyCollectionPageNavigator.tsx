@@ -19,7 +19,7 @@ const Stack = createNativeStackNavigator();
 
 const MyCollectionPageNavigator = () => {
   return (
-    <Stack.Navigator initialRouteName="mypage" screenOptions={{ headerShown: false }}>
+    <Stack.Navigator initialRouteName="mypage" screenOptions={{ headerShown: true }}>
         <Stack.Screen name="mypage" component={mypage} />
         <Stack.Screen name="edit_profile" component={edit_profile} />
         <Stack.Screen name="my-courses" component={my_courses} />

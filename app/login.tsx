@@ -1,3 +1,4 @@
+import { Link } from 'expo-router'; // ⭐️ 회원가입 화면으로 이동하기 위해 Link를 import 합니다.
 import React, { useState } from 'react';
 import {
   ActivityIndicator,
@@ -10,7 +11,7 @@ import {
   TouchableWithoutFeedback,
   View
 } from 'react-native';
-import { useAuth } from '../contexts/AuthContext'; // ⭐️ AuthContext의 useAuth 훅을 가져옵니다.
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginScreen = () => {
   const [email, setEmail] = useState('');
@@ -21,17 +22,12 @@ const LoginScreen = () => {
   const handleLogin = async () => {
     Keyboard.dismiss();
 
-    // ⭐️ [비밀 아이디(뒷길) 추가]
-    // 특정 아이디와 비밀번호를 입력하면, 서버 통신 없이 바로 로그인 처리합니다.
-    // 소상공인 탭 테스트를 위해 userType을 'business'로 설정합니다.
     if (email === 'test@locathon.com' && password === '1234') {
       Alert.alert('테스트 로그인', '소상공인 계정으로 로그인합니다.');
       await login('secret-backdoor-token', 'business');
-      return; // 뒷길로 로그인했으면, 여기서 함수를 종료합니다.
+      return; 
     }
     
-    // --- 아래는 일반 사용자를 위한 기존 로그인 로직입니다. ---
-
     if (!email || !password) {
       Alert.alert('입력 오류', '이메일과 비밀번호를 모두 입력해주세요.');
       return;
@@ -98,11 +94,22 @@ const LoginScreen = () => {
                     <Text style={styles.buttonText}>로그인</Text>
                 )}
             </TouchableOpacity>
+
+            {/* ⭐️ 회원가입으로 이동하는 링크를 추가합니다. */}
+            <View style={styles.footerContainer}>
+                <Text style={styles.footerText}>아직 회원이 아니신가요? </Text>
+                <Link href="/register" asChild>
+                    <TouchableOpacity>
+                        <Text style={styles.link}>회원가입</Text>
+                    </TouchableOpacity>
+                </Link>
+            </View>
         </View>
     </TouchableWithoutFeedback>
   );
 };
 
+// ⭐️ 스타일을 추가/수정합니다.
 const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#FFFFFF' },
   title: { fontSize: 32, fontWeight: 'bold', color: '#2F80ED', textAlign: 'center', marginBottom: 10 },
@@ -123,8 +130,23 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 8,
+    marginTop: 10,
   },
   buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
+  footerContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    marginTop: 20,
+  },
+  footerText: {
+    fontSize: 16,
+    color: '#828282',
+  },
+  link: {
+    fontSize: 16,
+    color: '#2F80ED',
+    fontWeight: 'bold',
+  },
 });
 
 export default LoginScreen;
