@@ -1,268 +1,201 @@
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Dimensions, Image, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
-type BusinessStackParamList = {
-  EditProfileScreen: undefined;
-  AutoQnAScreen: undefined;
-  NewPostScreen: { newPost?: { content: string; images: string[] } };
-  RegisterStore: undefined; // ⭐️ 네비게이션 타입에 RegisterStore 추가
+// 임시 가게 데이터 (추후 API 연동)
+const DUMMY_STORE_DATA = {
+  name: '온멜로',
+  image: require('../../assets/images/onmelo_interior.jpg'), // 로컬 이미지 사용
+  address: '수원시 팔달구 신풍로63번길 3-1 1층',
+  phone: '0507-1335-9715',
+  stats: {
+    visitors: '1,234',
+    likes: 456,
+    reviews: 89,
+  },
 };
 
 export default function StoreHomeScreen() {
-  const navigation = useNavigation<NativeStackNavigationProp<BusinessStackParamList>>();
-  const route = useRoute<RouteProp<BusinessStackParamList, 'NewPostScreen'>>();
-  const [posts, setPosts] = React.useState<{ content: string; images: string[] }[]>([]);
-  const [currentImageIndex, setCurrentImageIndex] = React.useState(0);
-
-  React.useEffect(() => {
-    const unsubscribe = navigation.addListener('focus', () => {
-      const newPost = route.params?.newPost;
-            setPosts(prev => {
-        if (!newPost) return prev;
-        const exists = prev.some(
-          post =>
-            post.content === newPost.content &&
-            JSON.stringify(post.images) === JSON.stringify(newPost.images)
-        );
-        return exists ? prev : [newPost, ...prev];
-      });
-    });
-
-    return unsubscribe;
-  }, [navigation, route.params?.newPost]);
-
-  const handleScroll = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / event.nativeEvent.layoutMeasurement.width);
-    setCurrentImageIndex(index);
-  };
+  const navigation = useNavigation<any>();
 
   return (
-    <ScrollView style={styles.container}>
-      {/* 상단 프로필 영역 */}
-      <View style={styles.profileBox}>
-        <View style={styles.profileRow}>
-          <View style={styles.profileImagePlaceholder} />
-          <View>
-            <Text style={styles.storeName}>000 ⭐</Text>
-            <Text style={styles.category}>디저트 카페</Text>
-          </View>
+    <SafeAreaView style={styles.safeArea}>
+      <ScrollView style={styles.container}>
+        <View style={styles.header}>
+            <Text style={styles.headerTitle}>내 가게</Text>
         </View>
 
-        {/* ⭐️ 프로필 수정 및 가게 등록 버튼 컨테이너 */}
-        <View style={styles.buttonGroup}>
-            <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditProfileScreen')}>
-              <Ionicons name="create-outline" size={14} color="#333" />
-              <Text style={styles.editText}>프로필 수정</Text>
+        {/* 가게 정보 카드 */}
+        <View style={styles.card}>
+            <View style={styles.storeHeader}>
+                <Text style={styles.storeName}>{DUMMY_STORE_DATA.name}</Text>
+                <TouchableOpacity onPress={() => navigation.navigate('EditStore')}>
+                    <Ionicons name="ellipsis-horizontal" size={24} color="#828282" />
+                </TouchableOpacity>
+            </View>
+            <Image source={DUMMY_STORE_DATA.image} style={styles.storeImage} />
+            <View style={styles.storeInfo}>
+                <View style={styles.infoRow}>
+                    <Ionicons name="location-outline" size={16} color="#828282" />
+                    <Text style={styles.infoText}>{DUMMY_STORE_DATA.address}</Text>
+                </View>
+                <View style={styles.infoRow}>
+                    <Ionicons name="call-outline" size={16} color="#828282" />
+                    <Text style={styles.infoText}>{DUMMY_STORE_DATA.phone}</Text>
+                </View>
+            </View>
+        </View>
+
+        {/* 가게 현황 통계 */}
+        <View style={styles.statsContainer}>
+            <View style={styles.statBox}>
+                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.visitors}</Text>
+                <Text style={styles.statLabel}>방문자</Text>
+            </View>
+            <View style={styles.statBox}>
+                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.likes}</Text>
+                <Text style={styles.statLabel}>관심</Text>
+            </View>
+            <View style={styles.statBox}>
+                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.reviews}</Text>
+                <Text style={styles.statLabel}>후기</Text>
+            </View>
+        </View>
+
+        {/* 기능 버튼 메뉴 */}
+        <View style={styles.menuContainer}>
+            <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('NewPostScreen')}>
+                <Ionicons name="create-outline" size={28} color="#2F80ED" />
+                <Text style={styles.menuButtonText}>새 소식 작성</Text>
             </TouchableOpacity>
-            {/* ⭐️ '가게 등록' 버튼을 여기에 추가합니다! */}
-            <TouchableOpacity style={styles.registerButton} onPress={() => navigation.navigate('RegisterStore')}>
-              {/* ⭐️ 아이콘 이름을 'business-outline'으로 수정 */}
-              <Ionicons name="business-outline" size={14} color="#FFF" />
-              <Text style={styles.registerText}>가게 등록</Text>
+             <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('QASetup')}>
+                <Ionicons name="help-circle-outline" size={28} color="#2F80ED" />
+                <Text style={styles.menuButtonText}>자동응답 Q&A 설정</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('GenerateMarketing')}>
+                <Ionicons name="megaphone-outline" size={28} color="#2F80ED" />
+                <Text style={styles.menuButtonText}>마케팅 문구 생성</Text>
             </TouchableOpacity>
         </View>
-
-
-        <View style={styles.infoRow}>
-          <Text>📍 위치 정보</Text>
-          <Text>⏰ 운영 시간</Text>
-          <Text>#해시태그</Text>
-        </View>
-      </View>
-
-      {/* 자동 Q&A 버튼 */}
-      <TouchableOpacity style={styles.qaButton} onPress={() => navigation.navigate('AutoQnAScreen')}>
-        <Text style={styles.qaText}>자동 Q&A</Text>
-      </TouchableOpacity>
-
-      {/* 새 글 작성 */}
-      <TouchableOpacity
-        style={styles.newPostBar}
-        onPress={() =>
-          navigation.navigate('NewPostScreen', {
-            newPost: { content: '', images: [] },
-          })
-        }
-      >
-        <View style={styles.newPostIcon} />
-        <Text style={styles.newPostText}>새로운 글을 포스팅 하시겠습니까?</Text>
-        <Text style={styles.plus}>＋</Text>
-      </TouchableOpacity>
-
-      {/* 게시물 미리보기 카드 */}
-      {posts.map((post, postIndex) => (
-        <View key={postIndex} style={styles.postCard}>
-          <ScrollView
-            horizontal
-            pagingEnabled
-            showsHorizontalScrollIndicator={false}
-            style={styles.imageScroll}
-            onScroll={handleScroll}
-            scrollEventThrottle={16}
-          >
-            {post.images.map((uri: string, index: number) => (
-              <View key={index} style={{ width: Dimensions.get('window').width - 65 }}>
-                <Image source={{ uri }} style={styles.postImage} />
-              </View>
-            ))}
-          </ScrollView>
-          <View style={styles.dotContainer}>
-            {post.images.map((_, index) => (
-              <View
-                key={index}
-                style={[
-                  styles.dot,
-                  index === currentImageIndex ? styles.activeDot : styles.inactiveDot,
-                ]}
-              />
-            ))}
-          </View>
-          <View style={styles.postContentBox}>
-            <Text style={styles.postTitle}>{post.content}</Text>
-            <TouchableOpacity>
-              <Text style={styles.heart}>🤍</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      ))}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
+
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  profileBox: { padding: 20, alignItems: 'flex-start', position: 'relative', borderBottomWidth: 1, borderBottomColor: '#F2F2F2' },
-  category: { marginTop: 5, color: '#888' },
-
-  // ⭐️ 버튼 그룹 스타일 추가
-  buttonGroup: {
-    flexDirection: 'row',
-    position: 'absolute',
-    top: 20,
-    right: 20,
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#F2F2F7',
   },
-  editButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#f0f0f0',
-    borderRadius: 15,
-    borderWidth: 1,
-    borderColor: '#ccc',
+  container: {
+    flex: 1,
   },
-  editText: {
-    fontSize: 12,
-    color: '#000',
-    marginLeft: 4,
+  header: {
+    padding: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5'
   },
-  // ⭐️ 가게 등록 버튼 스타일 추가
-  registerButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginLeft: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    backgroundColor: '#2F80ED',
-    borderRadius: 15,
-  },
-  registerText: {
-    fontSize: 12,
-    color: '#FFFFFF',
+  headerTitle: {
+    fontSize: 22,
     fontWeight: 'bold',
-    marginLeft: 4,
   },
-
-  qaButton: {
-    marginHorizontal: 20,
-    marginTop: 10,
-    marginBottom: 10,
-    backgroundColor: '#eee',
-    padding: 12,
-    borderRadius: 20,
-    alignItems: 'center',
+  card: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    margin: 16,
+    padding: 16,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  qaText: { fontWeight: '500' },
-
-  newPostBar: {
-    marginHorizontal: 20,
+  storeHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 12,
-    backgroundColor: '#eee',
-    borderRadius: 15,
-  },
-  newPostText: { fontSize: 14 },
-  plus: { fontSize: 18, fontWeight: 'bold' },
-
-  profileRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  profileImagePlaceholder: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
-    backgroundColor: '#ccc',
+    marginBottom: 16,
   },
   storeName: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
   },
+  storeImage: {
+    width: '100%',
+    height: 180,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  storeInfo: {},
   infoRow: {
-    marginTop: 15, // 버튼 그룹과 겹치지 않도록 간격 조정
-    gap: 4,
-  },
-  newPostIcon: {
-    width: 30,
-    height: 30,
-    backgroundColor: '#ccc',
-    borderRadius: 6,
-  },
-  postCard: {
-    margin: 20,
-    backgroundColor: '#eee',
-    borderRadius: 12,
-    padding: 12,
-  },
-  imageScroll: {
-    height: 400,
-  },
-  postImage: {
-    width: Dimensions.get('window').width - 50,
-    height: 400,
-    resizeMode: 'cover',
-  },
-  postContentBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  infoText: {
+    marginLeft: 8,
+    fontSize: 14,
+    color: '#4F4F4F'
+  },
+  statsContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    paddingVertical: 20,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  statBox: {
     alignItems: 'center',
   },
-  postTitle: {
+  statValue: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#2F80ED',
+  },
+  statLabel: {
     fontSize: 14,
-    fontWeight: '500',
+    color: '#828282',
+    marginTop: 4,
   },
-  heart: {},
-  dotContainer: {
+  menuContainer: {
+    marginTop: 16,
+    marginHorizontal: 16,
+  },
+  menuButton: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    padding: 20,
     flexDirection: 'row',
-    justifyContent: 'center',
-    marginVertical: 8,
+    alignItems: 'center',
+    marginBottom: 12,
+    shadowColor: "#000",
+    shadowOffset: {
+      width: 0,
+      height: 1,
+    },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    marginHorizontal: 4,
-  },
-  activeDot: {
-    backgroundColor: '#000',
-  },
-  inactiveDot: {
-    backgroundColor: '#aaa',
+  menuButtonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    marginLeft: 16,
+    color: '#333333'
   },
 });
