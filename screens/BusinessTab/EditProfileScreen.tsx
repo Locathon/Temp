@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
@@ -15,6 +15,16 @@ export default function EditProfileScreen() {
 
   const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'done'>('idle');
   const [aiResult, setAiResult] = useState('');
+
+  const [loadingDots, setLoadingDots] = useState('');
+  useEffect(() => {
+    if (aiStatus === 'loading') {
+      const interval = setInterval(() => {
+        setLoadingDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [aiStatus]);
 
   // --------------------
   // 📱 화면 렌더링
@@ -37,14 +47,34 @@ export default function EditProfileScreen() {
             <Text style={styles.label}>소개</Text>
             <TouchableOpacity
               style={styles.aiInlineButton}
-              onPress={() => {
-                // ⏳ 버튼 클릭 시: 로딩 → 2초 후 변환 완료 (더미 로직)
+              onPress={async () => {
                 setAiStatus('loading');
                 setAiResult('');
-                setTimeout(() => {
+                try {
+                  const response = await fetch('http://localhost:8080/merchant/style-transform', {
+                    method: 'POST',
+                    headers: {
+                      'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                      originalText: description,
+                      tone: '친근하게',
+                    }),
+                  });
+
+                  if (!response.ok) {
+                    throw new Error('AI 변환 요청 실패');
+                  }
+
+                  const data = await response.json();
+                  setAiResult(data.transformed || '');
+                  setDescription(data.transformed || ''); // 필요 시 description 필드도 갱신
                   setAiStatus('done');
-                  setAiResult('고급진 문체로 재작성된 AI 추천 소개문입니다.');
-                }, 2000);
+                } catch (error) {
+                  console.error('AI 변환 중 오류 발생:', error);
+                  setAiResult('AI 변환 중 오류가 발생했습니다.');
+                  setAiStatus('idle');
+                }
               }}
             >
               <Text style={styles.aiInlineText}>
@@ -56,7 +86,7 @@ export default function EditProfileScreen() {
           </View>
           {aiStatus === 'loading' ? (
             <View style={[styles.input, styles.descriptionInput, { justifyContent: 'center' }]}>
-              <Text style={{ textAlign: 'center', fontSize: 24 }}>...</Text>
+              <Text style={{ textAlign: 'center', fontSize: 24 }}>{loadingDots}</Text>
             </View>
           ) : (
             <TextInput
@@ -64,15 +94,10 @@ export default function EditProfileScreen() {
               value={description}
               onChangeText={setDescription}
               multiline={true}
-              numberOfLines={4}
+              editable={true}
             />
           )}
 
-          {aiStatus === 'done' && (
-            <View style={styles.aiResultBox}>
-              <Text style={styles.aiResultText}>{aiResult}</Text>
-            </View>
-          )}
         </View>
         <View style={styles.profileImageBox}>
           <View style={styles.profileImagePlaceholder} />
@@ -160,8 +185,9 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   descriptionInput: {
-    height: 100,
     textAlignVertical: 'top',
+    minHeight: 100,
+    maxHeight: 300,
   },
   categoryRow: {
     flexDirection: 'row',
