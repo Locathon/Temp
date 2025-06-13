@@ -1,11 +1,13 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import React, { useEffect, useRef, useState } from 'react';
 import {
+  ActivityIndicator,
   FlatList,
   Image,
-  ImageSourcePropType,
   SafeAreaView,
   StyleSheet,
   Text,
@@ -14,61 +16,114 @@ import {
   View,
 } from 'react-native';
 
-// PlaceListScreen과 동일한 데이터 타입 및 임시 데이터 사용
 type Place = {
   id: string;
   name: string;
-  category: string;
   description: string;
-  thumbnail: ImageSourcePropType;
+  imageUrls?: string[]; // 이미지 URL 배열
 };
-
-const DUMMY_PLACES: Place[] = [
-  {
-    id: '1', name: '행궁동 벽화마을', category: '문화/예술',
-    description: '골목골목 예쁜 벽화가 가득한 사진 명소',
-    thumbnail: require('../../assets/images/mural_village.jpg'), 
-  },
-  {
-    id: '2', name: '플라잉수원 (헬륨기구)', category: '체험/활동',
-    description: '수원 화성의 아름다운 전경을 하늘에서 감상',
-    thumbnail: require('../../assets/images/flying_suwon.jpg'),
-  },
-  {
-    id: '3', name: '통닭거리', category: '음식점',
-    description: '수원 왕갈비 통닭의 원조, 맛집이 모여있는 거리',
-    thumbnail: require('../../assets/images/chicken_street.jpg'),
-  },
-];
 
 type PlaceStackParamList = {
-    PlaceDetail: { placeId: string };
+  PlaceDetail: { placeId: string };
 };
+
 type PlaceSearchNavigationProp = NativeStackNavigationProp<PlaceStackParamList>;
 
 export default function PlaceSearchScreen() {
   const navigation = useNavigation<PlaceSearchNavigationProp>();
   const [query, setQuery] = useState('');
-  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>(DUMMY_PLACES);
+  const [places, setPlaces] = useState<Place[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [jwtToken, setJwtToken] = useState<string | null>(null);
 
+  const debounceTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // AsyncStorage에서 JWT 토큰 불러오기
   useEffect(() => {
-    if (query.trim() === '') {
-      setFilteredPlaces(DUMMY_PLACES); // 검색어가 없으면 전체 목록 보여주기
-    } else {
-      const results = DUMMY_PLACES.filter(place =>
-        place.name.toLowerCase().includes(query.toLowerCase()) ||
-        place.category.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredPlaces(results);
+    AsyncStorage.getItem('jwt')
+      .then(token => setJwtToken(token))
+      .catch(err => console.error('JWT 토큰 불러오기 실패:', err));
+  }, []);
+
+  // 검색어가 바뀔 때마다 500ms 디바운스 후 장소 불러오기
+  useEffect(() => {
+    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+
+    debounceTimeout.current = setTimeout(() => {
+      fetchPlaces(query);
+    }, 500);
+
+    return () => {
+      if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+    };
+  }, [query, jwtToken]); // jwtToken도 의존성에 추가
+
+  // 화면 처음 로드 시 빈 쿼리로 장소 불러오기
+  useEffect(() => {
+    if (jwtToken) {
+      fetchPlaces('');
     }
-  }, [query]);
+  }, [jwtToken]);
+
+  const fetchPlaces = async (keyword: string) => {
+    if (!jwtToken) {
+      console.warn('JWT 토큰 없음, API 요청 불가');
+      setPlaces([]);
+      setLoading(false);
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const url = keyword.trim()
+        ? `http://3.35.27.124:8080/places?keyword=${encodeURIComponent(keyword.trim())}`
+        : `http://3.35.27.124:8080/places`;
+
+      const response = await axios.get(url, {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      });
+      const placesArray = Array.isArray(response.data)
+        ? response.data
+        : Array.isArray(response.data.data)
+        ? response.data.data
+        : [];
+
+      const transformedPlaces: Place[] = placesArray.map((place: any) => ({
+        id: place.id?.toString() ?? Math.random().toString(),
+        name: place.name ?? '이름 없음',
+        description: place.description ?? place.title ?? '',
+        imageUrls: place.imageUrls && Array.isArray(place.imageUrls) ? place.imageUrls : [],
+      }));
+
+      setPlaces(transformedPlaces);
+    } catch (error) {
+      console.error('장소 데이터 불러오기 실패:', error);
+      setPlaces([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const renderPlaceItem = ({ item }: { item: Place }) => (
-    <TouchableOpacity style={styles.resultItem} onPress={() => navigation.navigate('PlaceDetail', { placeId: item.id })}>
-      <Image source={item.thumbnail} style={styles.thumbnail} />
+    <TouchableOpacity
+      style={styles.resultItem}
+      onPress={() => navigation.navigate('PlaceDetail', { placeId: item.id })}
+    >
+      <Image
+        source={
+          item.imageUrls && item.imageUrls.length > 0
+            ? { uri: item.imageUrls[0] }
+            : require('../../assets/images/flying_suwon.jpg')
+        }
+        style={styles.thumbnail}
+      />
       <View style={styles.resultTextContainer}>
         <Text style={styles.resultName}>{item.name}</Text>
-        <Text style={styles.resultCategory}>{item.category}</Text>
+        <Text style={styles.resultDescription} numberOfLines={2}>
+          {item.description}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -80,46 +135,74 @@ export default function PlaceSearchScreen() {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color="#828282" style={styles.searchIcon} />
-            <TextInput
-                style={styles.searchInput}
-                placeholder="장소나 카테고리를 검색해보세요"
-                value={query}
-                onChangeText={setQuery}
-                autoFocus={true} // 화면에 들어오자마자 키보드 활성화
-            />
+          <Ionicons name="search-outline" size={20} color="#828282" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="장소나 카테고리를 검색해보세요"
+            value={query}
+            onChangeText={setQuery}
+            autoFocus
+            clearButtonMode="while-editing"
+          />
         </View>
       </View>
-      
-      <FlatList
-        data={filteredPlaces}
-        renderItem={renderPlaceItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
-                <Text style={styles.emptySubtext}>다른 키워드로 검색해보세요.</Text>
+
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#666" />
+        </View>
+      ) : (
+        <FlatList
+          data={places}
+          renderItem={renderPlaceItem}
+          keyExtractor={(item) => item.id}
+          contentContainerStyle={places.length === 0 ? styles.emptyContainer : styles.listContainer}
+          ListEmptyComponent={
+            <View style={styles.emptyMessageContainer}>
+              <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
+              <Text style={styles.emptySubtext}>다른 키워드로 검색해보세요.</Text>
             </View>
-        }
-      />
+          }
+        />
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#EAEAEA' },
-  searchContainer: { flexDirection: 'row', alignItems: 'center', flex: 1, backgroundColor: '#F2F2F7', borderRadius: 10, marginLeft: 12 },
+  container: { flex: 1, backgroundColor: '#fff' },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: '#EAEAEA',
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    backgroundColor: '#F2F2F7',
+    borderRadius: 10,
+    marginLeft: 12,
+  },
   searchIcon: { marginHorizontal: 10 },
   searchInput: { flex: 1, height: 40, fontSize: 16 },
   listContainer: { padding: 16 },
-  resultItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
-  thumbnail: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#E0E0E0' },
-  resultTextContainer: { flex: 1, marginLeft: 12 },
-  resultName: { fontSize: 16, fontWeight: '600' },
-  resultCategory: { fontSize: 13, color: '#828282', marginTop: 2 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: '40%' },
+  emptyContainer: { flexGrow: 1, justifyContent: 'center', alignItems: 'center' },
+  emptyMessageContainer: { justifyContent: 'center', alignItems: 'center', marginTop: 40 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#4F4F4F' },
   emptySubtext: { fontSize: 14, color: '#828282', marginTop: 8 },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+  resultItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 12 },
+  thumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    backgroundColor: '#E0E0E0',
+  },
+  resultTextContainer: { flex: 1, marginLeft: 12 },
+  resultName: { fontSize: 16, fontWeight: '600' },
+  resultDescription: { fontSize: 14, color: '#666', marginTop: 4 },
 });

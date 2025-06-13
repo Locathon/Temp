@@ -1,7 +1,9 @@
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useEffect, useState } from 'react';
 import {
+  ActivityIndicator,
   Image,
   SafeAreaView,
   ScrollView,
@@ -10,76 +12,119 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import Geocoder from 'react-native-geocoding';
 import MapView, { Marker } from 'react-native-maps';
 
+Geocoder.init('AIzaSyA38Wx1aAoueHqiOsWVlTYSIAvRtO6RW6g'); // 실제 앱 배포 시에는 환경 변수로 관리
 
-// --- 임시 데이터 (PlaceListScreen과 동일한 구조) ---
 type Place = {
   id: string;
   name: string;
-  category: string;
+  title: string;
+  content: string;
   description: string;
-  thumbnail: string;
+  imageUrls: string[];
   address?: string;
   latitude?: number;
   longitude?: number;
 };
 
-const DUMMY_PLACES: Place[] = [
-  {
-    id: '1',
-    name: '행궁동 벽화마을',
-    category: '문화/예술',
-    description: '골목골목 예쁜 벽화가 가득한 사진 명소. 조용한 평일 오전에 방문하면 여유롭게 둘러볼 수 있어요. 인생샷을 남기고 싶다면 추천!',
-    thumbnail: 'https://placehold.co/800x600/FFE4B5/333333?text=Mural',
-    address: '수원시 팔달구 행궁로',
-    latitude: 37.286,
-    longitude: 127.014,
-  },
-  {
-    id: '2',
-    name: '플라잉수원 (헬륨기구)',
-    category: '체험/활동',
-    description: '수원 화성의 아름다운 전경을 하늘에서 감상할 수 있는 특별한 경험. 특히 해질녘 노을이 정말 아름다워요.',
-    thumbnail: 'https://placehold.co/800x600/ADD8E6/333333?text=Flying',
-    address: '수원시 팔달구 경수대로 697',
-    latitude: 37.280,
-    longitude: 127.019,
-  },
-   {
-    id: '3',
-    name: '통닭거리',
-    category: '음식점',
-    description: '수원 왕갈비 통닭의 원조, 맛집이 모여있는 거리. 바삭한 통닭과 시원한 맥주 조합은 언제나 최고!',
-    thumbnail: 'https://placehold.co/800x600/FFDAB9/333333?text=Chicken',
-    address: '수원시 팔달구 팔달문로3번길 42',
-    latitude: 37.281,
-    longitude: 127.016,
-  },
-];
-// --- 데이터 끝 ---
+type RootStackParamList = {
+  PlaceDetail: { placeId: string };
+};
 
-
-type PlaceDetailRouteProp = RouteProp<{ PlaceDetail: { placeId: string } }, 'PlaceDetail'>;
+type PlaceDetailRouteProp = RouteProp<RootStackParamList, 'PlaceDetail'>;
 
 export default function PlaceDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute<PlaceDetailRouteProp>();
   const { placeId } = route.params;
 
+  const [jwtToken, setJwtToken] = useState<string | null>(null);
   const [place, setPlace] = useState<Place | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
 
   useEffect(() => {
-    const foundPlace = DUMMY_PLACES.find(p => p.id === placeId);
-    if (foundPlace) {
-      setPlace(foundPlace);
-    }
+    const init = async () => {
+      try {
+        const token = await AsyncStorage.getItem('jwt');
+        if (!token) {
+          setErrorMsg('로그인이 필요합니다.');
+          return;
+        }
+        setJwtToken(token);
+        await fetchPlace(placeId, token);
+      } catch (err) {
+        console.error('초기화 중 오류:', err);
+        setErrorMsg('초기화 오류가 발생했습니다.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    init();
   }, [placeId]);
+
+  const fetchPlace = async (id: string, token: string) => {
+    try {
+      const response = await fetch(`http://3.35.27.124:8080/places/${id}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      if (!response.ok) {
+        if (response.status === 401) {
+          setErrorMsg('인증 실패: 로그인 후 다시 시도해주세요.');
+        } else {
+          setErrorMsg(`서버 오류: ${response.status}`);
+        }
+        return;
+      }
+
+      const data: Place = await response.json();
+
+      if (!data.address && data.latitude && data.longitude) {
+        try {
+          const geo = await Geocoder.from(data.latitude, data.longitude);
+          const addr = geo.results[0]?.formatted_address;
+          data.address = addr ?? '주소 정보 없음';
+        } catch (geoError) {
+          console.warn('주소 변환 실패:', geoError);
+          data.address = '주소 정보 없음';
+        }
+      }
+
+      setPlace(data);
+    } catch (err) {
+      console.error('장소 데이터 로드 실패:', err);
+      setErrorMsg('장소 데이터를 불러오는 데 실패했습니다.');
+    }
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.centeredContainer}>
+        <ActivityIndicator size="large" />
+        <Text>로딩 중...</Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (errorMsg) {
+    return (
+      <SafeAreaView style={styles.centeredContainer}>
+        <Text style={styles.errorText}>{errorMsg}</Text>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+          <Text style={styles.backText}>뒤로 가기</Text>
+        </TouchableOpacity>
+      </SafeAreaView>
+    );
+  }
 
   if (!place) {
     return (
-      <SafeAreaView style={styles.container}>
-        <Text>장소 정보를 불러오는 중...</Text>
+      <SafeAreaView style={styles.centeredContainer}>
+        <Text>장소 정보를 찾을 수 없습니다.</Text>
       </SafeAreaView>
     );
   }
@@ -92,85 +137,185 @@ export default function PlaceDetailScreen() {
         </TouchableOpacity>
         <Text style={styles.headerTitle} numberOfLines={1}>{place.name}</Text>
         <TouchableOpacity>
-            <Ionicons name="share-social-outline" size={24} color="#333" />
+          <Ionicons name="share-social-outline" size={24} color="#333" />
         </TouchableOpacity>
       </View>
+
       <ScrollView>
-        <Image source={{ uri: place.thumbnail }} style={styles.mainImage} />
-        
+        {place.imageUrls && place.imageUrls.length > 0 ? (
+          <Image source={{ uri: place.imageUrls[0] }} style={styles.mainImage} />
+        ) : (
+          <View style={[styles.mainImage, styles.centeredContainer]}>
+            <Text>이미지가 없습니다</Text>
+          </View>
+        )}
+
         <View style={styles.contentContainer}>
-            <View style={styles.titleSection}>
-                <Text style={styles.category}>{place.category}</Text>
-                <Text style={styles.title}>{place.name}</Text>
-                <Text style={styles.description}>{place.description}</Text>
-            </View>
+          <View style={styles.titleSection}>
+            <Text style={styles.name}>{place.name}</Text>
+            <Text style={styles.titleText}>{place.title}</Text>
+            <Text style={styles.content}>{place.content}</Text>
+            <Text style={styles.description}>{place.description}</Text>
+          </View>
 
-            <View style={styles.infoSection}>
-                <View style={styles.infoRow}>
-                    <Ionicons name="location-outline" size={16} color="#4F4F4F" />
-                    <Text style={styles.infoText}>{place.address}</Text>
-                </View>
-                 <View style={styles.infoRow}>
-                    <Ionicons name="time-outline" size={16} color="#4F4F4F" />
-                    <Text style={styles.infoText}>운영 시간 정보가 필요해요</Text>
-                </View>
+          <View style={styles.infoSection}>
+            <View style={styles.infoRow}>
+              <Ionicons name="location-outline" size={16} color="#4F4F4F" />
+              <Text style={styles.infoText}>{place.address ?? '주소 정보 없음'}</Text>
             </View>
-            
-            {place.latitude && place.longitude && (
-                <View style={styles.mapSection}>
-                    <MapView
-                        style={styles.map}
-                        initialRegion={{
-                            latitude: place.latitude,
-                            longitude: place.longitude,
-                            latitudeDelta: 0.005,
-                            longitudeDelta: 0.005,
-                        }}
-                        scrollEnabled={false}
-                    >
-                        <Marker coordinate={{ latitude: place.latitude, longitude: place.longitude }} />
-                    </MapView>
-                </View>
-            )}
-
-            <View style={styles.actionButtons}>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="heart-outline" size={24} color="#4F4F4F" />
-                    <Text style={styles.actionText}>좋아요</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="bookmark-outline" size={24} color="#4F4F4F" />
-                    <Text style={styles.actionText}>저장</Text>
-                </TouchableOpacity>
-                <TouchableOpacity style={styles.actionButton}>
-                    <Ionicons name="chatbubble-outline" size={24} color="#4F4F4F" />
-                    <Text style={styles.actionText}>후기쓰기</Text>
-                </TouchableOpacity>
+            <View style={styles.infoRow}>
+              <Ionicons name="time-outline" size={16} color="#4F4F4F" />
+              <Text style={styles.infoText}>운영 시간 정보가 필요해요</Text>
             </View>
+          </View>
 
+          {place.latitude && place.longitude && (
+            <View style={styles.mapSection}>
+              <MapView
+                style={styles.map}
+                initialRegion={{
+                  latitude: place.latitude,
+                  longitude: place.longitude,
+                  latitudeDelta: 0.002,
+                  longitudeDelta: 0.002,
+                }}
+                scrollEnabled={false}
+                zoomEnabled={false}
+              >
+                <Marker coordinate={{ latitude: place.latitude, longitude: place.longitude }} />
+              </MapView>
+            </View>
+          )}
+
+          <View style={styles.actionButtons}>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="heart-outline" size={24} color="#4F4F4F" />
+              <Text style={styles.actionText}>좋아요</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="bookmark-outline" size={24} color="#4F4F4F" />
+              <Text style={styles.actionText}>저장</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.actionButton}>
+              <Ionicons name="chatbubble-outline" size={24} color="#4F4F4F" />
+              <Text style={styles.actionText}>후기쓰기</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-
       </ScrollView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAEAEA' },
-  headerTitle: { flex: 1, textAlign: 'center', fontSize: 18, fontWeight: 'bold', marginHorizontal: 8 },
-  mainImage: { width: '100%', height: 250 },
-  contentContainer: { padding: 20 },
-  titleSection: { marginBottom: 24 },
-  category: { fontSize: 14, color: '#2F80ED', fontWeight: '600', marginBottom: 8 },
-  title: { fontSize: 24, fontWeight: 'bold', marginBottom: 8 },
-  description: { fontSize: 16, color: '#4F4F4F', lineHeight: 24 },
-  infoSection: { marginBottom: 24, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#F2F2F2', paddingVertical: 16 },
-  infoRow: { flexDirection: 'row', alignItems: 'center', marginVertical: 8 },
-  infoText: { marginLeft: 12, fontSize: 15 },
-  mapSection: { marginBottom: 24 },
-  map: { width: '100%', height: 180, borderRadius: 10 },
-  actionButtons: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 12, borderTopWidth: 1, borderColor: '#F2F2F2' },
-  actionButton: { alignItems: 'center' },
-  actionText: { marginTop: 4, fontSize: 12, color: '#4F4F4F' },
+  container: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    color: 'red',
+    textAlign: 'center',
+    marginTop: 20,
+  },
+  backButton: {
+    marginTop: 20,
+  },
+  backText: {
+    color: 'blue',
+    textAlign: 'center',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderColor: '#ddd',
+  },
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    flex: 1,
+    textAlign: 'center',
+  },
+  mainImage: {
+    width: '100%',
+    height: 200,
+    resizeMode: 'cover',
+  },
+  contentContainer: {
+    padding: 16,
+  },
+   titleSection: {
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 12,
+  },
+  name: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 8,
+  },
+  titleText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#34495E',
+    marginBottom: 8,
+    backgroundColor: '#F0F4F8',
+    padding: 10,
+    borderRadius: 8,
+  },
+  content: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#4F4F4F',
+    marginBottom: 10,
+  },
+  description: {
+    fontSize: 14,
+    lineHeight: 20,
+    color: '#7D7D7D',
+  },
+  infoSection: {
+    marginTop: 12,
+  },
+  infoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 4,
+  },
+  infoText: {
+    marginLeft: 8,
+    color: '#4F4F4F',
+  },
+  mapSection: {
+    height: 200,
+    marginTop: 16,
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  map: {
+    flex: 1,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    marginTop: 24,
+  },
+  actionButton: {
+    alignItems: 'center',
+  },
+  actionText: {
+    marginTop: 4,
+    fontSize: 12,
+    color: '#4F4F4F',
+  },
 });

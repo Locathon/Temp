@@ -24,6 +24,7 @@ type Place = {
   thumbnail: ImageSourcePropType | string; // URL일 수도 있음
 };
 
+/*
 // 임시 장소 데이터
 const DUMMY_PLACES: Place[] = [
   {
@@ -45,6 +46,7 @@ const DUMMY_PLACES: Place[] = [
     thumbnail: require('../../assets/images/chicken_street.jpg'),
   },
 ];
+*/
 
 type PlaceStackParamList = {
   PlaceWrite: undefined;
@@ -80,8 +82,6 @@ export default function PlaceListScreen() {
         },
       })
       .then((res) => {
-        console.log('백엔드 응답:', JSON.stringify(res.data, null, 2));
-
         const placesFromApi = Array.isArray(res.data)
           ? res.data
           : Array.isArray(res.data.data)
@@ -89,12 +89,10 @@ export default function PlaceListScreen() {
           : [];
 
        const apiPlaces: Place[] = placesFromApi.map((place: any) => {
-        console.log('place.imageUrls[0]:', place.imageUrls ? place.imageUrls[0] : '없음');
-
         return {
-          id: `api_${place.latitude}_${place.longitude}`,
-          name: place.name ?? '이름 없음',
-          description: place.content ?? '',
+          id: place.id.toString(),
+          name: place.name?? '이름 없음',
+          description: place.title ?? '',
           thumbnail:
             place.imageUrls && place.imageUrls.length > 0 && place.imageUrls[0]
               ? { uri: place.imageUrls[0] }
@@ -122,7 +120,7 @@ export default function PlaceListScreen() {
   );
 
   // DUMMY + 실제 데이터 합치기
-  const combinedPlaces = [...DUMMY_PLACES, ...places];
+  const combinedPlaces = [/*...DUMMY_PLACES,*/ ...places];
 
   return (
     <SafeAreaView style={styles.container}>
@@ -134,7 +132,7 @@ export default function PlaceListScreen() {
       </View>
 
       <FlatList
-        data={[...DUMMY_PLACES, ...places]}
+        data={[/*...DUMMY_PLACES,*/ ...places]}
         renderItem={renderPlaceItem}
         keyExtractor={(item) => item.id}
         extraData={places}
