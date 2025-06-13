@@ -20,6 +20,8 @@ Geocoder.init('AIzaSyA38Wx1aAoueHqiOsWVlTYSIAvRtO6RW6g'); // 실제 앱 배포 �
 type Place = {
   id: string;
   name: string;
+  title: string;
+  content: string;
   description: string;
   imageUrls: string[];
   address?: string;
@@ -81,7 +83,6 @@ export default function PlaceDetailScreen() {
 
       const data: Place = await response.json();
 
-      // 주소가 없고 위도/경도만 있다면 Geocoding으로 주소 가져오기
       if (!data.address && data.latitude && data.longitude) {
         try {
           const geo = await Geocoder.from(data.latitude, data.longitude);
@@ -130,7 +131,6 @@ export default function PlaceDetailScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#333" />
@@ -152,7 +152,9 @@ export default function PlaceDetailScreen() {
 
         <View style={styles.contentContainer}>
           <View style={styles.titleSection}>
-            <Text style={styles.title}>{place.name}</Text>
+            <Text style={styles.name}>{place.name}</Text>
+            <Text style={styles.titleText}>{place.title}</Text>
+            <Text style={styles.content}>{place.content}</Text>
             <Text style={styles.description}>{place.description}</Text>
           </View>
 
@@ -250,17 +252,37 @@ const styles = StyleSheet.create({
   contentContainer: {
     padding: 16,
   },
-  titleSection: {
-    marginBottom: 12,
+   titleSection: {
+    marginBottom: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingBottom: 12,
   },
-  title: {
-    fontSize: 20,
+  name: {
+    fontSize: 22,
     fontWeight: 'bold',
+    color: '#2C3E50',
+    marginBottom: 8,
+  },
+  titleText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#34495E',
+    marginBottom: 8,
+    backgroundColor: '#F0F4F8',
+    padding: 10,
+    borderRadius: 8,
+  },
+  content: {
+    fontSize: 15,
+    lineHeight: 22,
+    color: '#4F4F4F',
+    marginBottom: 10,
   },
   description: {
     fontSize: 14,
-    color: '#555',
-    marginTop: 8,
+    lineHeight: 20,
+    color: '#7D7D7D',
   },
   infoSection: {
     marginTop: 12,
