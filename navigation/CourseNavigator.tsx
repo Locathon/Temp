@@ -1,18 +1,19 @@
-// C:\Users\mnb09\Desktop\Temp\navigation\CourseNavigator.tsx
-
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { Place } from '../data/courseData';
 
-// ⭐️ 각 화면이 어떤 정보를 주고받을지 약속(정의)을 최신화합니다.
+// [버그 수정] '코스 만들기' 상태 유지를 위해 파라미터 정의를 수정합니다.
 export type CourseStackParamList = {
   CourseHomeScreen: undefined;
   CourseListScreen: undefined;
   CourseSearchScreen: undefined;
   CourseDetailScreen: { courseId: string };
-  CourseCreateScreen: { courseId?: string; newPlace?: Place };
-  // BUG FIX (1, 2): PlaceSearchScreen이 courseId를 받을 수 있도록 파라미터 타입 추가
-  PlaceSearchScreen: { courseId?: string };
+  // 💣 이전: newPlace?: Place
+  // ✨ 변경: updatedPlaces?: Place[] (장소 목록 전체를 받음)
+  CourseCreateScreen: { courseId?: string; updatedPlaces?: Place[] };
+  // 💣 이전: courseId?: string
+  // ✨ 변경: currentPlaces?: Place[] (현재 장소 목록을 전달받음)
+  PlaceSearchScreen: { courseId?: string; currentPlaces?: Place[] };
 };
 
 const Stack = createNativeStackNavigator<CourseStackParamList>();

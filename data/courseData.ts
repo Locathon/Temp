@@ -15,65 +15,54 @@ export let recommendedCourses: Course[] = [
   { id: 'rec1', title: '행궁동 맛집 투어', subtitle: '운멜로 → 방화수류정 → 수원전통문화관', thumbnail: require('../assets/images/chicken_street.jpg'), author: '느린행궁러버', likes: 120 },
   { id: 'rec2', title: '예술 감성 산책 코스', subtitle: '수원화성박물관 → 공방거리 → 아트스페이스', thumbnail: require('../assets/images/mural_village.jpg'), author: '행궁동전문가', likes: 98 },
 ];
-export let myCourses: Course[] = [
-  { id: 'my1', title: '나만의 야경 명소 탐방', subtitle: '화홍문 → 방화수류정 → 연무대', thumbnail: require('../assets/images/flying_suwon.jpg'), author: '나', likes: 25, isMyCourse: true },
-];
+export let myCourses: Course[] = [];
+
+// 세부 정보 데이터
 let courseDetailsData: CourseDetail[] = [
-  { id: 'rec1', title: '행궁동 맛집 투어', subtitle: '느린행궁이 추천하는 행궁동 맛집 정복 코스', author: '느린행궁러버', description: '행궁동의 진짜 맛집들을 탐방하며 즐거운 시간을 보내보세요. 이 코스는 현지인들이 자주 찾는 숨겨진 맛집 위주로 구성되어 있습니다.', places: [ { id: 'p1', name: '운멜로 1호점', category: '음식점', address: '수원시 팔달구 화서문로32번길 4 2층', coordinate: { latitude: 37.289, longitude: 127.016 } }, { id: 'p2', name: '방화수류정', category: '명소', address: '수원시 팔달구 수원천로392번길 44-6', time: '도보 8분 · 약 600m', coordinate: { latitude: 37.290, longitude: 127.018 } }, { id: 'p3', name: '수원전통문화관', category: '문화시설', address: '수원시 팔달구 정조로 899', time: '도보 5분 · 약 400m', coordinate: { latitude: 37.291, longitude: 127.019 } } ], isMyCourse: false, likes: 120 },
-  { id: 'rec2', title: '예술 감성 산책 코스', subtitle: '수원화성박물관부터 아트스페이스까지, 예술적 영감을 얻는 길', author: '행궁동전문가', description: '박물관에서 역사를 배우고, 공방거리에서 장인의 숨결을 느끼며, 현대 미술로 마무리하는 완벽한 예술 코스입니다.', places: [ { id: 'p10', name: '수원화성박물관', category: '문화시설', address: '수원시 팔달구 창룡대로 21', coordinate: { latitude: 37.283, longitude: 127.018 } }, { id: 'p11', name: '행궁동 공방거리', category: '문화/예술', address: '수원시 팔달구 행궁로 18', time: '도보 10분 · 약 750m', coordinate: { latitude: 37.287, longitude: 127.014 } }, { id: 'p12', name: '수원시립아트스페이스', category: '문화/예술', address: '수원시 장안구 송정로 19', time: '도보 15분 · 약 1.1km', coordinate: { latitude: 37.294, longitude: 127.011 } } ], isMyCourse: false, likes: 98 },
-  { id: 'my1', title: '나만의 야경 명소 탐방', subtitle: '고요한 밤, 행궁동의 빛을 따라서', author: '나', description: '사람들이 잘 모르는 저만의 야경 포인트를 연결한 코스입니다. 조용히 산책하며 행궁동의 밤을 즐기고 싶을 때 추천합니다.', places: [ { id: 'p4', name: '화홍문', category: '명소', address: '수원시 팔달구 수원천로 391', coordinate: { latitude: 37.2915, longitude: 127.0185 } }, { id: 'p5', name: '방화수류정', category: '명소', address: '수원시 팔달구 수원천로392번길 44-6', time: '도보 3분 · 약 200m', coordinate: { latitude: 37.290, longitude: 127.018 } }, { id: 'p6', name: '연무대', category: '명소', address: '수원시 팔달구 창룡대로103번길 10', time: '도보 10분 · 약 800m', coordinate: { latitude: 37.288, longitude: 127.025 } } ], isMyCourse: true, likes: 25 },
-  { id: 'rec3', title: '혼자 걷기 좋은 길', subtitle: '서장대에서 화서문까지, 성곽길을 따라 걷는 사색의 시간', author: '사색가', description: '수원 화성의 아름다운 성곽을 따라 걸으며 생각을 정리하기 좋은 코스입니다. 특히 해질녘 풍경이 아름답습니다.', places: [ { id: 'p13', name: '서장대', category: '명소', address: '수원시 팔달구 남창동 산 2-1', coordinate: { latitude: 37.283, longitude: 127.011 } }, { id: 'p14', name: '서노대', category: '명소', address: '수원시 팔달구 남창동', time: '도보 5분 · 약 350m', coordinate: { latitude: 37.285, longitude: 127.010 } }, { id: 'p15', name: '화서문', category: '명소', address: '수원시 팔달구 장안동 333', time: '도보 7분 · 약 500m', coordinate: { latitude: 37.288, longitude: 127.011 } } ], isMyCourse: false, likes: 77 }
+    { id: 'rec1', title: '행궁동 맛집 투어', subtitle: '운멜로 → 방화수류정 → 수원전통문화관', author: '느린행궁러버', description: '행궁동의 숨겨진 맛집들을 탐방하는 최고의 코스입니다. 친구 또는 연인과 함께 즐거운 시간을 보내세요!', places: [ { id: 'p1', name: '운멜로', category: '음식점', address: '경기도 수원시 팔달구 신풍로63번길 3-2 1층', coordinate: { latitude: 37.281, longitude: 127.015 }, time: '도보 10분', thumbnail: require('../assets/images/unmelo.jpg') }, { id: 'p2', name: '방화수류정', category: '명소', address: '경기 수원시 팔달구 수원천로392번길 44-6', coordinate: { latitude: 37.288, longitude: 127.018 }, time: '도보 15분', thumbnail: require('../assets/images/banghwasuryujeong.jpg') }, { id: 'p3', name: '수원전통문화관', category: '문화시설', address: '경기 수원시 팔달구 정조로 893', coordinate: { latitude: 37.289, longitude: 127.013 }, thumbnail: require('../assets/images/suwon_culture_center.jpg') } ], likes: 120 },
+    { id: 'rec2', title: '예술 감성 산책 코스', subtitle: '수원화성박물관 → 공방거리 → 아트스페이스', author: '행궁동전문가', description: '고요한 박물관에서 시작하여 활기찬 공방거리를 거쳐 현대적인 아트스페이스에서 마무리하는 예술적인 하루를 경험해보세요.', places: [ { id: 'p4', name: '수원화성박물관', category: '문화시설', address: '경기도 수원시 팔달구 창룡대로 21', coordinate: { latitude: 37.284, longitude: 127.020 }, time: '도보 5분', thumbnail: require('../assets/images/suwon_hwaseong_museum.jpg') }, { id: 'p5', name: '행궁동 공방거리', category: '명소', address: '경기도 수원시 팔달구 행궁로 18', coordinate: { latitude: 37.280, longitude: 127.013 }, time: '도보 12분', thumbnail: require('../assets/images/craft_street.jpg') }, { id: 'p6', name: '아트스페이스 광교', category: '미술관', address: '경기도 수원시 영통구 광교중앙로 140', coordinate: { latitude: 37.288, longitude: 127.051 }, thumbnail: require('../assets/images/art_space_gwanggyo.jpg') } ], likes: 98 },
 ];
-export let courseDetailsMap = new Map<string, CourseDetail>(courseDetailsData.map(course => [course.id, course]));
-export let allCourses: Course[] = [
-    { id: 'rec1', title: '행궁동 맛집 투어', subtitle: '운멜로 → 방화수류정 → 수원전통문화관', thumbnail: require('../assets/images/chicken_street.jpg'), author: '느린행궁러버', likes: 120 },
-    { id: 'rec2', title: '예술 감성 산책 코스', subtitle: '수원화성박물관 → 공방거리 → 아트스페이스', thumbnail: require('../assets/images/mural_village.jpg'), author: '행궁동전문가', likes: 98 },
-    { id: 'my1', title: '나만의 야경 명소 탐방', subtitle: '화홍문 → 방화수류정 → 연무대', thumbnail: require('../assets/images/flying_suwon.jpg'), author: '나', likes: 25, isMyCourse: true },
-    { id: 'rec3', title: '혼자 걷기 좋은 길', subtitle: '서장대 → 서노대 → 화서문', thumbnail: require('../assets/images/onmelo_interior.jpg'), author: '사색가', likes: 77 },
+export let allCourses: Course[] = [...recommendedCourses, ...myCourses];
+
+// 빠른 조회를 위한 Map 데이터
+export const courseDetailsMap = new Map<string, CourseDetail>(
+  courseDetailsData.map(course => [course.id, course])
+);
+
+// 모든 장소 데이터 (let으로 선언)
+export let allPlaces: Place[] = [
+    { id: 'p1', name: '운멜로', category: '음식점', address: '경기도 수원시 팔달구 신풍로63번길 3-2 1층', coordinate: { latitude: 37.281, longitude: 127.015 }, time: '도보 10분', thumbnail: require('../assets/images/unmelo.jpg') },
+    { id: 'p2', name: '방화수류정', category: '명소', address: '경기 수원시 팔달구 수원천로392번길 44-6', coordinate: { latitude: 37.288, longitude: 127.018 }, time: '도보 15분', thumbnail: require('../assets/images/banghwasuryujeong.jpg') },
+    { id: 'p3', name: '수원전통문화관', category: '문화시설', address: '경기 수원시 팔달구 정조로 893', coordinate: { latitude: 37.289, longitude: 127.013 }, thumbnail: require('../assets/images/suwon_culture_center.jpg') },
+    { id: 'p4', name: '수원화성박물관', category: '문화시설', address: '경기도 수원시 팔달구 창룡대로 21', coordinate: { latitude: 37.284, longitude: 127.020 }, time: '도보 5분', thumbnail: require('../assets/images/suwon_hwaseong_museum.jpg') },
+    { id: 'p5', name: '행궁동 공방거리', category: '명소', address: '경기도 수원시 팔달구 행궁로 18', coordinate: { latitude: 37.280, longitude: 127.013 }, time: '도보 12분', thumbnail: require('../assets/images/craft_street.jpg') },
+    { id: 'p6', name: '아트스페이스 광교', category: '미술관', address: '경기도 수원시 영통구 광교중앙로 140', coordinate: { latitude: 37.288, longitude: 127.051 }, thumbnail: require('../assets/images/art_space_gwanggyo.jpg') },
+    { id: 'p7', name: '플라잉수원', category: '체험', address: '경기도 수원시 팔달구 경수대로697번길 27', coordinate: { latitude: 37.279, longitude: 127.024 }, thumbnail: require('../assets/images/flying_suwon.jpg') },
+    { id: 'p8', name: '수원 시립 아이파크 미술관', category: '미술관', address: '경기 수원시 팔달구 정조로 833', coordinate: { latitude: 37.280, longitude: 127.012 }, thumbnail: require('../assets/images/ipark_museum.jpg') },
 ];
-export const allPlaces: Place[] = courseDetailsData.flatMap(course => course.places).reduce((acc: Place[], place) => {
-    if (!acc.find(p => p.id === place.id)) { acc.push(place); }
-    return acc;
-}, []);
-
-
-// --- 데이터 조작 함수 ---
 
 export const toggleSaveCourse = (course: Course | CourseDetail) => {
-    const courseSummary: Course = {
-        id: course.id, title: course.title, subtitle: course.subtitle,
-        thumbnail: allCourses.find(c => c.id === course.id)!.thumbnail,
-        author: course.author, likes: course.likes, isMyCourse: course.isMyCourse,
-    };
     const index = savedCourses.findIndex(c => c.id === course.id);
-    if (index > -1) { savedCourses = savedCourses.filter(c => c.id !== course.id); return false; } 
-    else { savedCourses = [courseSummary, ...savedCourses]; return true; }
+    if (index > -1) {
+        savedCourses.splice(index, 1);
+    } else {
+        const summaryCourse = 'places' in course ? { id: course.id, title: course.title, subtitle: course.subtitle, thumbnail: course.places[0]?.thumbnail || require('../assets/images/default_thumbnail.png'), author: course.author, likes: course.likes, isMyCourse: course.isMyCourse } : course;
+        savedCourses.unshift(summaryCourse);
+    }
 };
 
-/**
- * BUG FIX (1): 코스 정보 저장 및 업데이트 함수 로직 전체 수정
- */
-export const saveCourse = (courseData: Pick<CourseDetail, 'title' | 'description' | 'places'> & { id?: string }) => {
-    const isEditing = !!courseData.id;
-    const newSubtitle = courseData.places.map(p => p.name).slice(0, 3).join(' → ');
+export const saveCourse = (courseData: { id?: string; title: string; description: string; places: Place[]; }) => {
+    const newSubtitle = courseData.places.map(p => p.name).join(' → ');
 
-    if (isEditing) {
+    if (courseData.id) {
         // --- 1. 수정 로직 ---
-        const courseId = courseData.id!;
-        const existingDetail = courseDetailsMap.get(courseId);
-        if (!existingDetail) return;
-
-        // 상세 정보 업데이트
-        const updatedDetail: CourseDetail = {
-            ...existingDetail,
-            title: courseData.title,
-            description: courseData.description,
-            places: courseData.places,
-            subtitle: newSubtitle,
-        };
+        const courseId = courseData.id;
+        const updatedDetail: CourseDetail = { ...(courseDetailsMap.get(courseId)!), ...courseData, subtitle: newSubtitle };
         courseDetailsMap.set(courseId, updatedDetail);
+        
+        const detailIndex = courseDetailsData.findIndex(c => c.id === courseId);
+        if (detailIndex > -1) courseDetailsData[detailIndex] = updatedDetail;
 
-        // 요약 정보 배열들 (myCourses, allCourses 등)도 업데이트
         [myCourses, recommendedCourses, savedCourses, allCourses].forEach(arr => {
             const index = arr.findIndex(c => c.id === courseId);
             if (index > -1) {
@@ -106,10 +95,22 @@ export const saveCourse = (courseData: Pick<CourseDetail, 'title' | 'description
             isMyCourse: true,
         };
 
-        // 모든 관련 데이터 목록에 새로 추가
-        courseDetailsData.unshift(newCourseDetail); // 상세 데이터 배열에 추가
-        courseDetailsMap.set(newCourseId, newCourseDetail); // 맵에 추가
-        myCourses.unshift(newCourseSummary); // '나의 코스' 목록에 추가
-        allCourses.unshift(newCourseSummary); // '전체 코스' 목록에도 추가
+        courseDetailsData.unshift(newCourseDetail);
+        courseDetailsMap.set(newCourseId, newCourseDetail);
+        myCourses.unshift(newCourseSummary);
+        allCourses.unshift(newCourseSummary);
     }
+};
+
+// [오류 수정] 'deleteCourse' 함수를 정의하고 export 합니다.
+export const deleteCourse = (courseId: string) => {
+    // 1. 모든 요약 목록에서 해당 코스 제거
+    allCourses = allCourses.filter(c => c.id !== courseId);
+    myCourses = myCourses.filter(c => c.id !== courseId);
+    savedCourses = savedCourses.filter(c => c.id !== courseId);
+    recommendedCourses = recommendedCourses.filter(c => c.id !== courseId);
+
+    // 2. 상세 정보 목록과 맵에서 해당 코스 제거
+    courseDetailsData = courseDetailsData.filter(c => c.id !== courseId);
+    courseDetailsMap.delete(courseId);
 };
