@@ -82,6 +82,8 @@ export default function PlaceListScreen() {
         },
       })
       .then((res) => {
+        console.log('백엔드 응답:', JSON.stringify(res.data, null, 2));
+
         const placesFromApi = Array.isArray(res.data)
           ? res.data
           : Array.isArray(res.data.data)

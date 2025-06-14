@@ -84,6 +84,8 @@ export default function PlaceSearchScreen() {
           Authorization: `Bearer ${jwtToken}`,
         },
       });
+      console.log('서버 응답:', response.data);
+
       const placesArray = Array.isArray(response.data)
         ? response.data
         : Array.isArray(response.data.data)
