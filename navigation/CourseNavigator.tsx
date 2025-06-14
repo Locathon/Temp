@@ -1,24 +1,23 @@
+// C:\Users\mnb09\Desktop\Temp\navigation\CourseNavigator.tsx
+
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { Place } from '../data/courseData';
 
-// [버그 수정] '코스 만들기' 상태 유지를 위해 파라미터 정의를 수정합니다.
+// [오류 수정] '코스 만들기/수정' 시 장소 목록 상태 유지를 위해 파라미터 정의를 수정합니다.
 export type CourseStackParamList = {
   CourseHomeScreen: undefined;
   CourseListScreen: undefined;
   CourseSearchScreen: undefined;
   CourseDetailScreen: { courseId: string };
-  // 💣 이전: newPlace?: Place
-  // ✨ 변경: updatedPlaces?: Place[] (장소 목록 전체를 받음)
+  // CourseCreateScreen은 수정할 courseId나, 장소 검색 후 돌아올 때 받을 updatedPlaces를 가질 수 있습니다.
   CourseCreateScreen: { courseId?: string; updatedPlaces?: Place[] };
-  // 💣 이전: courseId?: string
-  // ✨ 변경: currentPlaces?: Place[] (현재 장소 목록을 전달받음)
-  PlaceSearchScreen: { courseId?: string; currentPlaces?: Place[] };
+  // PlaceSearchScreen은 현재 만들고 있는 코스의 장소 목록(currentPlaces)을 전달받습니다.
+  PlaceSearchScreen: { currentPlaces: Place[] };
 };
 
 const Stack = createNativeStackNavigator<CourseStackParamList>();
 
-// ⭐️ 필요한 화면 컴포넌트들을 정확한 경로에서 import 합니다.
 import CourseCreateScreen from '../screens/Courses/CourseCreateScreen';
 import CourseDetailScreen from '../screens/Courses/CourseDetailScreen';
 import CourseHomeScreen from '../screens/Courses/CourseHomeScreen';

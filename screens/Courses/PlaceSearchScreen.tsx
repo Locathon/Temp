@@ -1,3 +1,5 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\PlaceSearchScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -13,8 +15,8 @@ export default function PlaceSearchScreen() {
   const navigation = useNavigation<PlaceSearchNavigationProp>();
   const route = useRoute<PlaceSearchRouteProp>();
   
-  // [버그 수정] courseId와 함께 현재 장소 목록(currentPlaces)을 받습니다.
-  const { courseId, currentPlaces } = route.params || {};
+  // [장소 추가 버그 해결] 이전 화면에서 현재 장소 목록(currentPlaces)을 받습니다.
+  const { currentPlaces } = route.params;
 
   const [query, setQuery] = useState('');
   const [filteredPlaces, setFilteredPlaces] = useState<Place[]>(allPlaces);
@@ -26,16 +28,16 @@ export default function PlaceSearchScreen() {
     setFilteredPlaces(results);
   }, [query]);
 
-  // [버그 수정] 장소 선택 시 처리 로직을 수정합니다.
+  // [장소 추가 버그 해결] 장소 선택 시 처리 로직
   const handleSelectPlace = (place: Place) => {
     // 현재 목록에 새로 선택한 장소를 추가하여 새로운 목록을 만듭니다.
-    const newPlaces = [...(currentPlaces || []), place];
+    const newPlaces = [...currentPlaces, place];
     
     // CourseCreateScreen으로 돌아가면서, 'updatedPlaces' 파라미터로 새로운 전체 목록을 전달합니다.
     navigation.navigate({
         name: 'CourseCreateScreen',
-        params: { updatedPlaces: newPlaces, courseId },
-        merge: true, // 파라미터를 병합하여 기존 courseId 등을 유지합니다.
+        params: { updatedPlaces: newPlaces },
+        merge: true,
     });
   };
 

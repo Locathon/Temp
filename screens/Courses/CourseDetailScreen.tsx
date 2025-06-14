@@ -1,12 +1,11 @@
 // C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseDetailScreen.tsx
 
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useLayoutEffect, useMemo, useState } from 'react';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
 import { Alert, Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
-// [오류 수정] deleteCourse를 import하고, 사용하지 않는 myCourses는 제거합니다.
 import { courseDetailsMap, deleteCourse, savedCourses, toggleSaveCourse } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
@@ -20,32 +19,47 @@ export default function CourseDetailScreen() {
   const route = useRoute<CourseDetailRouteProp>();
   const { courseId } = route.params;
 
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const course = useMemo(() => courseDetailsMap.get(courseId), [courseId]);
-  
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  // [버튼 먹통 해결] 상태를 useState로 관리
+  const [isSaved, setIsSaved] = useState(false);
   const [likeCount, setLikeCount] = useState(course?.likes || 0);
   const [isLiked, setIsLiked] = useState(false);
-  const [isSaved, setIsSaved] = useState(savedCourses.some(c => c.id === courseId));
+
+  // [버튼 먹통 해결] 화면이 포커스될 때마다 데이터 동기화
+  useFocusEffect(
+    useCallback(() => {
+      const currentCourse = courseDetailsMap.get(courseId);
+      if (currentCourse) {
+        setIsSaved(savedCourses.some(c => c.id === courseId));
+        setLikeCount(currentCourse.likes);
+      }
+    }, [courseId])
+  );
+
+  const handleToggleSave = () => {
+    if (course) {
+      toggleSaveCourse(course);
+      setIsSaved(!isSaved); // 즉각적인 UI 피드백
+    }
+  };
 
   const handleToggleLike = () => {
-    setIsLiked(!isLiked);
-    setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-  };
-  
-  const handleToggleSave = () => {
-    // [오류 수정] courseId(문자열) 대신 course(객체)를 전달합니다.
-    if (course) {
-        toggleSaveCourse(course);
-        setIsSaved(!isSaved);
+    if(course) {
+        setIsLiked(!isLiked);
+        // 실제 데이터 변경 로직은 없으므로 UI만 변경
+        setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
+        course.likes = isLiked ? course.likes -1 : course.likes + 1; // 원본 데이터 수정 (임시)
     }
   };
 
   const handleDelete = () => {
     if (course) {
-        deleteCourse(courseId);
-        setDeleteModalVisible(false);
-        navigation.goBack();
-        Alert.alert("코스가 삭제되었습니다.");
+      deleteCourse(courseId);
+      setDeleteModalVisible(false);
+      navigation.goBack();
+      Alert.alert("코스가 삭제되었습니다.");
     }
   };
 
@@ -75,13 +89,12 @@ export default function CourseDetailScreen() {
         </View>
       ),
     });
-  }, [navigation, isLiked, isSaved, course]);
-
+  }, [navigation, isLiked, isSaved, course]); // 의존성 배열에 isLiked, isSaved 추가하여 상태 변경 시 헤더 리렌더링
 
   if (!course) {
     return (
       <SafeAreaView style={styles.container}>
-        <View style={styles.header}>
+         <View style={styles.header}>
             <TouchableOpacity onPress={() => navigation.goBack()}>
                 <Ionicons name="arrow-back" size={24} color="black" />
             </TouchableOpacity>
@@ -106,25 +119,17 @@ export default function CourseDetailScreen() {
             latitudeDelta: 0.02,
             longitudeDelta: 0.02,
           }}
-          region={{
-            latitude: coordinates[0]?.latitude || 37.28,
-            longitude: coordinates[0]?.longitude || 127.01,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          }}
         >
           {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor="#007AFF" strokeWidth={4} />}
           {course.places.map((place, index) => (
             <Marker key={place.id} coordinate={place.coordinate} title={place.name}>
-              <View style={styles.markerContainer}>
-                <Text style={styles.markerText}>{index + 1}</Text>
-              </View>
+              <View style={styles.markerContainer}><Text style={styles.markerText}>{index + 1}</Text></View>
             </Marker>
           ))}
         </MapView>
-        
         <View style={styles.contentContainer}>
-          <Text style={styles.title}>{course.title}</Text>
+            {/* 이하 UI 코드는 변경 없음 */}
+            <Text style={styles.title}>{course.title}</Text>
           <Text style={styles.subtitle}>{course.subtitle}</Text>
           <Text style={styles.description}>{course.description}</Text>
           <View style={styles.metaContainer}>
@@ -161,45 +166,38 @@ export default function CourseDetailScreen() {
               <Text style={styles.editButtonText}>이 코스 수정하기</Text>
             </TouchableOpacity>
           )}
-
         </View>
       </ScrollView>
 
-      <Modal
-        animationType="fade"
-        transparent={true}
-        visible={deleteModalVisible}
-        onRequestClose={() => setDeleteModalVisible(false)}
-      >
-        <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>코스 삭제</Text>
-            <Text style={styles.modalMessage}>정말로 이 코스를 삭제하시겠어요? 삭제된 코스는 복구할 수 없어요.</Text>
-            <View style={styles.modalActions}>
+       <Modal animationType="fade" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(false)} >
+         <View style={styles.modalContainer}>
+           <View style={styles.modalContent}>
+             <Text style={styles.modalTitle}>코스 삭제</Text>
+             <Text style={styles.modalMessage}>정말로 이 코스를 삭제하시겠어요? 삭제된 코스는 복구할 수 없어요.</Text>
+             <View style={styles.modalActions}>
                 <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteModalVisible(false)}>
                     <Text style={styles.cancelButtonText}>취소</Text>
                 </TouchableOpacity>
                 <TouchableOpacity style={[styles.modalButton, styles.deleteButton]} onPress={handleDelete}>
                     <Text style={styles.confirmButtonText}>삭제</Text>
                 </TouchableOpacity>
-            </View>
-          </View>
-        </View>
-      </Modal>
+             </View>
+           </View>
+         </View>
+       </Modal>
     </View>
   );
 }
 
-// 스타일 시트는 이전과 동일하게 유지됩니다.
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
-  header: { flexDirection: 'row', padding: 10 },
+  header: { flexDirection: 'row', padding: 10, position: 'absolute', top: 40, left: 10, zIndex: 1 },
   headerButton: { padding: 8, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 20 },
   headerRightContainer: { flexDirection: 'row', gap: 12 },
   map: { width: screenWidth, height: screenHeight * 0.4 },
   markerContainer: { backgroundColor: '#007AFF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderColor: 'white', borderWidth: 2 },
   markerText: { color: 'white', fontWeight: 'bold' },
-  contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, backgroundColor: 'white' },
+  contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, backgroundColor: 'white', minHeight: screenHeight * 0.6 },
   title: { fontSize: 24, fontWeight: 'bold' },
   subtitle: { fontSize: 16, color: '#828282', marginTop: 4, marginBottom: 16 },
   description: { fontSize: 15, lineHeight: 22, color: '#4F4F4F' },
@@ -216,7 +214,7 @@ const styles = StyleSheet.create({
   placeNumberText: { color: 'white', fontWeight: 'bold' },
   placeName: { fontSize: 17, fontWeight: '600' },
   placeAddress: { fontSize: 14, color: '#828282', marginTop: 2 },
-  editButton: { backgroundColor: '#007AFF', padding: 16, margin: 20, borderRadius: 12, alignItems: 'center' },
+  editButton: { backgroundColor: '#007AFF', padding: 16, marginHorizontal: 20, marginVertical: 10, borderRadius: 12, alignItems: 'center' },
   editButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
   modalContent: { width: '80%', backgroundColor: 'white', borderRadius: 14, padding: 20, alignItems: 'center' },
