@@ -5,6 +5,7 @@ import React, { createContext, FC, ReactNode, useContext, useEffect, useState } 
 
 type UserType = 'resident' | 'business_owner' | 'admin' | 'visitor';
 
+// [핵심 수정] AuthContextType에서 loginAsGuest 타입을 삭제합니다.
 interface AuthContextType {
   isLoggedIn: boolean;
   userType: UserType;
@@ -12,7 +13,6 @@ interface AuthContextType {
   login: (jwt: string, type: UserType) => Promise<void>;
   logout: () => Promise<void>;
   selectUserType: (type: UserType) => Promise<void>;
-  loginAsGuest: () => void; // [핵심 추가] 비회원 둘러보기용 함수 타입 정의
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -60,12 +60,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  // [핵심 추가] 비회원 둘러보기를 위한 '가짜 로그인' 함수
-  const loginAsGuest = () => {
-    setIsLoggedIn(true);
-    setUserType('visitor'); // 비회원(방문객) 타입으로 설정
-  };
-
+  // [핵심 수정] loginAsGuest 함수를 완전히 삭제합니다.
+  
   const selectUserType = async (type: UserType) => {
     if (type === 'business_owner' || type === 'resident') {
         try {
@@ -84,7 +80,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     selectUserType,
-    loginAsGuest, // [핵심 추가] 컨텍스트 값으로 제공
+    // [핵심 수정] value 객체에서 loginAsGuest를 삭제합니다.
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
