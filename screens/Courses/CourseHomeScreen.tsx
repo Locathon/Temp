@@ -19,6 +19,20 @@ type CourseHomeScreenNavigationProp = NativeStackNavigationProp<CourseStackParam
 
 export default function CourseHomeScreen() {
   const navigation = useNavigation<CourseHomeScreenNavigationProp>();
+<<<<<<< Updated upstream
+=======
+  
+  // 데이터 변경 시 화면을 새로고침하기 위한 state
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // 이 화면이 다시 보일 때마다, 데이터 목록을 새로고침합니다.
+  useFocusEffect(
+    useCallback(() => {
+      // state를 변경하여 FlatList들을 강제로 다시 렌더링합니다.
+      setRefreshKey(prevKey => prevKey + 1);
+    }, [])
+  );
+>>>>>>> Stashed changes
 
   const renderCourseItem = ({ item }: { item: Course }) => (
     <TouchableOpacity style={styles.card} onPress={() => navigation.navigate('CourseDetailScreen', { courseId: item.id })}>
@@ -42,6 +56,7 @@ export default function CourseHomeScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>코스</Text>
         <View style={styles.iconGroup}>
+<<<<<<< Updated upstream
           <TouchableOpacity onPress={() => {/* TODO: Search */} }>
             <Ionicons name="search-outline" size={24} color="#333" />
           </TouchableOpacity>
@@ -57,14 +72,83 @@ export default function CourseHomeScreen() {
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
         ListHeaderComponent={
+=======
+          <TouchableOpacity onPress={() => navigation.navigate('CourseSearchScreen')}>
+            <Ionicons name="search-outline" size={24} color="#1C1C1E" />
+          </TouchableOpacity>
+          {/* [핵심 수정] '+' 버튼 클릭 시 CourseCreateScreen으로 courseId 없이 이동 */}
+          <TouchableOpacity onPress={() => navigation.navigate('CourseCreateScreen', { courseId: undefined })}>
+            <Ionicons name="add-circle-outline" size={26} color="#1C1C1E" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
+        {/* 추천 코스 섹션 */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>느린행궁이 추천하는 코스</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
+              <Text style={styles.seeAllText}>전체보기</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={recommendedCourses}
+            renderItem={renderCourseItem}
+            keyExtractor={(item) => item.id}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalListContainer}
+          />
+        </View>
+        
+        {/* 저장한 코스 섹션 */}
+        <View style={styles.sectionContainer}>
+>>>>>>> Stashed changes
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>오늘의 추천 코스</Text>
                 <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
                     <Text style={styles.seeAllText}>전체보기 &gt;</Text>
                 </TouchableOpacity>
             </View>
+<<<<<<< Updated upstream
         }
       />
+=======
+            <FlatList
+                data={savedCourses}
+                renderItem={renderCourseItem}
+                keyExtractor={(item) => `saved-${item.id}`}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.horizontalListContainer}
+                ListEmptyComponent={
+                    <View style={styles.emptyListContainer}>
+                        <Text style={styles.emptyListText}>저장한 코스가 없어요.</Text>
+                    </View>
+                }
+            />
+        </View>
+
+        {/* 나의 코스 섹션 */}
+        <View style={styles.sectionContainer}>
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>나의 코스</Text>
+             <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
+              <Text style={styles.seeAllText}>전체보기</Text>
+            </TouchableOpacity>
+          </View>
+          <FlatList
+            data={myCourses}
+            renderItem={renderCourseItem}
+            keyExtractor={(item) => `my-${item.id}`}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.horizontalListContainer}
+          />
+        </View>
+      </ScrollView>
+>>>>>>> Stashed changes
     </SafeAreaView>
   );
 }
