@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Link } from 'expo-router'; // ⭐️ 회원가입 화면으로 이동하기 위해 Link를 import 합니다.
 import React, { useState } from 'react';
 import {
@@ -20,52 +21,40 @@ const LoginScreen = () => {
   const { login } = useAuth();
 
   const handleLogin = async () => {
-    Keyboard.dismiss();
+  try {
+    const response = await fetch('http://3.35.27.124:8080/api/members/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
 
-    if (email === 'test@locathon.com' && password === '1234') {
-      Alert.alert('테스트 로그인', '소상공인 계정으로 로그인합니다.');
-      await login('secret-backdoor-token', 'business');
-      return; 
-    }
-    
-    if (!email || !password) {
-      Alert.alert('입력 오류', '이메일과 비밀번호를 모두 입력해주세요.');
-      return;
-    }
-    
-    setIsLoading(true);
+    const result = await response.json();
 
-    try {
-      const response = await fetch('http://3.35.27.124:8080/api/members/login', { 
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
-      });
+    if (response.ok) {
+      const { token, email: userEmail } = result;
 
-      if (response.ok) {
-        const data = await response.json();
-        await login(data.token, data.userType || 'visitor');
-      } else {
-        const errorText = await response.text();
-        let errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
-        
-        if (errorText) {
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorMessage = errorJson.message || errorJson.error || errorMessage;
-          } catch (e) {
-            console.log("JSON 파싱 실패 원본:", errorText);
-          }
-        }
-        Alert.alert('로그인 실패', errorMessage);
+      if (!token) {
+        Alert.alert('로그인 실패', '서버로부터 토큰을 받지 못했습니다.');
+        return;
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert('네트워크 오류', '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.');
-    } finally {
-      setIsLoading(false);
+
+      await AsyncStorage.setItem('jwt', token);
+      await AsyncStorage.setItem('userEmail', userEmail || email);
+
+      Alert.alert('로그인 성공', `${userEmail || email}님 환영합니다.`);
+      console.log('로그인 성공:', result);
+
+      router.replace('/(tabs)/Courses');
+    } else {
+      const message = result.message || '이메일 또는 비밀번호 오류';
+      Alert.alert('로그인 실패', message);
+      console.warn('로그인 실패:', result);
     }
-  };
+  } catch (err) {
+    console.error('로그인 오류:', err);
+    Alert.alert('오류', '서버에 연결할 수 없습니다.');
+  }
+};
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
