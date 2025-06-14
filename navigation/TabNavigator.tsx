@@ -1,3 +1,5 @@
+// C:\Users\mnb09\Desktop\Temp\navigation\TabNavigator.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import React from 'react';
@@ -56,8 +58,8 @@ export default function TabNavigator() {
       <Tab.Screen name="코스" component={CourseNavigator} />
       <Tab.Screen name="장소" component={PlaceStackNavigator} />
       
-      {/* ⭐️ userType이 'business'일 경우에만 소상공인 탭을 보여줍니다. */}
-      {userType === 'business' && (
+      {/* [핵심 수정] userType이 'business_owner'일 경우에만 소상공인 탭을 보여줍니다. */}
+      {userType === 'business_owner' && (
         <Tab.Screen name="소상공인" component={BusinessNavigator} />
       )}
 

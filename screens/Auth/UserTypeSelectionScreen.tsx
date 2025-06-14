@@ -1,3 +1,5 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Auth\UserTypeSelectionScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
@@ -6,6 +8,7 @@ import { useAuth } from '../../contexts/AuthContext';
 
 // 네비게이션 타입 정의
 type NavigationProp = {
+  // navigate 함수는 현재 직접 사용하지 않지만, 타입을 명시적으로 유지합니다.
   navigate: (screen: string, params?: any) => void;
 };
 
@@ -13,17 +16,16 @@ const UserTypeSelectionScreen = () => {
   const navigation = useNavigation<NavigationProp>();
   const { selectUserType } = useAuth(); // AuthContext에서 함수 가져오기
 
-  // 주민 인증하기 버튼 클릭 시 호출될 함수
-  const handleResidentPress = async () => {
-    console.log('주민 인증하기 선택');
-    await selectUserType('resident'); // 비동기로 처리
+  // [핵심 수정] 주민으로 시작하기 버튼 클릭 시 호출될 함수
+  // 사용자의 타입을 'resident'로 설정하는 역할만 합니다.
+  const handleResidentPress = () => {
+    selectUserType('resident');
   };
 
-  // 소상공인으로 시작하기 버튼 클릭 시 호출될 함수
-  const handleBusinessPress = async () => {
-    console.log('소상공인으로 시작하기 선택');
-    await selectUserType('business');
-    navigation.navigate('Tabs', { screen: '소상공인', params: { screen: 'RegisterStore' } });
+  // [핵심 수정] 소상공인으로 시작하기 버튼 클릭 시 호출될 함수
+  // 사용자의 타입을 'business_owner'로 설정하고, 불필요한 네비게이션 코드를 제거합니다.
+  const handleBusinessPress = () => {
+    selectUserType('business_owner');
   };
   
   return (
@@ -38,9 +40,10 @@ const UserTypeSelectionScreen = () => {
           어떤 유형으로 행궁동을 즐겨볼까요?{'\n'}주민 인증 시 더 많은 혜택이 기다리고 있어요.
         </Text>
 
+        {/* [핵심 수정] 버튼 텍스트를 '주민으로 시작하기'로 변경합니다. */}
         <TouchableOpacity style={[styles.button, styles.residentButton]} onPress={handleResidentPress}>
           <Ionicons name="person-outline" size={24} color="#FFFFFF" />
-          <Text style={styles.buttonText}>주민 인증하기</Text>
+          <Text style={styles.buttonText}>주민으로 시작하기</Text>
         </TouchableOpacity>
 
         <TouchableOpacity style={[styles.button, styles.businessButton]} onPress={handleBusinessPress}>
