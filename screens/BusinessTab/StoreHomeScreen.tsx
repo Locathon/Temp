@@ -1,9 +1,26 @@
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
 import aiTransitionIcon from '../../assets/images/ai_transition.png';
 
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+// Route params type for navigation
+type StoreParams = {
+  name?: string;
+  description?: string;
+  tag?: string;
+  location?: string; // changed from address
+  startHour?: string;
+  endHour?: string;
+  phone?: string;
+  website?: string;
+  holidays?: string[];
+  profileImage?: string;
+  menuImages?: (string | null)[];
+  qas?: { question: string; answer: string }[];
+};
 import React, { useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import RenderHTML from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 
 // 임시 가게 데이터 (추후 API 연동)
 const DUMMY_STORE_DATA = {
@@ -31,8 +48,38 @@ const DUMMY_STORE_DATA = {
 
 export default function StoreHomeScreen() {
   const navigation = useNavigation<any>();
-  const [activeTab, setActiveTab] = useState<'Home' | 'Review' | 'QA'>('Home');
+  const route = useRoute<RouteProp<{ params: StoreParams }, 'params'>>();
+  const {
+    name,
+    description,
+    tag,
+    location,
+    startHour,
+    endHour,
+    phone,
+    website,
+    holidays,
+    profileImage,
+    menuImages,
+    qas,
+  } = route.params || {};
+  const openingHours =
+    startHour && endHour
+      ? `${startHour} ~ ${endHour}`
+      : DUMMY_STORE_DATA.openingHours;
+  const [activeTab, setActiveTab] = useState<'Home' | 'Review' | 'QA'>(() => {
+    return 'Home';
+  });
   const [liked, setLiked] = useState(false);
+  // For Q&A expand/collapse
+  const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
+  const [qaList, setQaList] = useState(() => {
+    const initialQAs = route.params?.qas;
+    return initialQAs && initialQAs.length > 0
+      ? initialQAs
+      : [{ question: '', answer: '' }];
+  });
+  const { width } = useWindowDimensions();
 
   return (
     <SafeAreaView style={styles.safeArea}>
@@ -47,28 +94,32 @@ export default function StoreHomeScreen() {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={{
+          paddingBottom: 100,
+          flexGrow: 1,
+        }}
+      >
         {/* Store Images Grid */}
         <View style={styles.imageGrid}>
-          {DUMMY_STORE_DATA.images.map((img, idx) => (
-            <Image
-              key={idx}
-              source={img}
-              style={[
-                styles.gridImage,
-                idx % 2 === 1 && { marginRight: 0 }
-              ]}
-            />
-          ))}
+          <Image
+            source={
+              profileImage
+                ? { uri: profileImage }
+                : DUMMY_STORE_DATA.images[0]
+            }
+            style={styles.gridImage}
+          />
         </View>
 
         {/* Store Info */}
         <View style={styles.storeInfoRow}>
           <View>
-            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
-              <Text style={styles.storeName}>{DUMMY_STORE_DATA.name}</Text>
-              <Text style={styles.inlineStoreTag}>  {DUMMY_STORE_DATA.tag}</Text>
-            </View>
+        <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+          <Text style={styles.storeName}>{name || DUMMY_STORE_DATA.name}</Text>
+          <Text style={styles.inlineStoreTag}>  {tag || DUMMY_STORE_DATA.tag}</Text>
+        </View>
             <View style={styles.tagRow}>
               <View style={styles.ratingRow}>
                 <Text style={styles.ratingText}>{DUMMY_STORE_DATA.rating.toFixed(1)}</Text>
@@ -95,11 +146,31 @@ export default function StoreHomeScreen() {
         </View>
 
         {/* Description */}
-        <Text style={styles.storeDescription}>{DUMMY_STORE_DATA.description}</Text>
+        <View style={{ marginHorizontal: 16, marginTop: 12 }}>
+          <RenderHTML
+            contentWidth={width}
+            source={{ html: description || DUMMY_STORE_DATA.description }}
+          />
+        </View>
 
         {/* Edit Buttons */}
         <View style={styles.editButtonsRow}>
-          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditStore')}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate('EditStore', {
+                name,
+                description,
+                tag,
+                location,
+                startHour,
+                endHour,
+                phone,
+                website,
+                holidays,
+              })
+            }
+          >
             <Text style={styles.editButtonText}>스토어 편집</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('QASetup')}>
@@ -141,28 +212,37 @@ export default function StoreHomeScreen() {
                 <Ionicons name="location-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>위치안내</Text>
-                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.address}</Text>
+                  <Text style={styles.infoContent}>{location || DUMMY_STORE_DATA.address}</Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
                 <Ionicons name="time-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>영업시간</Text>
-                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.openingHours}</Text>
+                  <Text style={styles.infoContent}>{openingHours || DUMMY_STORE_DATA.openingHours}</Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
                 <Ionicons name="call-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>전화번호</Text>
-                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.phone}</Text>
+                  <Text style={styles.infoContent}>{phone || DUMMY_STORE_DATA.phone}</Text>
+                </View>
+              </View>
+              <View style={styles.infoBlock}>
+                <Ionicons name="calendar-outline" size={24} color="#2F80ED" />
+                <View style={styles.infoTextWrapper}>
+                  <Text style={styles.infoTitle}>휴무일</Text>
+                  <Text style={styles.infoContent}>
+                    {(holidays && holidays.length > 0) ? holidays.join(', ') + ' 휴무' : '정보 없음'}
+                  </Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
                 <MaterialCommunityIcons name="web" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>웹사이트</Text>
-                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.website}</Text>
+                  <Text style={styles.infoContent}>{website || DUMMY_STORE_DATA.website}</Text>
                 </View>
               </View>
             </View>
@@ -170,8 +250,16 @@ export default function StoreHomeScreen() {
             {/* 메뉴 Section */}
             <Text style={styles.menuSectionTitle}>메뉴</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
-              {DUMMY_STORE_DATA.images.slice(0, 2).map((img, idx) => (
-                <Image key={idx} source={img} style={styles.menuImage} />
+              {(menuImages && menuImages.length > 0 ? menuImages : [null]).map((img, idx) => (
+                <Image
+                  key={idx}
+                  source={
+                    img
+                      ? { uri: img }
+                      : DUMMY_STORE_DATA.images[idx % DUMMY_STORE_DATA.images.length]
+                  }
+                  style={styles.menuImage}
+                />
               ))}
             </ScrollView>
           </>
@@ -195,22 +283,34 @@ export default function StoreHomeScreen() {
 
         {activeTab === 'QA' && (
           <View style={{ marginTop: 24, marginHorizontal: 16 }}>
-            {Array(3).fill(0).map((_, idx) => (
-              <View key={idx} style={{ marginBottom: 24 }}>
-                <Text style={{ fontSize: 15, fontWeight: '600', color: '#1C1C1E', marginBottom: 10 }}>
-                  주차할 공간이 있을까요?
-                </Text>
-                <View style={{
-                  backgroundColor: '#F2F4F7',
-                  padding: 14,
-                  borderRadius: 12,
-                }}>
-                  <Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>
-                    넵! 저희 카페 공간에 오시면 바로 앞에 주차자리 있어요
-                  </Text>
+            {(qas && qas.length > 0 && qas.some(q => q.question && q.answer)) ? (
+              qas.map((qa, idx) => (
+                <View key={idx} style={{ marginBottom: 24 }}>
+                  <TouchableOpacity
+                    onPress={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
+                    style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
+                  >
+                    <Text style={{ fontSize: 15, fontWeight: '600', color: '#1C1C1E', marginBottom: 10 }}>
+                      {qa.question}
+                    </Text>
+                    <Text style={{ fontSize: 18, marginBottom: 10 }}>{expandedIndex === idx ? '˄' : '˅'}</Text>
+                  </TouchableOpacity>
+                  {expandedIndex === idx && (
+                    <View style={{
+                      backgroundColor: '#F2F4F7',
+                      padding: 14,
+                      borderRadius: 12,
+                    }}>
+                      <Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>
+                        {qa.answer}
+                      </Text>
+                    </View>
+                  )}
                 </View>
-              </View>
-            ))}
+              ))
+            ) : (
+              <Text style={{ color: '#999' }}>등록된 Q&amp;A가 없습니다.</Text>
+            )}
           </View>
         )}
 
@@ -251,17 +351,16 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   imageGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
     marginHorizontal: 16,
     marginTop: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   gridImage: {
-    width: '48%',
-    height: 120,
+    width: '100%',
+    height: 200,
     borderRadius: 12,
-    marginBottom: 8,
-    marginRight: '4%',
+    marginBottom: 16,
   },
   storeInfoRow: {
     flexDirection: 'row',

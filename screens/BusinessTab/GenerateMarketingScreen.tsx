@@ -1,7 +1,8 @@
-import * as Clipboard from 'expo-clipboard';
 import React, { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import RenderHtml from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
+import * as Clipboard from 'expo-clipboard';
 
 const snsList = [
   { label: '네이버 스토어', icon: require('../../assets/images/naver.png') },
@@ -170,7 +171,7 @@ const GenerateMarketingScreen = () => {
 const styles = StyleSheet.create({
   container: {
     padding: 20,
-    paddingBottom: 120, // 하단 버튼과의 간격 확보
+    paddingBottom: 60,
   },
   headerTitle: {
     fontSize: 20,
@@ -305,18 +306,15 @@ const styles = StyleSheet.create({
   },
   bottomButtonWrapper: {
     position: 'absolute',
-    bottom: 0,
+    bottom: 30,
     left: 0,
     right: 0,
     alignItems: 'center',
     zIndex: 2,
-    paddingBottom: 30, // SafeArea 고려
-    backgroundColor: '#FFFFFF',
-    paddingTop: 10,
   },
   bottomButton: {
     flexDirection: 'row',
-    width: '90%',
+    minWidth: 340, // 기존보다 넓게 수정
     borderRadius: 15,
     paddingVertical: 16,
     paddingHorizontal: 30,
@@ -345,7 +343,7 @@ const styles = StyleSheet.create({
     width: 18,
     height: 18,
     resizeMode: 'contain',
-    tintColor: '#fff',
+    tintColor: '#fff', // 검정 배경일 때 아이콘이 보이도록 흰색으로 설정
   },
 });
 
