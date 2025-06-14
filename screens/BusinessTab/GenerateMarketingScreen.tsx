@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 import { useWindowDimensions } from 'react-native';
@@ -16,14 +16,27 @@ const GenerateMarketingScreen = () => {
   const [storeDescription, setStoreDescription] = useState('');
   const [sns, setSns] = useState('');
   const [generatedText, setGeneratedText] = useState('');
-  const [aiStatus, setAiStatus] = useState<"idle" | "done">("idle");
+  const [aiStatus, setAiStatus] = useState<'idle' | 'loading' | 'done'>('idle');
+  const [loadingDots, setLoadingDots] = useState('');
   const { width } = useWindowDimensions();
 
   const isActive = Boolean(storeName.trim() && storeDescription.trim() && sns);
 
+  useEffect(() => {
+    if (aiStatus === 'idle') {
+      setLoadingDots('');
+    }
+    if (aiStatus === 'loading') {
+      const interval = setInterval(() => {
+        setLoadingDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
+      }, 500);
+      return () => clearInterval(interval);
+    }
+  }, [aiStatus]);
+
   const handleGenerate = async () => {
     if (!isActive) return;
-    setAiStatus('idle');
+    setAiStatus('loading');
     console.log('AI 요청 바디:', {
       originalText: storeDescription,
       storeName,
@@ -85,6 +98,10 @@ const GenerateMarketingScreen = () => {
                 }}
               />
             </ScrollView>
+          ) : aiStatus === 'loading' ? (
+            <View style={[styles.textarea, { justifyContent: 'center', alignItems: 'center' }]}>
+              <Text style={{ fontSize: 80, textAlign: 'center', color: '#888' }}>{loadingDots}</Text>
+            </View>
           ) : (
             <TextInput
               style={styles.textarea}

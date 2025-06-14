@@ -117,21 +117,29 @@ export default function EditProfileScreen() {
 
       <Text style={styles.label}>소개 *</Text>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-        <TextInput
-          style={[styles.input, { flex: 1 }]}
-          placeholder="예) 여행과 풍경의 기록, 느리게 걷는 발자국"
-          placeholderTextColor="#999"
-          multiline
-          value={description}
-          onChangeText={setDescription}
-        />
+        {aiStatus === 'loading' ? (
+          <TextInput
+            style={[styles.input, { flex: 1, textAlign: 'center', fontSize: 20 }]}
+            editable={false}
+            value={loadingDots}
+          />
+        ) : (
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            placeholder=""
+            placeholderTextColor="#999"
+            multiline
+            value={description}
+            onChangeText={setDescription}
+          />
+        )}
         <TouchableOpacity
           style={styles.aiInlineButton}
           onPress={async () => {
             setAiStatus('loading');
             setAiResult('');
             try {
-              const response = await fetch('http://3.35.27.124:8080/merchant/style-transform', {
+              const response = await fetch('http://3.35.27.124:8080//merchant/style-transform', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
