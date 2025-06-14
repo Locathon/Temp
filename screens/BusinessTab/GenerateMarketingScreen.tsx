@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
+import RenderHtml from 'react-native-render-html';
+import { useWindowDimensions } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 
 const snsList = [
@@ -14,19 +16,26 @@ const GenerateMarketingScreen = () => {
   const [storeDescription, setStoreDescription] = useState('');
   const [sns, setSns] = useState('');
   const [generatedText, setGeneratedText] = useState('');
-  const [aiStatus, setAiStatus] = useState<'idle' | 'done'>('idle');
+  const [aiStatus, setAiStatus] = useState<"idle" | "done">("idle");
+  const { width } = useWindowDimensions();
 
   const isActive = Boolean(storeName.trim() && storeDescription.trim() && sns);
 
   const handleGenerate = async () => {
     if (!isActive) return;
     setAiStatus('idle');
+    console.log('AI 요청 바디:', {
+      originalText: storeDescription,
+      storeName,
+      sns,
+    });
     const response = await fetch('http://localhost:8080/merchant/style-transform', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         originalText: storeDescription,
-        tone: '친근하게',
+        storeName,
+        sns,
       }),
     });
     const data = await response.json();
@@ -36,10 +45,13 @@ const GenerateMarketingScreen = () => {
 
   const handleCopy = () => {
     if (aiStatus !== 'done') return;
-    Clipboard.setStringAsync(generatedText);
+    const plainText = generatedText.replace(/<[^>]+>/g, '').replace(/<br\s*\/?>/gi, '\n');
+    Clipboard.setStringAsync(plainText);
   };
 
-  const getTextLength = aiStatus === 'done' ? generatedText.length : storeDescription.length;
+  const getTextLength = aiStatus === 'done'
+    ? generatedText.replace(/<[^>]+>/g, '').length
+    : storeDescription.length;
   const maxLength = 150;
 
   return (
@@ -62,21 +74,34 @@ const GenerateMarketingScreen = () => {
 
         <Text style={styles.label}>홍보 글쓰기</Text>
         <View style={styles.textareaWrap}>
-          <TextInput
-            style={styles.textarea}
-            value={aiStatus === 'done' ? generatedText : storeDescription}
-            onChangeText={text => {
-              setAiStatus('idle');
-              setStoreDescription(text);
-              setGeneratedText('');
-            }}
-            placeholder="AI로 변환하고 싶은 홍보용 문구를 작성해주세요."
-            placeholderTextColor="#C1C5CC"
-            multiline
-            editable={aiStatus !== 'done'}
-            maxLength={maxLength}
-            scrollEnabled={true}
-          />
+          {aiStatus === 'done' ? (
+            <ScrollView style={{ maxHeight: 120 }}>
+              <RenderHtml
+                contentWidth={width - 40}
+                source={{ html: `<div>${generatedText.replace(/\n/g, '<br />')}</div>` }}
+                tagsStyles={{
+                  span: { color: '#286FFD', fontWeight: 'bold' },
+                  div: { fontSize: 15, color: '#222' },
+                }}
+              />
+            </ScrollView>
+          ) : (
+            <TextInput
+              style={styles.textarea}
+              value={storeDescription}
+              onChangeText={text => {
+                setAiStatus('idle');
+                setStoreDescription(text);
+                setGeneratedText('');
+              }}
+              placeholder="AI로 변환하고 싶은 홍보용 문구를 작성해주세요."
+              placeholderTextColor="#C1C5CC"
+              multiline
+              editable={aiStatus !== 'done'}
+              maxLength={maxLength}
+              scrollEnabled={true}
+            />
+          )}
           <View style={styles.textareaBottom}>
             <Text style={[styles.lengthCount, { color: getTextLength === maxLength ? '#F66' : '#B2B8C3' }]}>
               {getTextLength}/{maxLength}
