@@ -1,152 +1,97 @@
-import { Link } from 'expo-router'; // ⭐️ 회원가입 화면으로 이동하기 위해 Link를 import 합니다.
+// C:\Users\mnb09\Desktop\Temp\app\login.tsx
+
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
-import {
-  ActivityIndicator,
-  Alert,
-  Keyboard,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  View
-} from 'react-native';
+import { ActivityIndicator, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { useAuth } from '../contexts/AuthContext';
 
 const LoginScreen = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
+  const router = useRouter();
   const { login } = useAuth();
 
-  const handleLogin = async () => {
-    Keyboard.dismiss();
+  const [email, setEmail] = useState('test@locathon.com'); // 기본값 설정
+  const [password, setPassword] = useState('1234'); // 기본값 설정
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
 
-    if (email === 'test@locathon.com' && password === '1234') {
-      Alert.alert('테스트 로그인', '소상공인 계정으로 로그인합니다.');
-      await login('secret-backdoor-token', 'business');
-      return; 
-    }
-    
+  const handleLogin = async () => {
     if (!email || !password) {
-      Alert.alert('입력 오류', '이메일과 비밀번호를 모두 입력해주세요.');
+      setError('이메일과 비밀번호를 모두 입력해주세요.');
       return;
     }
-    
     setIsLoading(true);
+    setError('');
 
     try {
-      const response = await fetch('http://3.35.27.124:8080/api/members/login', { 
+      const loginResponse = await fetch('http://3.35.27.124:8080/api/v1/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, password }),
       });
 
-      if (response.ok) {
-        const data = await response.json();
-        await login(data.token, data.userType || 'visitor');
-      } else {
-        const errorText = await response.text();
-        let errorMessage = '이메일 또는 비밀번호가 올바르지 않습니다.';
-        
-        if (errorText) {
-          try {
-            const errorJson = JSON.parse(errorText);
-            errorMessage = errorJson.message || errorJson.error || errorMessage;
-          } catch (e) {
-            console.log("JSON 파싱 실패 원본:", errorText);
-          }
-        }
-        Alert.alert('로그인 실패', errorMessage);
+      const loginData = await loginResponse.json();
+
+      if (!loginResponse.ok) {
+        throw new Error(loginData.message || '로그인에 실패했습니다.');
       }
-    } catch (err) {
-      console.error(err);
-      Alert.alert('네트워크 오류', '서버에 연결할 수 없습니다. 인터넷 연결을 확인해주세요.');
+
+      const { accessToken } = loginData.data;
+      
+      const userResponse = await fetch('http://3.35.27.124:8080/api/v1/users/me', {
+        headers: { 'Authorization': `Bearer ${accessToken}` },
+      });
+
+      const userData = await userResponse.json();
+
+      if (!userResponse.ok) {
+        throw new Error(userData.message || '사용자 정보를 가져오는데 실패했습니다.');
+      }
+
+      // 백엔드 ROLE ('RESIDENT')을 프론트 타입('resident')으로 변환
+      const userType = userData.data.role?.toLowerCase() || 'visitor';
+      
+      // AuthContext의 login 함수를 호출하여 앱 상태 변경 (화면 전환 트리거)
+      await login(accessToken, userType);
+
+    } catch (e: any) {
+      setError(e.message);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-            <Text style={styles.title}>느린행궁</Text>
-            <Text style={styles.subtitle}>로그인하고 행궁동을 즐겨보세요</Text>
-            <TextInput
-                style={styles.input}
-                placeholder="이메일"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-            />
-            <TextInput
-                style={styles.input}
-                placeholder="비밀번호"
-                value={password}
-                onChangeText={setPassword}
-                secureTextEntry
-            />
-            <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isLoading}>
-                {isLoading ? (
-                    <ActivityIndicator color="#FFFFFF" />
-                ) : (
-                    <Text style={styles.buttonText}>로그인</Text>
-                )}
-            </TouchableOpacity>
-
-            {/* ⭐️ 회원가입으로 이동하는 링크를 추가합니다. */}
-            <View style={styles.footerContainer}>
-                <Text style={styles.footerText}>아직 회원이 아니신가요? </Text>
-                <Link href="/register" asChild>
-                    <TouchableOpacity>
-                        <Text style={styles.link}>회원가입</Text>
-                    </TouchableOpacity>
-                </Link>
-            </View>
-        </View>
-    </TouchableWithoutFeedback>
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
+        <Image source={require('../assets/images/splash-icon.png')} style={styles.logo} />
+        <Text style={styles.title}>로그인</Text>
+        <TextInput style={styles.input} placeholder="이메일" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+        <TextInput style={styles.input} placeholder="비밀번호" value={password} onChangeText={setPassword} secureTextEntry />
+        {error ? <Text style={styles.errorText}>{error}</Text> : null}
+        <TouchableOpacity style={styles.button} onPress={handleLogin} disabled={isLoading}>
+          {isLoading ? <ActivityIndicator color="#FFFFFF" /> : <Text style={styles.buttonText}>로그인</Text>}
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => router.push('/register')}>
+          <Text style={styles.registerText}>계정이 없으신가요? <Text style={styles.registerLink}>회원가입</Text></Text>
+        </TouchableOpacity>
+      </View>
+    </SafeAreaView>
   );
 };
 
-// ⭐️ 스타일을 추가/수정합니다.
+// 스타일은 LoginScreen.tsx 파일 내부에 함께 둡니다.
 const styles = StyleSheet.create({
-  container: { flex: 1, justifyContent: 'center', padding: 20, backgroundColor: '#FFFFFF' },
-  title: { fontSize: 32, fontWeight: 'bold', color: '#2F80ED', textAlign: 'center', marginBottom: 10 },
-  subtitle: { fontSize: 16, color: '#828282', textAlign: 'center', marginBottom: 40 },
-  input: {
-    height: 50,
-    borderColor: '#E0E0E0',
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    marginBottom: 15,
-    backgroundColor: '#F2F2F7',
-    fontSize: 16,
-  },
-  button: {
-    height: 50,
-    backgroundColor: '#2F80ED',
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderRadius: 8,
-    marginTop: 10,
-  },
-  buttonText: { color: '#fff', fontSize: 18, fontWeight: 'bold' },
-  footerContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 20,
-  },
-  footerText: {
-    fontSize: 16,
-    color: '#828282',
-  },
-  link: {
-    fontSize: 16,
-    color: '#2F80ED',
-    fontWeight: 'bold',
-  },
+    container: { flex: 1, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+    content: { width: '85%', alignItems: 'center' },
+    logo: { width: 100, height: 100, marginBottom: 30 },
+    title: { fontSize: 24, fontWeight: 'bold', marginBottom: 20, color: '#333' },
+    input: { width: '100%', height: 50, backgroundColor: '#F2F2F7', borderRadius: 10, paddingHorizontal: 15, marginBottom: 15, fontSize: 16 },
+    button: { width: '100%', paddingVertical: 15, borderRadius: 12, backgroundColor: '#2F80ED', justifyContent: 'center', alignItems: 'center', marginVertical: 10 },
+    buttonText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
+    errorText: { color: 'red', marginVertical: 10, textAlign: 'center' },
+    registerText: { color: '#828282', marginTop: 20 },
+    registerLink: { color: '#2F80ED', fontWeight: 'bold' },
 });
+
 
 export default LoginScreen;
