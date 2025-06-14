@@ -1,287 +1,117 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseDetailScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React from 'react';
-import { Callout } from 'react-native-maps';
-
-import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
+import { courseDetailsMap, savedCourses, toggleSaveCourse } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-const { height: screenHeight } = Dimensions.get('window');
-
-const DUMMY_COURSE_DETAIL = [
-  {
-    id: '1',
-    title: '행궁동 맛집 투어',
-    subtitle: '운멜로 → 방화수류정 → 수원전통문화관',
-    places: [
-      {
-        name: '운멜로 1호점',
-        address: '수원시 팔달구 화서문로32번길 4 2층',
-        coordinate: { latitude: 37.289, longitude: 127.016 },
-      },
-      {
-        name: '방화수류정',
-        address: '수원시 팔달구 수원천로392번길 44-6',
-        time: '도보 8분 · 거리 약 600m',
-        coordinate: { latitude: 37.290, longitude: 127.018 },
-      },
-      {
-        name: '수원전통문화관',
-        address: '수원시 팔달구 정조로 893',
-        time: '도보 6분 · 거리 약 500m',
-        coordinate: { latitude: 37.2865, longitude: 127.0195 },
-      },
-    ],
-  },
-  {
-    id: '2',
-    title: '예술 감성 산책 코스',
-    subtitle: '수원화성박물관 → 공방거리 → 수원 아트스페이스 광교',
-    places: [
-      {
-        name: '수원화성박물관',
-        address: '경기도 수원시 팔달구 창룡대로 21 (매향동)',
-        coordinate: { latitude: 37.2889, longitude: 127.0194 },
-      },
-      {
-        name: '행궁동 공방거리',
-        address: '경기도 수원시 팔달구 남창동 / 행궁로 48‑1 일대',
-        time: '도보 10분 · 거리 약 700m',
-        coordinate: { latitude: 37.2868, longitude: 127.0195 },
-      },
-      {
-        name: '수원 아트스페이스이고',
-        address: '경기도 수원시 팔달구 남수동 11-73',
-        time: '도보 6분 · 거리 약 400m',
-        coordinate: { latitude: 37.285, longitude: 127.017 },
-      },
-    ],
-  },
-  {
-    id: '3',
-    title: '야경 명소 탐방',
-    subtitle: '화홍문 → 방화수류정 → 연무대',
-    places: [
-      {
-        name: '화홍문',
-        address: '수원시 팔달구 정조로 825',
-        coordinate: { latitude: 37.287, longitude: 127.018 },
-      },
-      {
-        name: '방화수류정',
-        address: '수원시 팔달구 수원천로392번길 44-6',
-        time: '도보 10분 · 거리 약 800m',
-        coordinate: { latitude: 37.290, longitude: 127.018 },
-      },
-      {
-        name: '연무대',
-        address: '수원시 팔달구 연무로 1',
-        time: '도보 12분 · 거리 약 900m',
-        coordinate: { latitude: 37.285, longitude: 127.020 },
-      },
-    ],
-  },
-];
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type CourseDetailRouteProp = RouteProp<CourseStackParamList, 'CourseDetailScreen'>;
+type CourseDetailNavigationProp = NativeStackNavigationProp<CourseStackParamList, 'CourseDetailScreen'>;
 
 export default function CourseDetailScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<CourseDetailNavigationProp>();
   const route = useRoute<CourseDetailRouteProp>();
   const { courseId } = route.params;
-  const course = DUMMY_COURSE_DETAIL.find((c) => c.id === courseId);
+
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const course = useMemo(() => courseDetailsMap.get(courseId), [courseId]);
+
+  const [likeCount, setLikeCount] = useState(course?.likes || 0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [isSaved, setIsSaved] = useState(savedCourses.some(c => c.id === courseId));
 
   if (!course) {
     return (
-      <View style={styles.container}>
-        <Text>코스를 찾을 수 없습니다.</Text>
-      </View>
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color="#333" /></TouchableOpacity>
+        </View>
+        <View style={styles.centered}><Text>코스 정보를 찾을 수 없습니다.</Text></View>
+      </SafeAreaView>
     );
   }
+  
+  const handleLike = () => {
+    // BUG FIX (3): prev 파라미터에 명시적 타입 부여
+    setIsLiked((prev: boolean) => !prev);
+    setLikeCount((prev: number) => isLiked ? prev - 1 : prev + 1);
+  };
 
-  // 코스 내 모든 장소의 위도, 경도 리스트
-  const latitudes = course.places.map(p => p.coordinate.latitude);
-  const longitudes = course.places.map(p => p.coordinate.longitude);
+  const handleSave = () => {
+    const result = toggleSaveCourse(course);
+    setIsSaved(result);
+  };
 
-  // 최소 최대 위도/경도 계산
+  const handleEdit = () => { navigation.navigate('CourseCreateScreen', { courseId }); };
+  const handleDelete = () => { setDeleteModalVisible(false); navigation.goBack(); };
+  
+  const latitudes = course.places.map((p) => p.coordinate.latitude);
+  const longitudes = course.places.map((p) => p.coordinate.longitude);
   const minLat = Math.min(...latitudes);
   const maxLat = Math.max(...latitudes);
   const minLon = Math.min(...longitudes);
   const maxLon = Math.max(...longitudes);
-
-  // 지도에 장소들이 잘 보이도록 중앙 좌표와 확대 범위 계산
   const centerLat = (maxLat + minLat) / 2;
   const centerLon = (maxLon + minLon) / 2;
-
-  // 간격에 1.5배 여유 줌
-  const latitudeDelta = (maxLat - minLat) * 1.5 || 0.01;
-  const longitudeDelta = (maxLon - minLon) * 1.5 || 0.01;
+  const latitudeDelta = (maxLat - minLat) * 1.6 || 0.01;
+  const longitudeDelta = (maxLon - minLon) * 1.6 || 0.01;
 
   return (
-    <View style={styles.container}>
-      {/* 헤더 */}
+    <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="chevron-back" size={28} color="#007AFF" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>
-          {course.title}
-        </Text>
-        <View style={{ width: 28 }} />
+        <TouchableOpacity onPress={() => navigation.goBack()}><Ionicons name="arrow-back" size={24} color="#333" /></TouchableOpacity>
+        <Text style={styles.headerTitle} numberOfLines={1}>{course.title}</Text>
+        {course.isMyCourse ? (<TouchableOpacity onPress={() => setDeleteModalVisible(true)}><Ionicons name="trash-outline" size={24} color="#333" /></TouchableOpacity>) : (<View style={{ width: 24 }} />)}
       </View>
 
-      {/* 지도 */}
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: centerLat,
-          longitude: centerLon,
-          latitudeDelta,
-          longitudeDelta,
-        }}
-      >
-        {course.places.map((place, index) => (
-        <Marker
-          key={index}
-          coordinate={place.coordinate}
-        >
-          <View style={styles.customMarker}>
-            <Text style={styles.markerText}>{index + 1}</Text>
-          </View>
-          <Callout>
-            <View style={{ padding: 5, maxWidth: 200 }}>
-              <Text style={{ fontWeight: 'bold' }}>{place.name}</Text>
-              {place.address && <Text>{place.address}</Text>}
-              {place.time && <Text style={{ color: '#666' }}>{place.time}</Text>}
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <MapView style={styles.map} initialRegion={{ latitude: centerLat, longitude: centerLon, latitudeDelta, longitudeDelta }}>
+          {course.places.map((place, index) => (<Marker key={place.id} coordinate={place.coordinate}><View style={styles.markerContainer}><Text style={styles.markerText}>{index + 1}</Text></View></Marker>))}
+          <Polyline coordinates={course.places.map((p) => p.coordinate)} strokeColor="#4A90E2" strokeWidth={3} lineDashPattern={[5, 5]} />
+        </MapView>
+        
+        <View style={styles.contentContainer}>
+            <View style={styles.courseInfoContainer}>
+                <Text style={styles.courseTitle}>{course.title}</Text>
+                <Text style={styles.courseAuthor}>by {course.author}</Text>
+                <Text style={styles.courseDescription}>{course.description}</Text>
+                 <View style={styles.actionButtons}>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleLike}>
+                        <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color={isLiked ? '#EB5757' : '#4F4F4F'} />
+                        <Text style={[styles.actionButtonText, isLiked && styles.likedText]}>{likeCount}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleSave}>
+                        <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color={isSaved ? '#007AFF' : '#4F4F4F'} />
+                        <Text style={[styles.actionButtonText, isSaved && styles.savedText]}>저장</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton}>
+                        <Ionicons name="share-outline" size={24} color="#4F4F4F" />
+                        <Text style={styles.actionButtonText}>공유</Text>
+                    </TouchableOpacity>
+                </View>
             </View>
-          </Callout>
-        </Marker>
-))}
-
-        <Polyline
-          coordinates={course.places.map(p => p.coordinate)}
-          strokeColor="#FF5A5F"
-          strokeWidth={4}
-          lineDashPattern={[2, 4]}
-        />
-      </MapView>
-
-      {/* 정보 카드 */}
-      <ScrollView style={styles.card}>
-        <Text style={styles.courseTitle}>📍 {course.title}</Text>
-        <Text style={styles.courseSub}>{course.subtitle}</Text>
-
-        <View style={styles.timeline}>
-          {course.places.map((place, index) => (
-            <View key={index} style={styles.timelineItem}>
-              {index === 0 && (
-                <Text style={styles.timelineStart}>Start!</Text>
-              )}
-              {place.time && (
-                <Text style={styles.walkingInfo}>{place.time}</Text>
-              )}
-              <Text style={styles.placeTitle}>{place.name}</Text>
-              <Text style={styles.placeAddress}>{place.address}</Text>
+            <View style={styles.separator} />
+            <View style={styles.placeListContainer}>
+                {course.places.map((place, index) => ( <View key={place.id}> {index > 0 && <View style={styles.pathInfo}><Text style={styles.pathText}>{place.time}</Text></View>} <View style={styles.placeItem}><View style={styles.placeNumber}><Text style={styles.placeNumberText}>{index + 1}</Text></View><View><Text style={styles.placeName}>{place.name}</Text><Text style={styles.placeAddress}>{place.address}</Text></View></View></View> ))}
             </View>
-          ))}
         </View>
       </ScrollView>
-    </View>
+
+      {course.isMyCourse && (<TouchableOpacity style={styles.editButton} onPress={handleEdit}><Text style={styles.editButtonText}>이 코스 수정하기</Text></TouchableOpacity>)}
+
+      <Modal animationType="fade" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(false)}>
+        <View style={styles.modalContainer}><View style={styles.modalContent}><Text style={styles.modalTitle}>코스 삭제</Text><Text style={styles.modalMessage}>이 코스를 정말 삭제하시겠습니까?{"\n"}삭제된 코스는 복구할 수 없습니다.</Text><View style={styles.modalActions}><TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteModalVisible(false)}><Text style={styles.cancelButtonText}>취소</Text></TouchableOpacity><TouchableOpacity style={[styles.modalButton, styles.deleteButton]} onPress={handleDelete}><Text style={styles.deleteButtonText}>삭제</Text></TouchableOpacity></View></View></View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: {
-    height: 60,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: '#DADADA',
-    paddingTop: 10,
-  },
-  headerTitle: {
-    fontSize: 17,
-    fontWeight: '600',
-    color: '#000',
-    flex: 1,
-    textAlign: 'center',
-  },
-  map: { width: '100%', height: screenHeight * 0.4 },
-  customMarker: {
-    backgroundColor: '#FF5A5F',
-    padding: 6,
-    borderRadius: 16,
-    borderWidth: 2,
-    borderColor: '#fff',
-    minWidth: 32,
-    minHeight: 32,
-    justifyContent: 'center',
-    alignItems: 'center',
-    elevation: 4,
-  },
-  markerText: {
-    color: 'white',
-    fontWeight: 'bold',
-    fontSize: 16,
-  },
-  card: {
-    flex: 1,
-    backgroundColor: '#F9F9F9',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    marginTop: -20,
-    padding: 24,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: -4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
-    elevation: 6,
-  },
-  courseTitle: { fontSize: 22, fontWeight: '600', color: '#333', marginBottom: 6 },
-  courseSub: { fontSize: 14, color: '#888', marginBottom: 20 },
-  timeline: {
-    borderLeftWidth: 2,
-    borderLeftColor: '#E0E0E0',
-    paddingLeft: 20,
-  },
-  timelineItem: {
-    marginBottom: 28,
-    position: 'relative',
-    paddingLeft: 6,
-  },
-  timelineStart: {
-    color: '#007AFF',
-    fontWeight: '500',
-    fontSize: 13,
-    marginBottom: 4,
-    position: 'absolute',
-    top: -20,
-    left: 10,
-  },
-  walkingInfo: {
-    fontSize: 12,
-    color: '#999',
-    marginBottom: 6,
-  },
-  placeTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#222',
-  },
-  placeAddress: {
-    fontSize: 13,
-    color: '#666',
-  },
+    container: { flex: 1, backgroundColor: '#FFFFFF' }, centered: { flex: 1, justifyContent: 'center', alignItems: 'center' }, header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAEAEA' }, headerTitle: { fontSize: 18, fontWeight: 'bold', flex: 1, textAlign: 'center', marginHorizontal: 16 }, map: { width: screenWidth, height: screenHeight * 0.35 }, markerContainer: { backgroundColor: '#007AFF', borderRadius: 12, padding: 6, borderColor: 'white', borderWidth: 1 }, markerText: { color: 'white', fontWeight: 'bold', fontSize: 14 }, contentContainer: { padding: 20 }, courseInfoContainer: { marginBottom: 24 }, courseTitle: { fontSize: 24, fontWeight: 'bold', marginBottom: 4 }, courseAuthor: { fontSize: 14, color: '#8E8E93', marginBottom: 12 }, courseDescription: { fontSize: 16, color: '#4F4F4F', lineHeight: 24 }, actionButtons: { flexDirection: 'row', justifyContent: 'space-around', marginTop: 20, paddingVertical: 10, borderTopWidth: 1, borderBottomWidth: 1, borderColor: '#F2F2F2' }, actionButton: { alignItems: 'center', gap: 4 }, actionButtonText: { fontSize: 12, color: '#4F4F4F' }, likedText: { color: '#EB5757' }, savedText: { color: '#007AFF' }, separator: { height: 8, backgroundColor: '#F2F2F7', marginHorizontal: -20 }, placeListContainer: { marginTop: 24 }, pathInfo: { alignItems: 'center', marginVertical: 12 }, pathText: { fontSize: 13, color: '#8E8E93', backgroundColor: '#F2F2F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, overflow: 'hidden' }, placeItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 }, placeNumber: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', marginRight: 15 }, placeNumberText: { color: 'white', fontWeight: 'bold' }, placeName: { fontSize: 17, fontWeight: '600' }, placeAddress: { fontSize: 14, color: '#828282', marginTop: 2 }, editButton: { backgroundColor: '#007AFF', padding: 16, margin: 20, borderRadius: 12, alignItems: 'center' }, editButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' }, modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' }, modalContent: { width: '80%', backgroundColor: 'white', borderRadius: 14, padding: 20, alignItems: 'center' }, modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 }, modalMessage: { fontSize: 15, textAlign: 'center', color: '#4F4F4F', marginBottom: 20, lineHeight: 22 }, modalActions: { flexDirection: 'row', width: '100%', justifyContent: 'space-between' }, modalButton: { flex: 1, paddingVertical: 12, borderRadius: 8, alignItems: 'center' }, cancelButton: { backgroundColor: '#E5E5EA', marginRight: 5 }, cancelButtonText: { color: '#4F4F4F', fontWeight: '500' }, deleteButton: { backgroundColor: '#FF3B30', marginLeft: 5 }, deleteButtonText: { color: 'white', fontWeight: 'bold' },
 });
