@@ -1,88 +1,97 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TextInput, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
-type QA = { question: string; answer: string };
+type QA = { question: string; answer: string; expanded: boolean };
 
 export default function QASetupScreen() {
   const navigation = useNavigation<any>();
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState('');
-  const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
-  // Dummy entries for preview (replace with real state as needed)
   const [qaList, setQaList] = useState<QA[]>([
-    { question: '가게 위치는 어디인가요?', answer: '서울특별시 강남구입니다.' },
-    { question: '영업시간이 어떻게 되나요?', answer: '오전 9시부터 오후 6시까지입니다.' },
+    {
+      question: '오늘 영업하나요?',
+      answer: '네, 오늘 정상 영업합니다!',
+      expanded: false,
+    },
+    {
+      question: '주차장 있나요?',
+      answer: '네, 건물 앞 주차장 이용 가능합니다.',
+      expanded: false,
+    },
+    {
+      question: '포장도 되나요?',
+      answer: '네, 모든 메뉴 포장 가능합니다 :)',
+      expanded: false,
+    },
+    {
+      question: '예약 없이 가도 되나요?',
+      answer: '네, 오늘은 오전 11시부터 오후 9시까지 영업합니다 :)',
+      expanded: true,
+    },
+    {
+      question: '메뉴판 어디서 볼 수 있나요?',
+      answer: '프로필에 메뉴 링크가 있습니다! 또는 인스타 하이라이트도 참고해주세요.',
+      expanded: true,
+    },
+    {
+      question: '카드 결제 되나요?',
+      answer: '네, 카드/간편결제 모두 가능합니다. 현금영수증도 발급돼요 :)',
+      expanded: true,
+    },
   ]);
 
-  const handleAdd = () => {
-    if (question && answer) {
-      if (selectedIndex !== null) {
-        // Update existing
-        const updated = [...qaList];
-        updated[selectedIndex] = { question, answer };
-        setQaList(updated);
-      } else {
-        // Add new
-        setQaList(prev => [...prev, { question, answer }]);
-      }
-      setQuestion('');
-      setAnswer('');
-      setSelectedIndex(null);
-    }
-  };
-
-  const goToPreview = () => {
-    navigation.navigate('QAPreviewScreen');
-  };
+  useFocusEffect(
+    useCallback(() => {
+      const simplifiedQas = qaList.map(({ question, answer }) => ({ question, answer }));
+      navigation.setParams({ qas: simplifiedQas });
+    }, [qaList])
+  );
 
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Q&A 설정</Text>
 
-      <View style={{ flex: 1 }}>
-        <FlatList
-          data={qaList}
-          keyExtractor={(_, index) => index.toString()}
-          renderItem={({ item, index }) => (
+      <FlatList
+        data={qaList}
+        keyExtractor={(_, index) => index.toString()}
+        renderItem={({ item, index }) => (
+          <>
             <TouchableOpacity
-              style={styles.item}
               onPress={() => {
-                setQuestion(item.question);
-                setAnswer(item.answer);
-                setSelectedIndex(index);
+                const updated = [...qaList];
+                updated[index].expanded = !updated[index].expanded;
+                setQaList(updated);
               }}
+              style={{ paddingVertical: 12, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
             >
-              <Text style={styles.q}>Q. {item.question}</Text>
-              <Text style={styles.a}>A. {item.answer}</Text>
+              <Text style={{ fontSize: 16, fontWeight: 'bold' }}>
+                {item.question}
+                {item.answer === '' && <Text style={{ color: 'red' }}> *</Text>}
+              </Text>
+              <Text style={{ fontSize: 20, color: '#555' }}>
+                {item.expanded ? '˄' : '˅'}
+              </Text>
             </TouchableOpacity>
-          )}
-          style={{ marginTop: 20, marginBottom: 20 }}
-        />
-        <View style={styles.footer}>
-          <TextInput
-            style={styles.footerInput}
-            placeholder="질문을 입력하세요"
-            value={question}
-            onChangeText={setQuestion}
-          />
-          <TouchableOpacity style={styles.footerButton} onPress={handleAdd}>
-            <Text style={styles.footerButtonText}>{selectedIndex !== null ? '수정' : '추가'}</Text>
+            {item.expanded && (
+              <View style={{
+                backgroundColor: '#F2F4F7',
+                padding: 12,
+                borderRadius: 12,
+                marginBottom: 16,
+              }}>
+                <Text style={{ fontSize: 14, color: '#4F4F4F' }}>{item.answer || '답변을 입력해주세요.'}</Text>
+              </View>
+            )}
+          </>
+        )}
+        ListFooterComponent={
+          <TouchableOpacity
+            style={{ backgroundColor: '#000', padding: 16, borderRadius: 30, alignItems: 'center', marginVertical: 16 }}
+            onPress={() => setQaList([...qaList, { question: '', answer: '', expanded: true }])}
+          >
+            <Text style={{ color: '#fff', fontWeight: 'bold' }}>질문 추가하기</Text>
           </TouchableOpacity>
-        </View>
-      </View>
-
-      <Text style={styles.label}>답변</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="답변을 입력하세요"
-        value={answer}
-        onChangeText={setAnswer}
+        }
       />
-
-      <TouchableOpacity onPress={goToPreview} style={{ marginTop: 10 }}>
-        <Text style={{ color: '#007AFF', fontWeight: 'bold' }}>미리보기</Text>
-      </TouchableOpacity>
     </View>
   );
 }
