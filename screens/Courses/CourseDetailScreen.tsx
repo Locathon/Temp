@@ -17,40 +17,40 @@ type CourseDetailNavigationProp = NativeStackNavigationProp<CourseStackParamList
 export default function CourseDetailScreen() {
   const navigation = useNavigation<CourseDetailNavigationProp>();
   const route = useRoute<CourseDetailRouteProp>();
-  const { courseId } = route.params;
-
-  const course = useMemo(() => courseDetailsMap.get(courseId), [courseId]);
+  
+  const { courseId } = route.params || {};
+  const course = useMemo(() => courseId ? courseDetailsMap.get(courseId) : undefined, [courseId]);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  // [버튼 먹통 해결] 상태를 useState로 관리
   const [isSaved, setIsSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(course?.likes || 0);
+  const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
-  // [버튼 먹통 해결] 화면이 포커스될 때마다 데이터 동기화
-  useFocusEffect(
-    useCallback(() => {
+  const refreshStates = useCallback(() => {
+    if (courseId) {
       const currentCourse = courseDetailsMap.get(courseId);
       if (currentCourse) {
         setIsSaved(savedCourses.some(c => c.id === courseId));
         setLikeCount(currentCourse.likes);
       }
-    }, [courseId])
-  );
+    }
+  }, [courseId]);
+
+  useFocusEffect(refreshStates);
 
   const handleToggleSave = () => {
     if (course) {
       toggleSaveCourse(course);
-      setIsSaved(!isSaved); // 즉각적인 UI 피드백
+      refreshStates(); 
     }
   };
 
   const handleToggleLike = () => {
-    if(course) {
-        setIsLiked(!isLiked);
-        // 실제 데이터 변경 로직은 없으므로 UI만 변경
-        setLikeCount(prev => isLiked ? prev - 1 : prev + 1);
-        course.likes = isLiked ? course.likes -1 : course.likes + 1; // 원본 데이터 수정 (임시)
+    if (course) {
+      const newIsLiked = !isLiked;
+      setIsLiked(newIsLiked);
+      setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
+      course.likes = newIsLiked ? course.likes + 1 : course.likes - 1;
     }
   };
 
@@ -89,7 +89,7 @@ export default function CourseDetailScreen() {
         </View>
       ),
     });
-  }, [navigation, isLiked, isSaved, course]); // 의존성 배열에 isLiked, isSaved 추가하여 상태 변경 시 헤더 리렌더링
+  }, [navigation, isLiked, isSaved, course]);
 
   if (!course) {
     return (
@@ -128,8 +128,7 @@ export default function CourseDetailScreen() {
           ))}
         </MapView>
         <View style={styles.contentContainer}>
-            {/* 이하 UI 코드는 변경 없음 */}
-            <Text style={styles.title}>{course.title}</Text>
+          <Text style={styles.title}>{course.title}</Text>
           <Text style={styles.subtitle}>{course.subtitle}</Text>
           <Text style={styles.description}>{course.description}</Text>
           <View style={styles.metaContainer}>
@@ -139,9 +138,7 @@ export default function CourseDetailScreen() {
               <Text style={styles.likes}>{likeCount}</Text>
             </View>
           </View>
-
           <View style={styles.separator} />
-
           <Text style={styles.listTitle}>포함된 장소</Text>
           <View style={styles.placeListContainer}>
             {course.places.map((place, index) => (
@@ -157,7 +154,6 @@ export default function CourseDetailScreen() {
               </React.Fragment>
             ))}
           </View>
-          
           {course.isMyCourse && (
             <TouchableOpacity 
               style={styles.editButton}
@@ -168,7 +164,6 @@ export default function CourseDetailScreen() {
           )}
         </View>
       </ScrollView>
-
        <Modal animationType="fade" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(false)} >
          <View style={styles.modalContainer}>
            <View style={styles.modalContent}>

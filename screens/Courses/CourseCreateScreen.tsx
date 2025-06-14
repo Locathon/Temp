@@ -1,235 +1,171 @@
-// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseDetailScreen.tsx
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseCreateScreen.tsx
 
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
-import { Alert, Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-import MapView, { Marker, Polyline } from 'react-native-maps';
-import { courseDetailsMap, deleteCourse, savedCourses, toggleSaveCourse } from '../../data/courseData';
+import { NativeStackScreenProps } from '@react-navigation/native-stack';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
+import { Alert, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { courseDetailsMap, Place, saveCourse } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
+type Props = NativeStackScreenProps<CourseStackParamList, 'CourseCreateScreen'>;
 
-type CourseDetailRouteProp = RouteProp<CourseStackParamList, 'CourseDetailScreen'>;
-type CourseDetailNavigationProp = NativeStackNavigationProp<CourseStackParamList, 'CourseDetailScreen'>;
+export default function CourseCreateScreen({ route, navigation }: Props) {
+  const { courseId, updatedPlaces } = route.params || {};
+  const isEditing = !!courseId;
 
-export default function CourseDetailScreen() {
-  const navigation = useNavigation<CourseDetailNavigationProp>();
-  const route = useRoute<CourseDetailRouteProp>();
-  const { courseId } = route.params;
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [selectedPlaces, setSelectedPlaces] = useState<Place[]>([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [placeToDelete, setPlaceToDelete] = useState<Place | null>(null);
 
-  // [버튼 먹통 해결] course 객체는 useMemo로 유지하되, 상태값들은 useState로 관리합니다.
-  const course = useMemo(() => courseDetailsMap.get(courseId), [courseId]);
-
-  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
-  const [isSaved, setIsSaved] = useState(false);
-  const [likeCount, setLikeCount] = useState(0);
-  const [isLiked, setIsLiked] = useState(false);
-
-  // [버튼 먹통 해결] 데이터 원본(courseData.ts)을 기준으로 모든 상태를 동기화하는 함수
-  const refreshStates = useCallback(() => {
-    const currentCourse = courseDetailsMap.get(courseId);
-    if (currentCourse) {
-      setIsSaved(savedCourses.some(c => c.id === courseId));
-      setLikeCount(currentCourse.likes);
-      // isLiked는 현재 영구 데이터가 없으므로 그대로 둡니다.
+  useEffect(() => {
+    if (route.params?.updatedPlaces) {
+      setSelectedPlaces(route.params.updatedPlaces);
+      navigation.setParams({ updatedPlaces: undefined });
     }
-  }, [courseId]);
+  }, [route.params?.updatedPlaces]);
 
-  // 화면이 포커스될 때마다 상태 동기화
-  useFocusEffect(refreshStates);
-
-  const handleToggleSave = () => {
-    if (course) {
-      toggleSaveCourse(course);
-      refreshStates(); // [버튼 먹통 해결] 데이터 변경 후, 원본을 기준으로 상태를 다시 동기화합니다.
+  useEffect(() => {
+    if (isEditing) {
+      const courseData = courseDetailsMap.get(courseId);
+      if (courseData) {
+        setTitle(courseData.title);
+        setDescription(courseData.description);
+        setSelectedPlaces(courseData.places);
+      }
     }
+  }, [courseId, isEditing]);
+
+  const handleSave = () => {
+    if (!title.trim() || selectedPlaces.length === 0) {
+      Alert.alert('알림', '코스 이름과 장소를 1개 이상 포함해야 합니다.');
+      return;
+    }
+    saveCourse({ id: courseId, title, description, places: selectedPlaces });
+    navigation.popToTop(); // [핵심 수정] 저장 후 코스 홈으로 돌아갑니다.
   };
 
-  const handleToggleLike = () => {
-    if (course) {
-        const newIsLiked = !isLiked;
-        const newLikeCount = newIsLiked ? likeCount + 1 : likeCount - 1;
-
-        // UI 즉시 업데이트
-        setIsLiked(newIsLiked);
-        setLikeCount(newLikeCount);
-
-        // 실제 데이터 업데이트 (임시)
-        course.likes = newLikeCount;
-    }
+  const handleDeletePlace = (place: Place) => {
+    setSelectedPlaces(prev => prev.filter(p => p.id !== place.id));
+    setPlaceToDelete(null);
+    setModalVisible(false);
+  };
+  
+  const openDeleteModal = (place: Place) => {
+    setPlaceToDelete(place);
+    setModalVisible(true);
+  };
+  
+  const openCancelModal = () => {
+    setPlaceToDelete(null);
+    setModalVisible(true);
   };
 
-  const handleDelete = () => {
-    if (course) {
-      deleteCourse(courseId);
-      setDeleteModalVisible(false);
+  const handleModalConfirm = () => {
+    if (placeToDelete) {
+      handleDeletePlace(placeToDelete);
+    } else {
+      setModalVisible(false);
       navigation.goBack();
-      Alert.alert("코스가 삭제되었습니다.");
     }
   };
-
+  
   useLayoutEffect(() => {
     navigation.setOptions({
       headerShown: true,
-      headerTransparent: true,
-      headerTitle: '',
-      headerLeft: () => (
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerButton}>
-          <Ionicons name="arrow-back" size={24} color="white" />
-        </TouchableOpacity>
-      ),
-      headerRight: () => (
-        <View style={styles.headerRightContainer}>
-          <TouchableOpacity onPress={handleToggleSave} style={styles.headerButton}>
-            <Ionicons name={isSaved ? "bookmark" : "bookmark-outline"} size={24} color="white" />
-          </TouchableOpacity>
-          <TouchableOpacity onPress={handleToggleLike} style={styles.headerButton}>
-            <Ionicons name={isLiked ? "heart" : "heart-outline"} size={24} color="white" />
-          </TouchableOpacity>
-          {course?.isMyCourse && (
-            <TouchableOpacity onPress={() => setDeleteModalVisible(true)} style={styles.headerButton}>
-              <Ionicons name="trash-outline" size={24} color="white" />
-            </TouchableOpacity>
-          )}
-        </View>
-      ),
+      headerTitle: () => <Text style={styles.headerTitle}>{isEditing ? '코스 수정' : '코스 만들기'}</Text>,
+      headerLeft: () => (<TouchableOpacity onPress={openCancelModal}><Ionicons name="close-outline" size={28} color="#333" /></TouchableOpacity>),
+      headerRight: () => (<TouchableOpacity style={styles.saveButton} onPress={handleSave}><Text style={styles.saveButtonText}>저장</Text></TouchableOpacity>),
+      headerStyle: { backgroundColor: '#FFFFFF' },
+      headerShadowVisible: false,
+      headerTitleAlign: 'center',
     });
-  }, [navigation, isLiked, isSaved, course]);
-
-  if (!course) {
-    return (
-      <SafeAreaView style={styles.container}>
-         <View style={styles.header}>
-            <TouchableOpacity onPress={() => navigation.goBack()}>
-                <Ionicons name="arrow-back" size={24} color="black" />
-            </TouchableOpacity>
-        </View>
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Text>코스 정보를 불러올 수 없습니다.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  const coordinates = course.places.map(p => p.coordinate);
+  }, [navigation, isEditing, title, description, selectedPlaces]);
 
   return (
-    <View style={styles.container}>
-      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
-        <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: coordinates[0]?.latitude || 37.28,
-            longitude: coordinates[0]?.longitude || 127.01,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          }}
-        >
-          {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor="#007AFF" strokeWidth={4} />}
-          {course.places.map((place, index) => (
-            <Marker key={place.id} coordinate={place.coordinate} title={place.name}>
-              <View style={styles.markerContainer}><Text style={styles.markerText}>{index + 1}</Text></View>
-            </Marker>
-          ))}
-        </MapView>
-        <View style={styles.contentContainer}>
-            <Text style={styles.title}>{course.title}</Text>
-          <Text style={styles.subtitle}>{course.subtitle}</Text>
-          <Text style={styles.description}>{course.description}</Text>
-          <View style={styles.metaContainer}>
-            <Text style={styles.author}>by {course.author}</Text>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Ionicons name="heart" size={16} color="#FF3B30" style={{ marginRight: 4 }} />
-              <Text style={styles.likes}>{likeCount}</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.contentContainer}>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>코스 이름</Text>
+          <TextInput style={styles.input} value={title} onChangeText={setTitle} placeholder="나만의 코스 이름을 지어주세요" />
+        </View>
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>코스 설명</Text>
+          <TextInput style={[styles.input, styles.textarea]} value={description} onChangeText={setDescription} placeholder="코스에 대한 설명을 적어주세요 (선택)" multiline />
+        </View>
+
+        <View style={styles.inputGroup}>
+          <Text style={styles.label}>포함된 장소 ({selectedPlaces.length})</Text>
+          {selectedPlaces.map((place, index) => (
+            <View key={`${place.id}-${index}`} style={styles.placeCard}>
+              <View style={styles.placeNumber}><Text style={styles.placeNumberText}>{index + 1}</Text></View>
+              <View style={styles.placeInfo}>
+                <Text style={styles.placeName}>{place.name}</Text>
+                <Text style={styles.placeAddress}>{place.address}</Text>
+              </View>
+              <TouchableOpacity onPress={() => openDeleteModal(place)}>
+                <Ionicons name="close-circle" size={24} color="#E0E0E0" />
+              </TouchableOpacity>
             </View>
-          </View>
-
-          <View style={styles.separator} />
-
-          <Text style={styles.listTitle}>포함된 장소</Text>
-          <View style={styles.placeListContainer}>
-            {course.places.map((place, index) => (
-              <React.Fragment key={place.id}>
-                {index > 0 && <View style={styles.pathInfo}><Text style={styles.pathText}>{place.time || '15분'}</Text></View>}
-                <View style={styles.placeItem}>
-                  <View style={styles.placeNumber}><Text style={styles.placeNumberText}>{index + 1}</Text></View>
-                  <View>
-                    <Text style={styles.placeName}>{place.name}</Text>
-                    <Text style={styles.placeAddress}>{place.address}</Text>
-                  </View>
-                </View>
-              </React.Fragment>
-            ))}
-          </View>
-          
-          {course.isMyCourse && (
-            <TouchableOpacity 
-              style={styles.editButton}
-              onPress={() => navigation.navigate('CourseCreateScreen', { courseId: course.id })}
-            >
-              <Text style={styles.editButtonText}>이 코스 수정하기</Text>
-            </TouchableOpacity>
-          )}
+          ))}
+          <TouchableOpacity 
+            style={styles.addPlaceButton} 
+            onPress={() => navigation.navigate('PlaceSearchScreen', { currentPlaces: selectedPlaces })}
+          >
+            <Ionicons name="add" size={24} color="#007AFF" />
+            <Text style={styles.addPlaceButtonText}>장소 추가</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 
-       <Modal animationType="fade" transparent={true} visible={deleteModalVisible} onRequestClose={() => setDeleteModalVisible(false)} >
-         <View style={styles.modalContainer}>
-           <View style={styles.modalContent}>
-             <Text style={styles.modalTitle}>코스 삭제</Text>
-             <Text style={styles.modalMessage}>정말로 이 코스를 삭제하시겠어요? 삭제된 코스는 복구할 수 없어요.</Text>
-             <View style={styles.modalActions}>
-                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setDeleteModalVisible(false)}>
+      <Modal animationType="fade" transparent={true} visible={modalVisible} onRequestClose={() => setModalVisible(false)}>
+        <View style={styles.modalContainer}>
+            <View style={styles.modalContent}>
+              <Text style={styles.modalTitle}>{placeToDelete ? '장소 삭제' : '작성 취소'}</Text>
+              <Text style={styles.modalMessage}>{placeToDelete ? `'${placeToDelete?.name}' 장소를 삭제하시겠어요?` : `작성을 취소하고 나가시겠어요?\n저장되지 않은 내용은 사라져요.`}</Text>
+              <View style={styles.modalActions}>
+                <TouchableOpacity style={[styles.modalButton, styles.cancelButton]} onPress={() => setModalVisible(false)}>
                     <Text style={styles.cancelButtonText}>취소</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={[styles.modalButton, styles.deleteButton]} onPress={handleDelete}>
-                    <Text style={styles.confirmButtonText}>삭제</Text>
+                <TouchableOpacity style={[styles.modalButton, placeToDelete ? styles.deleteButton : styles.confirmButton]} onPress={handleModalConfirm}>
+                    <Text style={styles.confirmButtonText}>{placeToDelete ? '삭제' : '나가기'}</Text>
                 </TouchableOpacity>
-             </View>
-           </View>
-         </View>
-       </Modal>
-    </View>
+              </View>
+            </View>
+        </View>
+      </Modal>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: 'white' },
-  header: { flexDirection: 'row', padding: 10, position: 'absolute', top: 40, left: 10, zIndex: 1 },
-  headerButton: { padding: 8, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 20 },
-  headerRightContainer: { flexDirection: 'row', gap: 12 },
-  map: { width: screenWidth, height: screenHeight * 0.4 },
-  markerContainer: { backgroundColor: '#007AFF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderColor: 'white', borderWidth: 2 },
-  markerText: { color: 'white', fontWeight: 'bold' },
-  contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, backgroundColor: 'white', minHeight: screenHeight * 0.6 },
-  title: { fontSize: 24, fontWeight: 'bold' },
-  subtitle: { fontSize: 16, color: '#828282', marginTop: 4, marginBottom: 16 },
-  description: { fontSize: 15, lineHeight: 22, color: '#4F4F4F' },
-  metaContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
-  author: { fontSize: 14, color: '#828282' },
-  likes: { fontSize: 14, color: '#4F4F4F' },
-  separator: { height: 1, backgroundColor: '#EAEAEA', marginVertical: 20 },
-  listTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
-  placeListContainer: {},
-  pathInfo: { alignItems: 'center', marginVertical: 8 },
-  pathText: { color: '#007AFF', fontSize: 13, backgroundColor: '#F2F2F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, overflow: 'hidden' },
-  placeItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
-  placeNumber: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
-  placeNumberText: { color: 'white', fontWeight: 'bold' },
-  placeName: { fontSize: 17, fontWeight: '600' },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  saveButton: { paddingHorizontal: 10, paddingVertical: 5, borderRadius: 8 },
+  saveButtonText: { color: '#007AFF', fontSize: 16, fontWeight: '600' },
+  contentContainer: { padding: 20 },
+  inputGroup: { marginBottom: 25 },
+  label: { fontSize: 16, fontWeight: '600', color: '#333', marginBottom: 10 },
+  input: { backgroundColor: '#F2F2F7', paddingHorizontal: 15, height: 50, borderRadius: 10, fontSize: 16 },
+  textarea: { height: 100, paddingTop: 15, textAlignVertical: 'top' },
+  placeCard: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#F9F9F9', padding: 15, borderRadius: 10, marginBottom: 10 },
+  placeNumber: { width: 30, height: 30, borderRadius: 15, backgroundColor: '#EAEAEA', justifyContent: 'center', alignItems: 'center' },
+  placeNumberText: { color: '#8E8E93', fontWeight: 'bold' },
+  placeInfo: { flex: 1, marginLeft: 15, marginRight: 10 },
+  placeName: { fontSize: 16, fontWeight: '600' },
   placeAddress: { fontSize: 14, color: '#828282', marginTop: 2 },
-  editButton: { backgroundColor: '#007AFF', padding: 16, marginHorizontal: 20, marginVertical: 10, borderRadius: 12, alignItems: 'center' },
-  editButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  addPlaceButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 14, borderWidth: 1, borderColor: '#007AFF', borderRadius: 8, marginTop: 10 },
+  addPlaceButtonText: { marginLeft: 8, fontSize: 16, color: '#007AFF', fontWeight: '600' },
   modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
-  modalContent: { width: '80%', backgroundColor: 'white', borderRadius: 14, padding: 20, alignItems: 'center' },
+  modalContent: { width: '85%', backgroundColor: 'white', borderRadius: 14, padding: 20, alignItems: 'center' },
   modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
   modalMessage: { fontSize: 15, textAlign: 'center', color: '#4F4F4F', marginBottom: 20, lineHeight: 22 },
   modalActions: { flexDirection: 'row', width: '100%' },
   modalButton: { flex: 1, paddingVertical: 14, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginHorizontal: 5 },
   cancelButton: { backgroundColor: '#EFEFF4' },
-  cancelButtonText: { color: '#007AFF', fontWeight: 'bold' },
+  cancelButtonText: { color: '#007AFF', fontWeight: '600' },
+  confirmButton: { backgroundColor: '#007AFF' },
   deleteButton: { backgroundColor: '#FF3B30' },
-  confirmButtonText: { color: 'white', fontWeight: 'bold' },
+  confirmButtonText: { color: 'white', fontWeight: '600' },
 });
