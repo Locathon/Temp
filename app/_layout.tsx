@@ -1,7 +1,7 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
-import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context'; // SafeAreaView 추가
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 const RootLayoutNav = () => {
@@ -31,8 +31,9 @@ const RootLayoutNav = () => {
     );
   }
 
+  // 화면 밀림을 방지하기 위해 SafeAreaView로 전체를 감싸는 방식을 채택합니다.
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top', 'bottom']}>
+    <SafeAreaView style={styles.container}>
       <Stack screenOptions={{ headerShown: false }}>
         <Stack.Screen name="index" />
         <Stack.Screen name="login" />
@@ -52,10 +53,11 @@ export default function RootLayout() {
   );
 }
 
+// 두 브랜치의 스타일을 병합합니다.
 const styles = StyleSheet.create({
-  safeArea: {
+  container: {
     flex: 1,
-    backgroundColor: 'white', // 원하는 배경색
+    backgroundColor: 'white', // main 브랜치의 배경색 적용
   },
   centered: {
     flex: 1,
