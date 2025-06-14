@@ -1,52 +1,67 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseListScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
-import React from 'react';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useState } from 'react';
 import {
   FlatList,
+  Image,
   SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
-  Image,
-  ImageSourcePropType,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { allCourses, Course, savedCourses } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-// CourseScreen과 동일한 데이터 타입 사용
-type Course = {
-  id: string;
-  title: string;
-  subtitle: string;
-  thumbnail: ImageSourcePropType;
-  author: string;
-  likes: number;
-};
-
-// 임시 전체 코스 데이터 (더 많은 데이터를 가정)
-const DUMMY_ALL_COURSES: Course[] = [
-    { id: '1', title: '행궁동 맛집 투어', subtitle: '화성행궁 → 수원 통닭거리 → 팔달문 시장', thumbnail: require('../../assets/images/chicken_street.jpg'), author: '느린행궁러버', likes: 120 },
-    { id: '2', title: '예술 감성 산책 코스', subtitle: '수원화성박물관 → 공방거리 → 수원 아트스페이스', thumbnail: require('../../assets/images/mural_village.jpg'), author: '행궁동전문가', likes: 98 },
-    { id: '3', title: '야경 명소 탐방', subtitle: '화홍문 → 방화수류정 → 연무대', thumbnail: require('../../assets/images/flying_suwon.jpg'), author: '밤산책가', likes: 250 },
-    { id: '4', title: '혼자 걷기 좋은 길', subtitle: '서장대 → 서노대 → 화서문', thumbnail: require('../../assets/images/onmelo_interior.jpg'), author: '사색가', likes: 77 },
-];
-
-type CourseListNavigationProp = NativeStackNavigationProp<CourseStackParamList, 'CourseListScreen'>;
-
+type CourseListNavigationProp = NativeStackNavigationProp<
+  CourseStackParamList,
+  'CourseListScreen'
+>;
 
 export default function CourseListScreen() {
-    const navigation = useNavigation<CourseListNavigationProp>();
+  const navigation = useNavigation<CourseListNavigationProp>();
+  // FEATURE (5): 탭 상태에 'saved' 추가
+  const [activeTab, setActiveTab] = useState<'recommended' | 'my' | 'saved'>('recommended');
+  const [courses, setCourses] = useState<Course[]>([]);
+
+  // FEATURE (5): 화면 포커스 시 또는 탭 변경 시 목록 업데이트
+  useFocusEffect(
+    useCallback(() => {
+      let data: Course[] = [];
+      if (activeTab === 'recommended') {
+        data = allCourses.filter(course => !course.isMyCourse);
+      } else if (activeTab === 'my') {
+        data = allCourses.filter(course => course.isMyCourse);
+      } else if (activeTab === 'saved') {
+        // data/courseData.ts 에서 최신 상태를 가져옴
+        data = [...savedCourses];
+      }
+      setCourses(data);
+    }, [activeTab]) // activeTab이 변경될 때마다 이 효과를 다시 실행
+  );
+
 
   const renderCourseItem = ({ item }: { item: Course }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('CourseDetailScreen', { courseId: item.id })}
+      onPress={() =>
+        navigation.navigate('CourseDetailScreen', { courseId: item.id })
+      }
     >
-        <Image source={item.thumbnail} style={styles.thumbnail}/>
+      <Image source={item.thumbnail} style={styles.thumbnail} />
       <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSubtitle}>{item.subtitle}</Text>
+        <Text style={styles.cardTitle} numberOfLines={1}>{item.title}</Text>
+        <View style={styles.cardInfo}>
+            <Text style={styles.author}>by {item.author}</Text>
+            <View style={styles.likesContainer}>
+                <Ionicons name="heart" size={12} color="#8E8E93" />
+                <Text style={styles.likesText}>{item.likes}</Text>
+            </View>
+        </View>
+        <Text style={styles.cardSubtitle} numberOfLines={1}>{item.subtitle}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -55,18 +70,39 @@ export default function CourseListScreen() {
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color="#333" />
+          <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>전체 코스</Text>
         <View style={{ width: 24 }} />
       </View>
 
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'recommended' && styles.activeTab]}
+          onPress={() => setActiveTab('recommended')}
+        >
+          <Text style={[styles.tabText, activeTab === 'recommended' && styles.activeTabText]}>추천 코스</Text>
+        </TouchableOpacity>
+        {/* FEATURE (5): 저장한 코스 탭 버튼 추가 */}
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'saved' && styles.activeTab]}
+          onPress={() => setActiveTab('saved')}
+        >
+          <Text style={[styles.tabText, activeTab === 'saved' && styles.activeTabText]}>저장한 코스</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, activeTab === 'my' && styles.activeTab]}
+          onPress={() => setActiveTab('my')}
+        >
+          <Text style={[styles.tabText, activeTab === 'my' && styles.activeTabText]}>나의 코스</Text>
+        </TouchableOpacity>
+      </View>
+
       <FlatList
-        data={DUMMY_ALL_COURSES}
+        data={courses}
         renderItem={renderCourseItem}
-        keyExtractor={(item) => item.id}
-        ItemSeparatorComponent={() => <View style={{ height: 12 }} />}
-        contentContainerStyle={{ padding: 16 }}
+        keyExtractor={(item) => `${activeTab}-${item.id}`}
+        contentContainerStyle={styles.listContainer}
       />
     </SafeAreaView>
   );
@@ -74,45 +110,21 @@ export default function CourseListScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#EAEAEA',
-  },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAEAEA', },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  card: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    shadowColor: '#000',
-    shadowOpacity: 0.08,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 4,
-    elevation: 3,
-    flexDirection: 'row',
-    alignItems: 'center'
-  },
-  thumbnail: {
-    width: 100,
-    height: 100,
-    borderTopLeftRadius: 12,
-    borderBottomLeftRadius: 12,
-  },
-  cardContent: {
-      flex: 1,
-      padding: 12,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginBottom: 4,
-  },
-  cardSubtitle: {
-    fontSize: 14,
-    color: '#666',
-  },
+  tabContainer: { flexDirection: 'row', paddingHorizontal: 20, marginTop: 16, marginBottom: 8, },
+  tabButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginRight: 10, backgroundColor: '#F2F2F7', },
+  activeTab: { backgroundColor: '#007AFF', },
+  tabText: { color: '#8E8E93', fontWeight: '500', },
+  activeTabText: { color: '#FFFFFF', },
+  listContainer: { paddingHorizontal: 20, paddingBottom: 20, },
+  card: { backgroundColor: '#FFFFFF', borderRadius: 12, shadowColor: '#000', shadowOpacity: 0.08, shadowOffset: { width: 0, height: 2 }, shadowRadius: 4, elevation: 3, marginBottom: 16, },
+  thumbnail: { width: '100%', height: 150, borderTopLeftRadius: 12, borderTopRightRadius: 12, },
+  cardContent: { padding: 12, },
+  cardTitle: { fontSize: 17, fontWeight: 'bold', marginBottom: 8, },
+  cardInfo: { flexDirection: 'row', alignItems: 'center', marginBottom: 6, },
+  author: { fontSize: 13, color: '#8E8E93', },
+  likesContainer: { flexDirection: 'row', alignItems: 'center', marginLeft: 12, },
+  likesText: { marginLeft: 4, fontSize: 13, color: '#8E8E93', },
+  cardSubtitle: { fontSize: 14, color: '#666', },
 });

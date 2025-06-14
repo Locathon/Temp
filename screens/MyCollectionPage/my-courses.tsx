@@ -1,6 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState } from 'react';
 import {
   FlatList,
   Image,
@@ -38,23 +37,55 @@ const DUMMY_MY_COURSES: MyCourse[] = [
   },
 ];
 
-export default function MyCoursesScreen() {
-  const navigation = useNavigation();
+const DUMMY_MY_PLACES: MyCourse[] = [
+  {
+    id: 'place1',
+    title: '레몬트리',
+    placeCount: 1,
+    tags: ['#디저트카페'],
+    thumbnail: 'https://placehold.co/400x300/FFCC00/000000?text=Place+1',
+  },
+  {
+    id: 'place2',
+    title: '감성 포토존',
+    placeCount: 1,
+    tags: ['#인생샷', '#포토존'],
+    thumbnail: 'https://placehold.co/400x300/FF9999/000000?text=Place+2',
+  },
+];
+
+export default function MyCoursesScreen({ navigation }: any) {
+  const [selectedTab, setSelectedTab] = useState<'place' | 'course'>('place');
+
+  const renderPlaceItem = ({ item }: { item: MyCourse }) => (
+    <TouchableOpacity style={styles.gridCard}>
+      <View>
+        <Image source={{ uri: item.thumbnail }} style={styles.gridThumbnail} />
+        <Ionicons
+          name="heart"
+          size={20}
+          color="#FF6B6B"
+          style={styles.heartIcon}
+        />
+      </View>
+      <View style={styles.gridContent}>
+        <Text style={styles.gridTitle}>{item.title}</Text>
+        <Text style={styles.gridSubtitle}>디저트카페</Text>
+        <Text style={styles.gridRating}>
+          5.0 ⭐⭐⭐⭐⭐ <Text style={styles.gridReviewCount}>(34)</Text>
+        </Text>
+      </View>
+    </TouchableOpacity>
+  );
 
   const renderCourseItem = ({ item }: { item: MyCourse }) => (
-    <TouchableOpacity style={styles.card}>
-      <Image source={{ uri: item.thumbnail }} style={styles.thumbnail} />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle}>{item.title}</Text>
-        <Text style={styles.cardSubtitle}>장소 {item.placeCount}개</Text>
-        <View style={styles.tagContainer}>
-          {item.tags.map(tag => (
-            <View key={tag} style={styles.tag}>
-              <Text style={styles.tagText}>{tag}</Text>
-            </View>
-          ))}
-        </View>
+    <TouchableOpacity style={styles.rowCard}>
+      <Image source={{ uri: item.thumbnail }} style={styles.rowThumbnail} />
+      <View style={styles.rowContent}>
+        <Text style={styles.rowTitle}>{item.title}</Text>
+        <Text style={styles.rowSubtitle}>유은서</Text>
       </View>
+      <Ionicons name="bookmark-outline" size={20} color="#BDBDBD" />
     </TouchableOpacity>
   );
 
@@ -64,19 +95,45 @@ export default function MyCoursesScreen() {
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>내가 기록한 코스</Text>
         <View style={{ width: 24 }} />
+      </View>
+
+      <View style={styles.tabContainer}>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'place' && styles.activeTab]}
+          onPress={() => setSelectedTab('place')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'place' && styles.activeTabText]}>
+            장소 ({DUMMY_MY_PLACES.length.toString().padStart(2, '0')})
+          </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, selectedTab === 'course' && styles.activeTab]}
+          onPress={() => setSelectedTab('course')}
+        >
+          <Text style={[styles.tabText, selectedTab === 'course' && styles.activeTabText]}>
+            코스 ({DUMMY_MY_COURSES.length.toString().padStart(2, '0')})
+          </Text>
+        </TouchableOpacity>
       </View>
       
       <FlatList
-        data={DUMMY_MY_COURSES}
-        renderItem={renderCourseItem}
+        key={selectedTab}
+        data={selectedTab === 'place' ? DUMMY_MY_PLACES : DUMMY_MY_COURSES}
+        renderItem={selectedTab === 'place' ? renderPlaceItem : renderCourseItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
+        numColumns={selectedTab === 'place' ? 2 : 1}
         ListEmptyComponent={
             <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>아직 기록한 코스가 없어요.</Text>
-                <Text style={styles.emptySubtext}>나만의 코스를 만들어보세요!</Text>
+                <Text style={styles.emptyText}>
+                  {selectedTab === 'place' ? '찜한 장소가 없습니다.' : '찜한 코스가 없습니다.'}
+                </Text>
+                <Text style={styles.emptySubtext}>
+                  {selectedTab === 'place'
+                    ? '마음에 드는 장소를 찜해보세요!'
+                    : '마음에 드는 코스를 찜해보세요!'}
+                </Text>
             </View>
         }
       />
@@ -100,4 +157,109 @@ const styles = StyleSheet.create({
   emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: '40%' },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#4F4F4F' },
   emptySubtext: { fontSize: 14, color: '#828282', marginTop: 8 },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    paddingVertical: 8,
+    backgroundColor: '#F6F6F6',
+    borderRadius: 12,
+    marginHorizontal: 16,
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    backgroundColor: '#E0E0E0',
+    borderRadius: 12,
+    marginHorizontal: 2,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  activeTab: {
+    backgroundColor: '#FFFFFF',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+  tabText: {
+    fontSize: 14,
+    color: '#B0B0B0',
+    fontWeight: '500',
+  },
+  activeTabText: {
+    color: '#000000',
+    fontWeight: 'bold',
+  },
+  rowCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  rowThumbnail: {
+    width: 60,
+    height: 60,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#F2F2F7',
+  },
+  rowContent: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 15,
+    fontWeight: 'bold',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  rowSubtitle: {
+    fontSize: 13,
+    color: '#828282',
+  },
+  gridCard: {
+    flex: 1,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 12,
+    margin: 8,
+    overflow: 'hidden',
+    elevation: 2,
+  },
+  gridThumbnail: {
+    width: '100%',
+    height: 100,
+    backgroundColor: '#EEE',
+  },
+  heartIcon: {
+    position: 'absolute',
+    top: 8,
+    right: 8,
+  },
+  gridContent: {
+    padding: 10,
+  },
+  gridTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#222',
+  },
+  gridSubtitle: {
+    fontSize: 12,
+    color: '#888',
+    marginVertical: 4,
+  },
+  gridRating: {
+    fontSize: 12,
+    color: '#000',
+  },
+  gridReviewCount: {
+    color: '#555',
+  },
 });

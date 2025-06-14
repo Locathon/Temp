@@ -1,46 +1,24 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseDetailScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
-import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React from 'react';
-import {
-  Dimensions,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View,
-} from 'react-native';
+import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useCallback, useLayoutEffect, useMemo, useState } from 'react';
+import { Alert, Dimensions, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import MapView, { Marker, Polyline } from 'react-native-maps';
+import { courseDetailsMap, deleteCourse, savedCourses, toggleSaveCourse } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-const { height: screenHeight } = Dimensions.get('window');
-
-// 임시 데이터
-const DUMMY_COURSE_DETAIL = {
-    id: '1',
-    title: '가족과 여행하기 좋은 힐링 코스',
-    subtitle: '온멜로 → 방화수류정 → 수원전통문화관',
-    places: [
-        { name: '온멜로 1호점', address: '수원시 팔달구 화서문로32번길 4 2층', time: '도보 14분 · 거리 약 1km', coordinate: { latitude: 37.289, longitude: 127.016 } },
-        { name: '방화수류정', address: '수원시 팔달구 수원천로392번길 44-6', coordinate: { latitude: 37.290, longitude: 127.018 } },
-    ]
-}
+const { width: screenWidth, height: screenHeight } = Dimensions.get('window');
 
 type CourseDetailRouteProp = RouteProp<CourseStackParamList, 'CourseDetailScreen'>;
+type CourseDetailNavigationProp = NativeStackNavigationProp<CourseStackParamList, 'CourseDetailScreen'>;
 
 export default function CourseDetailScreen() {
-  const navigation = useNavigation();
+  const navigation = useNavigation<CourseDetailNavigationProp>();
   const route = useRoute<CourseDetailRouteProp>();
-<<<<<<< Updated upstream
-  const { courseId } = route.params; 
-
-  // TODO: 나중에는 courseId를 이용해 서버에서 데이터를 가져옵니다.
-  const course = DUMMY_COURSE_DETAIL;
-=======
   
-  // route.params가 없는 초기 렌더링 상태를 고려하여 courseId를 안전하게 가져옵니다.
   const { courseId } = route.params || {};
-
-  // courseId가 없을 경우를 대비합니다.
   const course = useMemo(() => courseId ? courseDetailsMap.get(courseId) : undefined, [courseId]);
 
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -48,7 +26,6 @@ export default function CourseDetailScreen() {
   const [likeCount, setLikeCount] = useState(0);
   const [isLiked, setIsLiked] = useState(false);
 
-  // 데이터 원본을 기준으로 모든 상태를 동기화하는 함수
   const refreshStates = useCallback(() => {
     if (courseId) {
       const currentCourse = courseDetailsMap.get(courseId);
@@ -59,13 +36,11 @@ export default function CourseDetailScreen() {
     }
   }, [courseId]);
 
-  // 화면이 보일 때마다 상태를 동기화합니다.
   useFocusEffect(refreshStates);
 
   const handleToggleSave = () => {
     if (course) {
       toggleSaveCourse(course);
-      // [핵심 수정] UI를 수동으로 변경하는 대신, 데이터 원본을 다시 읽어 상태를 동기화합니다.
       refreshStates(); 
     }
   };
@@ -75,7 +50,6 @@ export default function CourseDetailScreen() {
       const newIsLiked = !isLiked;
       setIsLiked(newIsLiked);
       setLikeCount(prev => newIsLiked ? prev + 1 : prev - 1);
-      // 임시로 데이터 객체를 직접 수정하여 좋아요 수를 반영합니다.
       course.likes = newIsLiked ? course.likes + 1 : course.likes - 1;
     }
   };
@@ -133,54 +107,25 @@ export default function CourseDetailScreen() {
   }
 
   const coordinates = course.places.map(p => p.coordinate);
->>>>>>> Stashed changes
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle} numberOfLines={1}>{course.title}</Text>
-        <View style={{ width: 24 }} />
-      </View>
-
-      <MapView
-        style={styles.map}
-        initialRegion={{
-          latitude: course.places[0].coordinate.latitude,
-          longitude: course.places[0].coordinate.longitude,
-          latitudeDelta: 0.005, 
-          longitudeDelta:0.005,
-        }}
-      >
-        {course.places.map((place, index) => (
-            <Marker key={index} coordinate={place.coordinate} title={place.name} />
-        ))}
-        <Polyline
-          coordinates={course.places.map(p => p.coordinate)}
-          strokeColor="#007AFF"
-          strokeWidth={3}
-        />
-      </MapView>
-
-      <ScrollView style={styles.card}>
-        <Text style={styles.courseTitle}>📍 {course.title}</Text>
-        <Text style={styles.courseSub}>{course.subtitle}</Text>
-
-        <View style={styles.timeline}>
+      <ScrollView contentContainerStyle={{ flexGrow: 1 }}>
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: coordinates[0]?.latitude || 37.28,
+            longitude: coordinates[0]?.longitude || 127.01,
+            latitudeDelta: 0.02,
+            longitudeDelta: 0.02,
+          }}
+        >
+          {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor="#007AFF" strokeWidth={4} />}
           {course.places.map((place, index) => (
-             <View key={index} style={styles.timelineItem}>
-                {index === 0 && <Text style={styles.timelineStart}>Start!</Text>}
-                {place.time && <Text style={styles.walkingInfo}>{place.time}</Text>}
-                <Text style={styles.placeTitle}>{place.name}</Text>
-                <Text style={styles.placeAddress}>{place.address}</Text>
-             </View>
+            <Marker key={place.id} coordinate={place.coordinate} title={place.name}>
+              <View style={styles.markerContainer}><Text style={styles.markerText}>{index + 1}</Text></View>
+            </Marker>
           ))}
-<<<<<<< Updated upstream
-        </View>
-      </ScrollView>
-=======
         </MapView>
         <View style={styles.contentContainer}>
           <Text style={styles.title}>{course.title}</Text>
@@ -235,23 +180,45 @@ export default function CourseDetailScreen() {
            </View>
          </View>
        </Modal>
->>>>>>> Stashed changes
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { height: 60, paddingHorizontal: 16, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#EAEAEA', paddingTop: 10 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold', color: '#333', marginHorizontal: 8, flex: 1, textAlign: 'center' },
-  map: { width: '100%', height: screenHeight * 0.4 },
-  card: { flex: 1, backgroundColor: '#f9f9f9', borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, padding: 20, shadowColor: '#000', shadowOffset: { width: 0, height: -2 }, shadowOpacity: 0.05, shadowRadius: 6, elevation: 5 },
-  courseTitle: { color: '#333', fontSize: 20, fontWeight: 'bold', marginBottom: 6 },
-  courseSub: { color: '#666', fontSize: 14, marginBottom: 20 },
-  timeline: { borderLeftWidth: 2, borderLeftColor: '#E0E0E0', paddingLeft: 20, },
-  timelineItem: { marginBottom: 24, position: 'relative', paddingLeft: 10 },
-  timelineStart: { color: '#007AFF', fontWeight: 'bold', fontSize: 14, marginBottom: 4, position: 'absolute', top: -20, left: 10 },
-  walkingInfo: { color: '#999', fontSize: 12, marginBottom: 6 },
-  placeTitle: { color: '#222', fontSize: 16, fontWeight: 'bold' },
-  placeAddress: { color: '#666', fontSize: 13 },
+  container: { flex: 1, backgroundColor: 'white' },
+  header: { flexDirection: 'row', padding: 10, position: 'absolute', top: 40, left: 10, zIndex: 1 },
+  headerButton: { padding: 8, backgroundColor: 'rgba(0,0,0,0.4)', borderRadius: 20 },
+  headerRightContainer: { flexDirection: 'row', gap: 12 },
+  map: { width: screenWidth, height: screenHeight * 0.4 },
+  markerContainer: { backgroundColor: '#007AFF', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, borderColor: 'white', borderWidth: 2 },
+  markerText: { color: 'white', fontWeight: 'bold' },
+  contentContainer: { padding: 20, borderTopLeftRadius: 20, borderTopRightRadius: 20, marginTop: -20, backgroundColor: 'white', minHeight: screenHeight * 0.6 },
+  title: { fontSize: 24, fontWeight: 'bold' },
+  subtitle: { fontSize: 16, color: '#828282', marginTop: 4, marginBottom: 16 },
+  description: { fontSize: 15, lineHeight: 22, color: '#4F4F4F' },
+  metaContainer: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 },
+  author: { fontSize: 14, color: '#828282' },
+  likes: { fontSize: 14, color: '#4F4F4F' },
+  separator: { height: 1, backgroundColor: '#EAEAEA', marginVertical: 20 },
+  listTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 16 },
+  placeListContainer: {},
+  pathInfo: { alignItems: 'center', marginVertical: 8 },
+  pathText: { color: '#007AFF', fontSize: 13, backgroundColor: '#F2F2F7', paddingHorizontal: 8, paddingVertical: 4, borderRadius: 12, overflow: 'hidden' },
+  placeItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 15 },
+  placeNumber: { width: 28, height: 28, borderRadius: 14, backgroundColor: '#007AFF', justifyContent: 'center', alignItems: 'center', marginRight: 15 },
+  placeNumberText: { color: 'white', fontWeight: 'bold' },
+  placeName: { fontSize: 17, fontWeight: '600' },
+  placeAddress: { fontSize: 14, color: '#828282', marginTop: 2 },
+  editButton: { backgroundColor: '#007AFF', padding: 16, marginHorizontal: 20, marginVertical: 10, borderRadius: 12, alignItems: 'center' },
+  editButtonText: { color: 'white', fontSize: 16, fontWeight: 'bold' },
+  modalContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+  modalContent: { width: '80%', backgroundColor: 'white', borderRadius: 14, padding: 20, alignItems: 'center' },
+  modalTitle: { fontSize: 18, fontWeight: 'bold', marginBottom: 10 },
+  modalMessage: { fontSize: 15, textAlign: 'center', color: '#4F4F4F', marginBottom: 20, lineHeight: 22 },
+  modalActions: { flexDirection: 'row', width: '100%' },
+  modalButton: { flex: 1, paddingVertical: 14, borderRadius: 8, alignItems: 'center', justifyContent: 'center', marginHorizontal: 5 },
+  cancelButton: { backgroundColor: '#EFEFF4' },
+  cancelButtonText: { color: '#007AFF', fontWeight: 'bold' },
+  deleteButton: { backgroundColor: '#FF3B30' },
+  confirmButtonText: { color: 'white', fontWeight: 'bold' },
 });

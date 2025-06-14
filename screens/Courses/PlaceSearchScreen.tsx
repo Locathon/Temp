@@ -1,56 +1,44 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\PlaceSearchScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useEffect, useState } from 'react';
-import {
-  FlatList,
-  Image,
-  ImageSourcePropType,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
-} from 'react-native';
-import { CourseStackParamList } from '../../navigation/CourseNavigator'; // ⭐️ 네비게이터의 약속을 가져옵니다.
+import { FlatList, Image, SafeAreaView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { allPlaces, Place } from '../../data/courseData';
+import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-// ⭐️ Place 타입에 위도(latitude), 경도(longitude)를 추가합니다. (다른 화면에서도 재사용 가능하도록 export)
-export type Place = {
-  id: string;
-  name: string;
-  category: string;
-  description: string;
-  thumbnail: ImageSourcePropType;
-  latitude?: number;
-  longitude?: number;
-};
-
-const DUMMY_PLACES: Place[] = [
-    { id: '1', name: '행궁동 벽화마을', category: '문화/예술', description: '...', thumbnail: require('../../assets/images/mural_village.jpg'), latitude: 37.286, longitude: 127.014 },
-    { id: '2', name: '플라잉수원 (헬륨기구)', category: '체험/활동', description: '...', thumbnail: require('../../assets/images/flying_suwon.jpg'), latitude: 37.280, longitude: 127.019 },
-    { id: '3', name: '통닭거리', category: '음식점', description: '...', thumbnail: require('../../assets/images/chicken_street.jpg'), latitude: 37.281, longitude: 127.016 },
-    { id: '4', name: '온멜로', category: '음식점', description: '...', thumbnail: require('../../assets/images/onmelo_food.jpg'), latitude: 37.289, longitude: 127.016 },
-    { id: '5', name: '행궁파티', category: '음식점', description: '...', thumbnail: require('../../assets/images/onmelo_interior.jpg'), latitude: 37.287, longitude: 127.015 },
-];
-
-// ⭐️ 네비게이션에 CourseStackParamList 약속을 적용합니다.
-type PlaceSearchNavigationProp = NativeStackNavigationProp<CourseStackParamList>;
+type PlaceSearchNavigationProp = NativeStackNavigationProp<CourseStackParamList, 'PlaceSearchScreen'>;
+type PlaceSearchRouteProp = RouteProp<CourseStackParamList, 'PlaceSearchScreen'>;
 
 export default function PlaceSearchScreen() {
   const navigation = useNavigation<PlaceSearchNavigationProp>();
+  const route = useRoute<PlaceSearchRouteProp>();
+  
+  // [장소 추가 버그 해결] 이전 화면에서 현재 장소 목록(currentPlaces)을 받습니다.
+  const { currentPlaces } = route.params;
+
   const [query, setQuery] = useState('');
-  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>(DUMMY_PLACES);
+  const [filteredPlaces, setFilteredPlaces] = useState<Place[]>(allPlaces);
 
   useEffect(() => {
-    const results = DUMMY_PLACES.filter(place =>
-        place.name.toLowerCase().includes(query.toLowerCase())
-      );
-      setFilteredPlaces(results);
+    const results = allPlaces.filter((place) =>
+      place.name.toLowerCase().includes(query.toLowerCase())
+    );
+    setFilteredPlaces(results);
   }, [query]);
 
+  // [장소 추가 버그 해결] 장소 선택 시 처리 로직
   const handleSelectPlace = (place: Place) => {
-    navigation.navigate('CourseCreateScreen', { newPlace: place });
+    // 현재 목록에 새로 선택한 장소를 추가하여 새로운 목록을 만듭니다.
+    const newPlaces = [...currentPlaces, place];
+    
+    // CourseCreateScreen으로 돌아가면서, 'updatedPlaces' 파라미터로 새로운 전체 목록을 전달합니다.
+    navigation.navigate({
+        name: 'CourseCreateScreen',
+        params: { updatedPlaces: newPlaces },
+        merge: true,
+    });
   };
 
   const renderPlaceItem = ({ item }: { item: Place }) => (
@@ -59,6 +47,7 @@ export default function PlaceSearchScreen() {
       <View style={styles.resultTextContainer}>
         <Text style={styles.resultName}>{item.name}</Text>
         <Text style={styles.resultCategory}>{item.category}</Text>
+        <Text style={styles.resultAddress}>{item.address}</Text>
       </View>
     </TouchableOpacity>
   );
@@ -70,28 +59,12 @@ export default function PlaceSearchScreen() {
           <Ionicons name="arrow-back" size={24} color="#333" />
         </TouchableOpacity>
         <View style={styles.searchContainer}>
-            <Ionicons name="search-outline" size={20} color="#828282" style={styles.searchIcon} />
-            <TextInput
-                style={styles.searchInput}
-                placeholder="코스에 추가할 장소를 검색하세요"
-                value={query}
-                onChangeText={setQuery}
-                autoFocus={true}
-            />
+          <Ionicons name="search" size={20} color="gray" style={styles.searchIcon} />
+          <TextInput style={styles.searchInput} placeholder="코스에 추가할 장소를 검색하세요" value={query} onChangeText={setQuery} autoFocus={true} />
         </View>
       </View>
       
-      <FlatList
-        data={filteredPlaces}
-        renderItem={renderPlaceItem}
-        keyExtractor={item => item.id}
-        contentContainerStyle={styles.listContainer}
-        ListEmptyComponent={
-            <View style={styles.emptyContainer}>
-                <Text style={styles.emptyText}>검색 결과가 없어요.</Text>
-            </View>
-        }
-      />
+      <FlatList data={filteredPlaces} renderItem={renderPlaceItem} keyExtractor={item => item.id} contentContainerStyle={styles.listContainer} ListEmptyComponent={<View style={styles.emptyContainer}><Text style={styles.emptyText}>검색 결과가 없어요.</Text></View>} />
     </SafeAreaView>
   );
 }
@@ -103,11 +76,12 @@ const styles = StyleSheet.create({
   searchIcon: { marginHorizontal: 10 },
   searchInput: { flex: 1, height: 40, fontSize: 16 },
   listContainer: { padding: 16 },
-  resultItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 16 },
+  resultItem: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, padding: 8, borderRadius: 8 },
   thumbnail: { width: 60, height: 60, borderRadius: 8, backgroundColor: '#E0E0E0' },
   resultTextContainer: { flex: 1, marginLeft: 12 },
-  resultName: { fontSize: 16, fontWeight: '600' },
-  resultCategory: { fontSize: 13, color: '#828282', marginTop: 2 },
-  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', marginTop: '40%' },
+  resultName: { fontSize: 16, fontWeight: 'bold' },
+  resultCategory: { fontSize: 14, color: 'gray', marginVertical: 2 },
+  resultAddress: { fontSize: 13, color: 'darkgray' },
+  emptyContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', paddingTop: 50 },
   emptyText: { fontSize: 16, color: 'gray' },
 });
