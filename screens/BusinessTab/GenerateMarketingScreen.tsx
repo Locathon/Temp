@@ -29,7 +29,7 @@ const GenerateMarketingScreen = () => {
       storeName,
       sns,
     });
-    const response = await fetch('http://localhost:8080/merchant/style-transform', {
+    const response = await fetch('http://3.35.27.124:8080/merchant/style-transform', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
