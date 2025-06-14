@@ -1,8 +1,8 @@
 import { Stack, useRouter, useSegments } from 'expo-router';
 import React, { useEffect } from 'react';
-import { ActivityIndicator, View } from 'react-native';
-// 1. react-native-safe-area-context에서 SafeAreaProvider를 import 합니다.
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+// 변경점 1: react-native-safe-area-context에서 SafeAreaView를 추가로 import 합니다.
+import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { AuthProvider, useAuth } from '../contexts/AuthContext';
 
 const RootLayoutNav = () => {
@@ -30,19 +30,23 @@ const RootLayoutNav = () => {
         );
     }
     
+    // 변경점 2: 앱의 최상위 네비게이터를 SafeAreaView로 감싸줍니다.
+    // 이렇게 하면 Stack 네비게이터 자체가 상단 상태 표시줄을 침범하지 않고
+    // 안전한 영역에서부터 렌더링을 시작하게 됩니다.
     return (
-        <Stack screenOptions={{ headerShown: false }}>
-            <Stack.Screen name="index" />
-            <Stack.Screen name="login" />
-            <Stack.Screen name="register" />
-        </Stack>
+        <SafeAreaView style={styles.container}>
+            <Stack screenOptions={{ headerShown: false }}>
+                <Stack.Screen name="index" />
+                <Stack.Screen name="login" />
+                <Stack.Screen name="register" />
+            </Stack>
+        </SafeAreaView>
     );
 }
 
 export default function RootLayout() {
   return (
-    // 2. AuthProvider의 바깥쪽을 <SafeAreaProvider>로 감싸줍니다.
-    // 이렇게 하면 앱의 모든 화면이 '안전 영역' 정보를 올바르게 계산할 수 있게 됩니다.
+    // SafeAreaProvider는 이미 올바르게 최상단을 감싸고 있습니다.
     <SafeAreaProvider>
         <AuthProvider>
             <RootLayoutNav />
@@ -50,3 +54,10 @@ export default function RootLayout() {
     </SafeAreaProvider>
   );
 }
+
+// 변경점 3: SafeAreaView가 전체 화면을 차지하도록 스타일을 추가합니다.
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+    },
+});

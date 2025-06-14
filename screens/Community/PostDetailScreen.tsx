@@ -1,245 +1,250 @@
 import { Ionicons } from '@expo/vector-icons';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
-import React, { useEffect, useRef, useState } from 'react';
+import { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import React, { useEffect, useState } from 'react';
 import {
-  Alert,
-  Dimensions,
-  FlatList,
-  Image,
-  ImageSourcePropType,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Alert,
+    Image,
+    Keyboard,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    SafeAreaView,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from 'react-native';
 
-// Post 타입 정의 (iLiked 추가)
-type Post = {
-  id: string;
-  author: string;
-  avatar: string;
-  content: string;
-  images: ImageSourcePropType[];
-  likes: number;
-  iLiked: boolean; // 내가 '좋아요'를 눌렀는지 여부
-  comments: number;
-  timestamp: string;
-};
+import { Comment, Post, posts } from '../../data/communityData';
+import { currentUser, users } from '../../data/userData';
+import { CommunityStackParamList } from '../../navigation/CommunityNavigator';
 
-// 임시 데이터 (iLiked 속성 추가)
-const DUMMY_POSTS: Post[] = [
-  {
-    id: '1', author: '행궁동 전문가', avatar: 'https://placehold.co/100x100/EFEFEF/AAAAAA?text=User',
-    content: '요즘 행궁동에서 가장 핫한 카페는 어디인가요? 저는 개인적으로 온멜로 추천합니다! 분위기가 정말 좋아요.',
-    images: [require('../../assets/images/onmelo_food.jpg'), require('../../assets/images/onmelo_interior.jpg')],
-    likes: 15, iLiked: false, comments: 4, timestamp: '5분 전',
-  },
-  {
-    id: '2', author: '느린행궁러버', avatar: 'https://placehold.co/100x100/EFEFEF/AAAAAA?text=User',
-    content: '방화수류정에서 피크닉하실 분 구해요~ 날씨가 너무 좋네요!',
-    images: [], likes: 22, iLiked: true, comments: 8, timestamp: '30분 전',
-  },
-];
+type PostDetailScreenNavigationProp = NativeStackNavigationProp<CommunityStackParamList, 'PostDetail'>;
+type PostDetailScreenRouteProp = RouteProp<CommunityStackParamList, 'PostDetail'>;
 
-type Comment = {
-  id: string; author: string; avatar: string;
-  content: string; timestamp: string;
-};
+const PostDetailScreen = () => {
+    const navigation = useNavigation<PostDetailScreenNavigationProp>();
+    const route = useRoute<PostDetailScreenRouteProp>();
+    const { postId } = route.params;
+    
+    const [post, setPost] = useState<Post | undefined>(() => posts.find(p => p.id === postId));
+    const [commentText, setCommentText] = useState('');
+    const [isMenuVisible, setMenuVisible] = useState(false);
+    
+    const postAuthor = users.find(u => u.id === post?.userId);
 
-const DUMMY_COMMENTS: { [key: string]: Comment[] } = {
-  '1': [
-    { id: 'c1', author: '맛잘알', avatar: 'https://placehold.co/100x100/AABBCC/FFFFFF?text=M', content: '와 여기 진짜 맛있죠! 저도 가봤어요. 풍기 크림 파스타 추천!', timestamp: '3분 전' },
-    { id: 'c2', author: '행궁동주민', avatar: 'https://placehold.co/100x100/CCAABB/FFFFFF?text=H', content: '분위기가 정말 최고에요 👍 데이트 장소로 강추합니다.', timestamp: '1분 전' },
-  ],
-  '2': [
-    { id: 'c3', author: '피크닉매니아', avatar: 'https://placehold.co/100x100/BBAACC/FFFFFF?text=P', content: '저요! 어디서 만날까요? 김밥 싸갈게요!', timestamp: '10분 전' },
-  ],
-};
+    useEffect(() => {
+        setPost(posts.find(p => p.id === postId));
+    }, [postId]);
 
-type PostDetailRouteProp = RouteProp<{ PostDetail: { postId: string } }, 'PostDetail'>;
-
-const PostCard = ({ post, handleToggleLike }: { post: Post; handleToggleLike: (postId: string) => void; }) => {
-  const { width } = Dimensions.get('window');
-  const imageWidth = width;
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const flatListRef = useRef<FlatList<ImageSourcePropType>>(null);
-
-  const handleScroll = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / imageWidth);
-    setCurrentIndex(index);
-  };
-
-  return (
-    <View style={styles.card}>
-      <View style={styles.cardHeader}>
-        <Image source={{ uri: post.avatar }} style={styles.avatar} />
-        <View>
-          <Text style={styles.author}>{post.author}</Text>
-          <Text style={styles.timestamp}>{post.timestamp}</Text>
-        </View>
-      </View>
-      <Text style={styles.content}>{post.content}</Text>
-      {post.images && post.images.length > 0 && (
-        <View style={styles.imageSliderContainer}>
-          <FlatList
-            ref={flatListRef} data={post.images}
-            renderItem={({ item }) => <Image source={item} style={[styles.postImage, { width: imageWidth }]} />}
-            keyExtractor={(_, index) => index.toString()}
-            horizontal pagingEnabled showsHorizontalScrollIndicator={false}
-            onScroll={handleScroll}
-          />
-          <View style={styles.paginationContainer}>
-            {post.images.map((_, index) => (
-              <View key={index} style={[styles.dot, index === currentIndex ? styles.activeDot : {}]} />
-            ))}
-          </View>
-        </View>
-      )}
-      <View style={styles.cardFooter}>
-        <TouchableOpacity style={styles.footerAction} onPress={() => handleToggleLike(post.id)}>
-          <Ionicons name={post.iLiked ? 'heart' : 'heart-outline'} size={20} color={post.iLiked ? '#EB5757' : '#828282'} />
-          <Text style={[styles.footerText, post.iLiked && { color: '#EB5757' }]}>{post.likes}</Text>
-        </TouchableOpacity>
-        <View style={styles.footerAction}>
-          <Ionicons name="chatbubble-outline" size={20} color="#828282" />
-          <Text style={styles.footerText}>{post.comments}</Text>
-        </View>
-      </View>
-    </View>
-  );
-};
-
-export default function PostDetailScreen() {
-  const navigation = useNavigation();
-  const route = useRoute<PostDetailRouteProp>();
-  const { postId } = route.params;
-
-  const [post, setPost] = useState<Post | null>(null);
-  const [comments, setComments] = useState<Comment[]>([]);
-  const [newComment, setNewComment] = useState('');
-
-  useEffect(() => {
-    const foundPost = DUMMY_POSTS.find(p => p.id === postId);
-    if (foundPost) {
-      setPost(foundPost);
-      setComments(DUMMY_COMMENTS[postId] || []);
-    }
-  }, [postId]);
-
-  const handleToggleLike = (postId: string) => {
-    setPost(currentPost => {
-      if (currentPost && currentPost.id === postId) {
-        return {
-          ...currentPost,
-          iLiked: !currentPost.iLiked,
-          likes: currentPost.iLiked ? currentPost.likes - 1 : currentPost.likes + 1,
-        };
-      }
-      return currentPost;
-    });
-  };
-
-  const handleAddComment = () => {
-    if (newComment.trim() === '') return;
-    const newCommentObject: Comment = {
-      id: `c${Date.now()}`,
-      author: '나(사용자)',
-      avatar: 'https://placehold.co/100x100/1E90FF/FFFFFF?text=Me',
-      content: newComment,
-      timestamp: '방금 전',
+    const handleLikePost = () => {
+        const postInDb = posts.find(p => p.id === postId);
+        if (!postInDb) return;
+        postInDb.iLiked = !postInDb.iLiked;
+        postInDb.likes = postInDb.iLiked ? postInDb.likes + 1 : postInDb.likes - 1;
+        setPost({ ...postInDb });
     };
-    setComments(prevComments => [...prevComments, newCommentObject]);
-    setNewComment('');
-    Alert.alert('성공', '댓글이 등록되었습니다.');
-  };
 
-  const renderComment = ({ item }: { item: Comment }) => (
-    <View style={styles.commentContainer}>
-      <Image source={{ uri: item.avatar }} style={styles.commentAvatar} />
-      <View style={styles.commentBubble}>
-        <Text style={styles.commentAuthor}>{item.author}</Text>
-        <Text style={styles.commentContent}>{item.content}</Text>
-        <Text style={styles.commentTimestamp}>{item.timestamp}</Text>
-      </View>
-    </View>
-  );
+    const handleLikeComment = (commentId: string) => {
+        const postInDb = posts.find(p => p.id === postId);
+        if (!postInDb) return;
+        const commentInDb = postInDb.comments.find(c => c.id === commentId);
+        if (!commentInDb) return;
+        commentInDb.iLiked = !commentInDb.iLiked;
+        commentInDb.likes = commentInDb.iLiked ? commentInDb.likes + 1 : commentInDb.likes - 1;
+        setPost({ ...postInDb });
+    };
 
-  if (!post) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <Text>게시물을 불러오는 중...</Text>
-      </SafeAreaView>
-    );
-  }
+    const handleCommentSubmit = () => {
+        const postInDb = posts.find(p => p.id === postId);
+        if (!postInDb || commentText.trim() === '') return;
+        const newComment: Comment = {
+            id: `c${Date.now()}`,
+            userId: currentUser.id,
+            content: commentText,
+            timestamp: '방금 전',
+            likes: 0,
+            iLiked: false,
+        };
+        postInDb.comments.unshift(newComment);
+        postInDb.commentsCount = postInDb.comments.length;
+        setPost({ ...postInDb });
+        setCommentText('');
+        Keyboard.dismiss();
+    };
+
+    const handleDeletePost = () => {
+        setMenuVisible(false);
+        Alert.alert("게시물 삭제", "정말로 이 게시물을 삭제하시겠습니까?", [
+            { text: "취소", style: "cancel" },
+            { 
+                text: "확인", 
+                onPress: () => {
+                    const postIndex = posts.findIndex(p => p.id === postId);
+                    if (postIndex > -1) {
+                        posts.splice(postIndex, 1);
+                    }
+                    navigation.goBack();
+                },
+                style: "destructive" 
+            },
+        ]);
+    };
+
+    const handleEditPost = () => {
+        if (!post) return;
+        setMenuVisible(false);
+        navigation.navigate('EditPost', { postId: post.id });
+    };
+
+    if (!post || !postAuthor) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={styles.header}>
+                     <TouchableOpacity onPress={() => navigation.goBack()}>
+                        <Ionicons name="arrow-back" size={24} color="#000" />
+                    </TouchableOpacity>
+                </View>
+                <View style={styles.errorContainer}>
+                    <Text>게시물을 찾을 수 없습니다.</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color="#333" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>게시글</Text>
-        <View style={{ width: 24 }} />
-      </View>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 64 : 0}
-      >
-        <FlatList
-          data={comments}
-          renderItem={renderComment}
-          keyExtractor={(item) => item.id}
-          ListHeaderComponent={<PostCard post={post} handleToggleLike={handleToggleLike} />}
-          contentContainerStyle={{ paddingBottom: 20 }}
-        />
-
-        <View style={styles.commentInputContainer}>
-          <TextInput
-            style={styles.commentInput}
-            placeholder="댓글을 입력하세요..."
-            value={newComment}
-            onChangeText={setNewComment}
-            placeholderTextColor="#828282"
-          />
-          <TouchableOpacity style={styles.sendButton} onPress={handleAddComment}>
-            <Ionicons name="send" size={20} color="#FFFFFF" />
-          </TouchableOpacity>
+        <View style={styles.header}>
+            <TouchableOpacity onPress={() => navigation.goBack()}>
+                <Ionicons name="arrow-back" size={24} color="#000" />
+            </TouchableOpacity>
+            {post.userId === currentUser.id && (
+                <TouchableOpacity onPress={() => setMenuVisible(true)}>
+                    <Ionicons name="ellipsis-horizontal" size={24} color="#000" />
+                </TouchableOpacity>
+            )}
         </View>
-      </KeyboardAvoidingView>
+        
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={{ flex: 1 }} keyboardVerticalOffset={Platform.OS === "ios" ? 64 : 0}>
+            <ScrollView contentContainerStyle={{ paddingBottom: 60 }}>
+                <TouchableOpacity style={styles.authorSection} onPress={() => navigation.navigate('UserProfile', { userId: post.userId })}>
+                    <Image source={postAuthor.avatar} style={styles.avatar} />
+                    <View>
+                        <Text style={styles.authorName}>{postAuthor.name}</Text>
+                        <Text style={styles.timestamp}>{post.timestamp}</Text>
+                    </View>
+                </TouchableOpacity>
+
+                <View style={styles.contentSection}>
+                    <Text style={styles.title}>{post.title}</Text>
+                    <Text style={styles.content}>{post.content}</Text>
+                    {post.images && post.images.length > 0 && <Image source={post.images[0]} style={styles.thumbnail} />}
+                </View>
+
+                <View style={styles.statsSection}>
+                    <Ionicons name="heart-outline" size={16} color="#828282" />
+                    <Text style={styles.statsText}>{post.likes}</Text>
+                    <Ionicons name="chatbubble-outline" size={16} color="#828282" style={{ marginLeft: 12 }} />
+                    <Text style={styles.statsText}>{post.commentsCount}</Text>
+                </View>
+
+                <View style={styles.divider} />
+
+                <View style={styles.actionsSection}>
+                    <TouchableOpacity style={styles.actionButton} onPress={handleLikePost}>
+                        <Ionicons name={post.iLiked ? "heart" : "heart-outline"} size={22} color={post.iLiked ? "#EB5757" : "#4F4F4F"} />
+                        <Text style={[styles.actionText, { color: post.iLiked ? "#EB5757" : "#4F4F4F" }]}>좋아요</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity style={styles.actionButton}>
+                        <Ionicons name="chatbubble-outline" size={22} color="#4F4F4F" />
+                        <Text style={styles.actionText}>댓글</Text>
+                    </TouchableOpacity>
+                </View>
+                
+                <View style={styles.commentSection}>
+                    {post.comments.map((comment) => {
+                        const commentAuthor = users.find(u => u.id === comment.userId);
+                        if(!commentAuthor) return null;
+                        return (
+                        <View key={comment.id} style={styles.commentItem}>
+                            <Image source={commentAuthor.avatar} style={styles.commentAvatar} />
+                            <View style={styles.commentBubble}>
+                                <TouchableOpacity onPress={() => navigation.navigate('UserProfile', { userId: comment.userId })}>
+                                    <Text style={styles.commentAuthor}>{commentAuthor.name}</Text>
+                                </TouchableOpacity>
+                                <Text style={styles.commentContent}>{comment.content}</Text>
+                                <View style={styles.commentFooter}>
+                                    <Text style={styles.commentTimestamp}>{comment.timestamp}</Text>
+                                    <TouchableOpacity style={styles.commentLikeButton} onPress={() => handleLikeComment(comment.id)}>
+                                        <Ionicons name={comment.iLiked ? "heart" : "heart-outline"} size={14} color={comment.iLiked ? "#EB5757" : "#828282"} />
+                                        <Text style={styles.commentLikeText}>{comment.likes > 0 && String(comment.likes)}</Text>
+                                    </TouchableOpacity>
+                                </View>
+                            </View>
+                        </View>
+                    )})}
+                </View>
+            </ScrollView>
+            <View style={styles.commentInputContainer}>
+                <TextInput style={styles.commentInput} placeholder="댓글을 입력하세요..." value={commentText} onChangeText={setCommentText} />
+                <TouchableOpacity style={styles.submitButton} onPress={handleCommentSubmit}>
+                    <Text style={styles.submitButtonText}>등록</Text>
+                </TouchableOpacity>
+            </View>
+        </KeyboardAvoidingView>
+        <Modal transparent={true} visible={isMenuVisible} onRequestClose={() => setMenuVisible(false)} animationType="fade">
+            <TouchableOpacity style={styles.modalOverlay} onPress={() => setMenuVisible(false)}>
+                <View style={styles.menuContainer}>
+                    <TouchableOpacity style={styles.menuItem} onPress={handleEditPost}><Text style={styles.menuText}>수정</Text></TouchableOpacity>
+                    <View style={styles.menuDivider} />
+                    <TouchableOpacity style={styles.menuItem} onPress={handleDeletePost}><Text style={[styles.menuText, styles.deleteText]}>삭제</Text></TouchableOpacity>
+                </View>
+            </TouchableOpacity>
+        </Modal>
     </SafeAreaView>
   );
-}
-
+};
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  card: { backgroundColor: '#FFFFFF', paddingBottom: 16, marginBottom: 8 },
-  cardHeader: { flexDirection: 'row', alignItems: 'center', marginBottom: 12, paddingHorizontal: 16, paddingTop: 16,},
-  avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
-  author: { fontWeight: 'bold' },
-  timestamp: { fontSize: 12, color: '#828282' },
-  content: { fontSize: 16, lineHeight: 24, marginBottom: 12, paddingHorizontal: 16,},
-  imageSliderContainer: { marginBottom: 12 },
-  postImage: { height: undefined, aspectRatio: 3 / 4, resizeMode: 'cover' },
-  paginationContainer: { position: 'absolute', bottom: 10, left: 0, right: 0, flexDirection: 'row', justifyContent: 'center' },
-  dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: 'rgba(255, 255, 255, 0.5)', marginHorizontal: 4 },
-  activeDot: { backgroundColor: '#FFFFFF' },
-  cardFooter: { flexDirection: 'row', paddingTop: 12, borderTopWidth: 1, borderTopColor: '#F2F2F2', marginHorizontal: 16,},
-  footerAction: { flexDirection: 'row', alignItems: 'center', marginRight: 16 },
-  footerText: { marginLeft: 6, color: '#828282' },
-  commentContainer: { flexDirection: 'row', paddingHorizontal: 16, paddingVertical: 12, borderTopWidth: 1, borderTopColor: '#F2F2F2'},
-  commentAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 12 },
-  commentBubble: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 10, padding: 12, },
-  commentAuthor: { fontWeight: 'bold', marginBottom: 4 },
-  commentContent: {},
-  commentTimestamp: { fontSize: 10, color: '#828282', marginTop: 4, alignSelf: 'flex-end' },
-  commentInputContainer: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderTopColor: '#E0E0E0', backgroundColor: '#FFFFFF' },
-  commentInput: { flex: 1, backgroundColor: '#F2F2F7', borderRadius: 20, paddingVertical: 10, paddingHorizontal: 16, marginRight: 8, fontSize: 16, },
-  sendButton: { backgroundColor: '#2F80ED', borderRadius: 20, width: 40, height: 40, justifyContent: 'center', alignItems: 'center' },
+    container: { flex: 1, backgroundColor: '#FFFFFF' },
+    errorContainer: { flex: 1, justifyContent: 'center', alignItems: 'center' },
+    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12 },
+    authorSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 16 },
+    avatar: { width: 40, height: 40, borderRadius: 20, marginRight: 12 },
+    authorName: { fontWeight: 'bold', fontSize: 15 },
+    timestamp: { fontSize: 12, color: '#828282' },
+    contentSection: { paddingHorizontal: 16, marginBottom: 24 },
+    title: { fontSize: 20, fontWeight: 'bold', marginBottom: 12 },
+    content: { fontSize: 16, lineHeight: 24, color: '#333' },
+    thumbnail: { width: '100%', height: 250, borderRadius: 12, marginTop: 16, backgroundColor: '#F0F0F0' },
+    statsSection: { flexDirection: 'row', alignItems: 'center', paddingHorizontal: 16, marginBottom: 12, },
+    statsText: { marginLeft: 4, color: '#828282', fontSize: 14 },
+    divider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 16 },
+    actionsSection: { flexDirection: 'row', justifyContent: 'space-around', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: '#F0F0F0' },
+    actionButton: { flexDirection: 'row', alignItems: 'center' },
+    actionText: { marginLeft: 6, fontSize: 15, fontWeight: '500' },
+    commentSection: { paddingHorizontal: 16, paddingTop: 16 },
+    commentItem: { flexDirection: 'row', marginBottom: 16 },
+    commentAvatar: { width: 32, height: 32, borderRadius: 16, marginRight: 12 },
+    commentBubble: { flex: 1, backgroundColor: '#F9F9F9', borderRadius: 12, padding: 12 },
+    commentAuthor: { fontWeight: 'bold', fontSize: 13, marginBottom: 4 },
+    commentContent: { fontSize: 14, color: '#333' },
+    commentFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginTop: 8 },
+    commentTimestamp: { fontSize: 12, color: '#828282' },
+    commentLikeButton: { flexDirection: 'row', alignItems: 'center' },
+    commentLikeText: { marginLeft: 4, fontSize: 12, color: '#828282' },
+    commentInputContainer: { flexDirection: 'row', alignItems: 'center', padding: 8, borderTopWidth: 1, borderTopColor: '#EFEFEF', backgroundColor: '#FFF' },
+    commentInput: { flex: 1, backgroundColor: '#F0F0F0', borderRadius: 20, paddingHorizontal: 16, paddingVertical: 10, marginRight: 8 },
+    submitButton: { backgroundColor: '#2F80ED', paddingHorizontal: 16, paddingVertical: 10, borderRadius: 20 },
+    submitButtonText: { color: '#FFF', fontWeight: 'bold' },
+    modalOverlay: { flex: 1, backgroundColor: 'rgba(0, 0, 0, 0.5)', justifyContent: 'flex-end' },
+    menuContainer: { backgroundColor: 'white', margin: 16, borderRadius: 12, overflow: 'hidden' },
+    menuItem: { padding: 16, alignItems: 'center' },
+    menuText: { fontSize: 16 },
+    deleteText: { color: 'red' },
+    menuDivider: { height: 1, backgroundColor: '#F0F0F0' },
 });
+
+export default PostDetailScreen;
