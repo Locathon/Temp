@@ -3,7 +3,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
 
-// 백엔드 API의 Role('RESIDENT', 'BUSINESS_OWNER')과 프론트엔드 타입을 맞춥니다.
 type UserType = 'resident' | 'business_owner' | 'admin' | 'visitor';
 
 interface AuthContextType {
@@ -13,6 +12,7 @@ interface AuthContextType {
   login: (jwt: string, type: UserType) => Promise<void>;
   logout: () => Promise<void>;
   selectUserType: (type: UserType) => Promise<void>;
+  loginAsGuest: () => void; // [핵심 추가] 비회원 둘러보기용 함수 타입 정의
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,14 +31,10 @@ interface AuthProviderProps {
 
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  // 백엔드 API 명세에 따라 'business' 대신 'business_owner'를 사용합니다.
-  const [userType, setUserType] = useState<UserType>('visitor'); 
+  const [userType, setUserType] = useState<UserType>('visitor');
   const [isLoading, setIsLoading] = useState(true);
 
-  // [핵심 수정] 앱 시작 시 자동 로그인 로직을 완전히 제거합니다.
   useEffect(() => {
-    // 앱이 로드되었음을 알리기만 하고, 아무것도 하지 않아 로딩 화면이 사라지고
-    // isLoggedIn 상태는 false로 유지됩니다.
     setIsLoading(false);
   }, []);
 
@@ -64,9 +60,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // [핵심 추가] 비회원 둘러보기를 위한 '가짜 로그인' 함수
+  const loginAsGuest = () => {
+    setIsLoggedIn(true);
+    setUserType('visitor'); // 비회원(방문객) 타입으로 설정
+  };
+
   const selectUserType = async (type: UserType) => {
-    // UserTypeSelectionScreen에서 사용될 함수는 그대로 둡니다.
-    // 'business'를 'business_owner'로 수정합니다.
     if (type === 'business_owner' || type === 'resident') {
         try {
             await AsyncStorage.setItem('userType', type);
@@ -84,6 +84,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     selectUserType,
+    loginAsGuest, // [핵심 추가] 컨텍스트 값으로 제공
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
