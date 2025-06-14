@@ -1,201 +1,430 @@
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import aiTransitionIcon from '../../assets/images/ai_transition.png';
+
 import { useNavigation } from '@react-navigation/native';
-import React from 'react';
+import React, { useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 
 // 임시 가게 데이터 (추후 API 연동)
 const DUMMY_STORE_DATA = {
   name: '온멜로',
-  image: require('../../assets/images/onmelo_interior.jpg'), // 로컬 이미지 사용
+  tag: '디저트카페',
+  images: [
+    require('../../assets/images/onmelo_interior.jpg'),
+    require('../../assets/images/onmelo_interior.jpg'),
+    require('../../assets/images/onmelo_interior.jpg'),
+    require('../../assets/images/onmelo_interior.jpg'),
+  ],
   address: '수원시 팔달구 신풍로63번길 3-1 1층',
   phone: '0507-1335-9715',
+  website: 'www.onmelo.com',
+  rating: 4.5,
+  reviewCount: 89,
+  description: '달콤한 디저트와 커피가 있는 아늑한 공간입니다. 신선한 재료로 만든 수제 케이크와 다양한 음료를 즐겨보세요.',
   stats: {
     visitors: '1,234',
     likes: 456,
     reviews: 89,
   },
+  openingHours: '월-금 10:00 - 20:00\n토-일 11:00 - 18:00',
 };
 
 export default function StoreHomeScreen() {
   const navigation = useNavigation<any>();
+  const [activeTab, setActiveTab] = useState<'Home' | 'Review' | 'QA'>('Home');
+  const [liked, setLiked] = useState(false);
 
   return (
     <SafeAreaView style={styles.safeArea}>
-      <ScrollView style={styles.container}>
-        <View style={styles.header}>
-            <Text style={styles.headerTitle}>내 가게</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
+          <Ionicons name="chevron-back" size={24} color="#333" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>스토어</Text>
+        <TouchableOpacity onPress={() => navigation.navigate('EditStore')} style={styles.headerIcon}>
+          <Ionicons name="ellipsis-horizontal" size={24} color="#333" />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView style={styles.container} contentContainerStyle={{paddingBottom: 100}}>
+        {/* Store Images Grid */}
+        <View style={styles.imageGrid}>
+          {DUMMY_STORE_DATA.images.map((img, idx) => (
+            <Image
+              key={idx}
+              source={img}
+              style={[
+                styles.gridImage,
+                idx % 2 === 1 && { marginRight: 0 }
+              ]}
+            />
+          ))}
         </View>
 
-        {/* 가게 정보 카드 */}
-        <View style={styles.card}>
-            <View style={styles.storeHeader}>
-                <Text style={styles.storeName}>{DUMMY_STORE_DATA.name}</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('EditStore')}>
-                    <Ionicons name="ellipsis-horizontal" size={24} color="#828282" />
-                </TouchableOpacity>
+        {/* Store Info */}
+        <View style={styles.storeInfoRow}>
+          <View>
+            <View style={{ flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap' }}>
+              <Text style={styles.storeName}>{DUMMY_STORE_DATA.name}</Text>
+              <Text style={styles.inlineStoreTag}>  {DUMMY_STORE_DATA.tag}</Text>
             </View>
-            <Image source={DUMMY_STORE_DATA.image} style={styles.storeImage} />
-            <View style={styles.storeInfo}>
-                <View style={styles.infoRow}>
-                    <Ionicons name="location-outline" size={16} color="#828282" />
-                    <Text style={styles.infoText}>{DUMMY_STORE_DATA.address}</Text>
+            <View style={styles.tagRow}>
+              <View style={styles.ratingRow}>
+                <Text style={styles.ratingText}>{DUMMY_STORE_DATA.rating.toFixed(1)}</Text>
+                <View style={{ flexDirection: 'row', marginLeft: 4 }}>
+                  {Array.from({ length: 5 }).map((_, i) => {
+                    const score = DUMMY_STORE_DATA.rating;
+                    let iconName = 'star-outline';
+                    if (i < Math.floor(score)) {
+                      iconName = 'star';
+                    } else if (i < score) {
+                      iconName = 'star-half';
+                    }
+                    return <Ionicons key={i} name={iconName as any} size={14} color="#F2C94C" />;
+                  })}
                 </View>
-                <View style={styles.infoRow}>
-                    <Ionicons name="call-outline" size={16} color="#828282" />
-                    <Text style={styles.infoText}>{DUMMY_STORE_DATA.phone}</Text>
+                <Text style={styles.reviewCount}>({DUMMY_STORE_DATA.reviewCount} 후기)</Text>
+              </View>
+            </View>
+          </View>
+          <TouchableOpacity onPress={() => setLiked(!liked)} style={styles.likeButton}>
+            <Ionicons name={liked ? "heart" : "heart-outline"} size={28} color={liked ? '#EB5757' : '#828282'} />
+            <Text style={styles.likeText}>찜하기</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Description */}
+        <Text style={styles.storeDescription}>{DUMMY_STORE_DATA.description}</Text>
+
+        {/* Edit Buttons */}
+        <View style={styles.editButtonsRow}>
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditStore')}>
+            <Text style={styles.editButtonText}>스토어 편집</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('QASetup')}>
+            <Text style={styles.editButtonText}>Q&A 수정</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.sparkleButton} onPress={() => navigation.navigate('GenerateMarketing')}>
+            <Image source={aiTransitionIcon} style={{ width: 24, height: 24, tintColor: 'white' }} />
+          </TouchableOpacity>
+        </View>
+
+        {/* Bottom Tabs */}
+        <View style={styles.bottomTabs}>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'Home' && styles.activeTab]}
+            onPress={() => setActiveTab('Home')}
+          >
+            <Text style={[styles.tabText, activeTab === 'Home' && styles.activeTabText]}>Home</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'Review' && styles.activeTab]}
+            onPress={() => setActiveTab('Review')}
+          >
+            <Text style={[styles.tabText, activeTab === 'Review' && styles.activeTabText]}>리뷰</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.tabButton, activeTab === 'QA' && styles.activeTab]}
+            onPress={() => setActiveTab('QA')}
+          >
+            <Text style={[styles.tabText, activeTab === 'QA' && styles.activeTabText]}>Q&A</Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Home Content Section */}
+        {activeTab === 'Home' && (
+          <>
+            {/* Info Blocks */}
+            <View style={styles.infoBlocks}>
+              <View style={styles.infoBlock}>
+                <Ionicons name="location-outline" size={24} color="#2F80ED" />
+                <View style={styles.infoTextWrapper}>
+                  <Text style={styles.infoTitle}>위치안내</Text>
+                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.address}</Text>
                 </View>
+              </View>
+              <View style={styles.infoBlock}>
+                <Ionicons name="time-outline" size={24} color="#2F80ED" />
+                <View style={styles.infoTextWrapper}>
+                  <Text style={styles.infoTitle}>영업시간</Text>
+                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.openingHours}</Text>
+                </View>
+              </View>
+              <View style={styles.infoBlock}>
+                <Ionicons name="call-outline" size={24} color="#2F80ED" />
+                <View style={styles.infoTextWrapper}>
+                  <Text style={styles.infoTitle}>전화번호</Text>
+                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.phone}</Text>
+                </View>
+              </View>
+              <View style={styles.infoBlock}>
+                <MaterialCommunityIcons name="web" size={24} color="#2F80ED" />
+                <View style={styles.infoTextWrapper}>
+                  <Text style={styles.infoTitle}>웹사이트</Text>
+                  <Text style={styles.infoContent}>{DUMMY_STORE_DATA.website}</Text>
+                </View>
+              </View>
             </View>
-        </View>
 
-        {/* 가게 현황 통계 */}
-        <View style={styles.statsContainer}>
-            <View style={styles.statBox}>
-                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.visitors}</Text>
-                <Text style={styles.statLabel}>방문자</Text>
-            </View>
-            <View style={styles.statBox}>
-                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.likes}</Text>
-                <Text style={styles.statLabel}>관심</Text>
-            </View>
-            <View style={styles.statBox}>
-                <Text style={styles.statValue}>{DUMMY_STORE_DATA.stats.reviews}</Text>
-                <Text style={styles.statLabel}>후기</Text>
-            </View>
-        </View>
+            {/* 메뉴 Section */}
+            <Text style={styles.menuSectionTitle}>메뉴</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
+              {DUMMY_STORE_DATA.images.slice(0, 2).map((img, idx) => (
+                <Image key={idx} source={img} style={styles.menuImage} />
+              ))}
+            </ScrollView>
+          </>
+        )}
 
-        {/* 기능 버튼 메뉴 */}
-        <View style={styles.menuContainer}>
-            <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('NewPostScreen')}>
-                <Ionicons name="create-outline" size={28} color="#2F80ED" />
-                <Text style={styles.menuButtonText}>새 소식 작성</Text>
-            </TouchableOpacity>
-             <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('QASetup')}>
-                <Ionicons name="help-circle-outline" size={28} color="#2F80ED" />
-                <Text style={styles.menuButtonText}>자동응답 Q&A 설정</Text>
-            </TouchableOpacity>
-            <TouchableOpacity style={styles.menuButton} onPress={() => navigation.navigate('GenerateMarketing')}>
-                <Ionicons name="megaphone-outline" size={28} color="#2F80ED" />
-                <Text style={styles.menuButtonText}>마케팅 문구 생성</Text>
-            </TouchableOpacity>
-        </View>
+        {activeTab === 'Review' && (
+          <View style={{ marginTop: 24, marginHorizontal: 16 }}>
+            <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 8 }}>
+              4.0 <Text style={{ color: '#000000' }}>★★★★★</Text>
+            </Text>
+            <View style={{ flexDirection: 'row', columnGap: 12, marginBottom: 12 }}>
+              <Image source={DUMMY_STORE_DATA.images[0]} style={{ width: 150, height: 110, borderRadius: 12 }} />
+              <Image source={DUMMY_STORE_DATA.images[1]} style={{ width: 150, height: 110, borderRadius: 12 }} />
+            </View>
+            <Text style={{ fontSize: 15, color: '#333333', fontWeight: '500', marginBottom: 6 }}>
+              푸딩을 먹었는데 일본서먹던 깊은 맛이 나서 좋았어요!!!
+            </Text>
+            <Text style={{ fontSize: 13, color: '#828282' }}>25.06.05 · 1번째 방문</Text>
+          </View>
+        )}
+
+        {activeTab === 'QA' && (
+          <View style={{ marginTop: 24, marginHorizontal: 16 }}>
+            {Array(3).fill(0).map((_, idx) => (
+              <View key={idx} style={{ marginBottom: 24 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#1C1C1E', marginBottom: 10 }}>
+                  주차할 공간이 있을까요?
+                </Text>
+                <View style={{
+                  backgroundColor: '#F2F4F7',
+                  padding: 14,
+                  borderRadius: 12,
+                }}>
+                  <Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>
+                    넵! 저희 카페 공간에 오시면 바로 앞에 주차자리 있어요
+                  </Text>
+                </View>
+              </View>
+            ))}
+          </View>
+        )}
+
+        {/* 리뷰 and Q&A tabs can be implemented later */}
       </ScrollView>
     </SafeAreaView>
   );
 }
 
-
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: '#F2F2F7',
+    backgroundColor: '#FFFFFF',
+  },
+  header: {
+    height: 56,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E5E5',
+  },
+  headerIcon: {
+    width: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#333',
+    textAlign: 'center',
+    flex: 1,
   },
   container: {
     flex: 1,
   },
-  header: {
-    padding: 16,
-    backgroundColor: '#FFFFFF',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E5E5'
+  imageGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginHorizontal: 16,
+    marginTop: 16,
   },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: 'bold',
-  },
-  card: {
-    backgroundColor: '#FFFFFF',
+  gridImage: {
+    width: '48%',
+    height: 120,
     borderRadius: 12,
-    margin: 16,
-    padding: 16,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginBottom: 8,
+    marginRight: '4%',
   },
-  storeHeader: {
+  storeInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    alignItems: 'flex-start',
+    marginHorizontal: 16,
+    marginTop: 8,
   },
   storeName: {
-    fontSize: 20,
-    fontWeight: 'bold',
+    fontSize: 24,
+    fontWeight: '700',
+    color: '#333333',
   },
-  storeImage: {
-    width: '100%',
-    height: 180,
-    borderRadius: 8,
-    marginBottom: 16,
-  },
-  storeInfo: {},
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  infoText: {
-    marginLeft: 8,
-    fontSize: 14,
-    color: '#4F4F4F'
-  },
-  statsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    marginHorizontal: 16,
-    paddingVertical: 20,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  statBox: {
-    alignItems: 'center',
-  },
-  statValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#2F80ED',
-  },
-  statLabel: {
+  inlineStoreTag: {
     fontSize: 14,
     color: '#828282',
-    marginTop: 4,
+    marginLeft: 8,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    textAlignVertical: 'center',
   },
-  menuContainer: {
-    marginTop: 16,
-    marginHorizontal: 16,
-  },
-  menuButton: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 12,
-    padding: 20,
+  tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: "#000",
-    shadowOffset: {
-      width: 0,
-      height: 1,
-    },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    marginTop: 4,
   },
-  menuButtonText: {
+  storeTag: {
+    fontSize: 14,
+    color: '#828282',
+    borderWidth: 1,
+    borderColor: '#2F80ED',
+    borderRadius: 12,
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    marginRight: 12,
+  },
+  ratingRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  ratingText: {
+    fontSize: 14,
+    color: '#4F4F4F',
+    marginLeft: 4,
+  },
+  reviewCount: {
+    fontSize: 14,
+    color: '#828282',
+    marginLeft: 6,
+  },
+  likeButton: {
+    alignItems: 'center',
+  },
+  likeText: {
+    fontSize: 12,
+    color: '#828282',
+    marginTop: 2,
+  },
+  storeDescription: {
+    marginHorizontal: 16,
+    marginTop: 12,
+    fontSize: 14,
+    color: '#4F4F4F',
+    lineHeight: 20,
+  },
+  editButtonsRow: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 20,
+    justifyContent: 'space-between',
+  },
+  editButton: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#2F80ED',
+    borderRadius: 24,
+    backgroundColor: '#FFFFFF',
+    paddingVertical: 8,
+    marginHorizontal: 6,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  editButtonText: {
     fontSize: 16,
     fontWeight: '600',
-    marginLeft: 16,
-    color: '#333333'
+    color: '#2F80ED',
+  },
+  sparkleButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: '#2F80ED',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 8,
+    padding: 8,
+  },
+  bottomTabs: {
+    flexDirection: 'row',
+    marginHorizontal: 16,
+    marginTop: 24,
+    borderBottomWidth: 1,
+    borderBottomColor: '#E0E0E0',
+  },
+  tabButton: {
+    flex: 1,
+    paddingVertical: 12,
+    alignItems: 'center',
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  activeTab: {
+    borderBottomColor: '#2F80ED',
+  },
+  tabText: {
+    fontSize: 16,
+    color: '#828282',
+    fontWeight: '600',
+  },
+  activeTabText: {
+    color: '#2F80ED',
+  },
+  infoBlocks: {
+    marginTop: 24,
+    marginHorizontal: 16,
+  },
+  infoBlock: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
+  infoTextWrapper: {
+    marginLeft: 12,
+    flex: 1,
+  },
+  infoTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333333',
+    marginBottom: 4,
+  },
+  infoContent: {
+    fontSize: 14,
+    color: '#4F4F4F',
+    lineHeight: 20,
+  },
+  menuSectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: '#333333',
+    marginHorizontal: 16,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  menuScroll: {
+    paddingLeft: 16,
+    marginBottom: 32,
+  },
+  menuImage: {
+    width: 140,
+    height: 100,
+    borderRadius: 12,
+    marginRight: 12,
   },
 });

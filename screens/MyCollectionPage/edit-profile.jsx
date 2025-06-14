@@ -34,29 +34,58 @@ export default function EditProfileScreen() {
 
   return (
     <>
-      <Stack.Screen options={{ title: '내 정보 수정' }} />
+      <Stack.Screen options={{ title: '프로필 편집' }} />
       <View style={styles.container}>
-        <TouchableOpacity onPress={() => Alert.alert("이미지 선택", "프로필 이미지 변경 기능은 준비 중입니다.")/*pickImage*/}>
-          {profileImage ? (
-            <Image source={{ uri: profileImage }} style={styles.profileImage} />
-          ) : (
-            <View style={styles.profileImagePlaceholder}>
-              <Ionicons name="camera-outline" size={40} color="#8A8A8E" />
-              <Text style={styles.profileImagePlaceholderText}>사진 변경</Text>
-            </View>
-          )}
-        </TouchableOpacity>
+        <View style={{ position: 'relative' }}>
+          <Image
+            source={profileImage ? { uri: profileImage } : require('../../assets/images/default-profile.png')}
+            style={styles.profileImage}
+          />
+          <TouchableOpacity
+            onPress={() => Alert.alert("이미지 선택", "프로필 이미지 변경 기능은 준비 중입니다.")}
+            style={styles.editIcon}
+          >
+            <Image source={require('../../assets/images/edit.png')} style={{ width: 18, height: 18 }} />
+          </TouchableOpacity>
+        </View>
 
-        <Text style={styles.label}>닉네임</Text>
+        <Text style={styles.label}>이름</Text>
         <TextInput
           style={styles.input}
           value={nickname}
           onChangeText={setNickname}
-          placeholder="새로운 닉네임을 입력하세요"
+          placeholder="이름을 입력해주세요"
         />
 
+        <Text style={styles.label}>아이디</Text>
+        <View style={styles.rowInput}>
+          <TextInput
+            style={[styles.input, { flex: 1 }]}
+            value="ID12340808"
+            editable={false}
+          />
+          <TouchableOpacity style={styles.checkButton}>
+            <Text style={styles.checkButtonText}>중복 확인</Text>
+          </TouchableOpacity>
+        </View>
+
+        <Text style={styles.label}>비밀번호</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="기존 비밀번호를 입력해주세요"
+          secureTextEntry
+        />
+
+        <Text style={styles.label}>비밀번호 변경</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="변경할 비밀번호를 입력해주세요"
+          secureTextEntry
+        />
+        <Text style={styles.helperText}>* 영문, 숫자 포함 8자 이상</Text>
+
         <TouchableOpacity style={styles.saveButton} onPress={handleSaveChanges}>
-          <Text style={styles.saveButtonText}>변경사항 저장</Text>
+          <Text style={styles.saveButtonText}>변경사항 저장하기</Text>
         </TouchableOpacity>
       </View>
     </>
@@ -71,11 +100,23 @@ const styles = StyleSheet.create({
     backgroundColor: '#F2F2F7',
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    marginBottom: 30,
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    alignSelf: 'center',
+    marginBottom: 24,
     backgroundColor: '#E0E0E0',
+  },
+  editIcon: {
+    position: 'absolute',
+    right: -2,
+    top: 0,
+    width: 32,
+    height: 32,
+    backgroundColor: '#00BFFF',
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profileImagePlaceholder: {
     width: 120,
@@ -122,4 +163,29 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '600',
   },
+
+  rowInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    marginBottom: 20,
+  },
+  checkButton: {
+    backgroundColor: '#000',
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 6,
+    marginLeft: 8,
+  },
+  checkButtonText: {
+    color: 'white',
+    fontSize: 14,
+  },
+  helperText: {
+    fontSize: 12,
+    color: '#666',
+    alignSelf: 'flex-start',
+    marginBottom: 10,
+  },
+
 });
