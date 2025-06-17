@@ -95,7 +95,7 @@ export default function EditProfileScreen() {
   // --------------------
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={[styles.headerTitle, { textAlign: 'center', alignSelf: 'center' }]}>스토어 편집</Text>
+      <Text style={[styles.headerTitle, { alignSelf: 'center' }]}>스토어 편집</Text>
 
       <Text style={styles.label}>스토어 대표 사진</Text>
       <TouchableOpacity style={styles.imageUploadBox} onPress={() => pickImage()}>
@@ -139,7 +139,7 @@ export default function EditProfileScreen() {
             setAiStatus('loading');
             setAiResult('');
             try {
-              const response = await fetch('http://3.35.27.124:8080//merchant/style-transform', {
+              const response = await fetch('http://3.35.27.124:8080/merchant/style-transform', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

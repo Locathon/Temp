@@ -15,6 +15,7 @@ const PlaceStackNavigator = () => {
       <Stack.Screen name="PlaceWrite" component={PlaceWriteScreen} />
       <Stack.Screen name="PhotoSelect" component={PhotoSelectScreen} />
       <Stack.Screen name="PlaceSearch" component={PlaceSearchScreen} />
+      <Stack.Screen name="PlaceDetail" component={PlaceDetailScreen} />
     </Stack.Navigator>
   );
 };

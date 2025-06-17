@@ -21,7 +21,7 @@ export default function BusinessNavigator() {
   return (
     // [문제 2 해결] initialRouteName을 'BusinessHome'으로 명확하게 지정하여
     // 소상공인 탭의 첫 화면이 항상 StoreHomeScreen이 되도록 수정합니다.
-    <Stack.Navigator initialRouteName="BusinessHome" screenOptions={{ headerShown: true, headerTitle: '' }}>
+    <Stack.Navigator initialRouteName="BusinessHome" screenOptions={{ headerShown: false, headerTitle: '' }}>
       <Stack.Screen name="BusinessHome" component={StoreHomeScreen} />
       <Stack.Screen name="Notification" component={NotificationScreen} />
       <Stack.Screen name="AutoQnAScreen" component={AutoQnAScreen} />

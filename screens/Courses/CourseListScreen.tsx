@@ -111,7 +111,7 @@ export default function CourseListScreen() {
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 12, borderBottomWidth: 1, borderBottomColor: '#EAEAEA', },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
+  headerTitle: { fontSize: 20, fontWeight: 'bold' },
   tabContainer: { flexDirection: 'row', paddingHorizontal: 20, marginTop: 16, marginBottom: 8, },
   tabButton: { paddingVertical: 8, paddingHorizontal: 16, borderRadius: 20, marginRight: 10, backgroundColor: '#F2F2F7', },
   activeTab: { backgroundColor: '#007AFF', },

@@ -1,15 +1,16 @@
+// C:\Users\mnb09\Desktop\Temp\contexts\AuthContext.tsx
+
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import React, { createContext, FC, ReactNode, useContext, useEffect, useState } from 'react';
 
-// ⭐️ 사용자 타입 정의에 'admin'만 추가합니다.
-type UserType = 'resident' | 'business' | 'visitor' | 'admin';
+type UserType = 'resident' | 'business_owner' | 'admin' | 'visitor';
 
-// 컨텍스트가 관리할 상태의 타입 정의 (이전과 동일)
+// [핵심 수정] AuthContextType에서 loginAsGuest 타입을 삭제합니다.
 interface AuthContextType {
   isLoggedIn: boolean;
   userType: UserType;
   isLoading: boolean;
-  login: (jwt: string, type?: UserType) => Promise<void>;
+  login: (jwt: string, type: UserType) => Promise<void>;
   logout: () => Promise<void>;
   selectUserType: (type: UserType) => Promise<void>;
 }
@@ -33,35 +34,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [userType, setUserType] = useState<UserType>('visitor');
   const [isLoading, setIsLoading] = useState(true);
 
-  // 앱 시작 시 AsyncStorage에서 로그인 정보 확인 (로직 변경 없음)
   useEffect(() => {
-    const bootstrapAsync = async () => {
-      let userToken;
-      let storedUserType;
-      try {
-        userToken = await AsyncStorage.getItem('jwt');
-        // ⭐️ 백엔드 로그인 응답에 따라 userType이 'admin'으로 저장될 수 있습니다.
-        storedUserType = await AsyncStorage.getItem('userType') as UserType;
-      } catch (e) {
-        console.error("AsyncStorage에서 토큰을 읽어오는데 실패했습니다.", e);
-      }
-
-      if (userToken) {
-        setIsLoggedIn(true);
-        if(storedUserType) {
-            setUserType(storedUserType);
-        }
-      }
-      setIsLoading(false);
-    };
-
-    bootstrapAsync();
+    setIsLoading(false);
   }, []);
 
-  // 로그인/로그아웃/타입선택 함수 (로직 변경 없음)
-  const login = async (jwt: string, type: UserType = 'visitor') => {
+  const login = async (jwt: string, type: UserType) => {
     try {
-      // ⭐️ 로그인 시 백엔드가 준 userType(예: 'admin')을 저장하게 됩니다.
       await AsyncStorage.setItem('jwt', jwt);
       await AsyncStorage.setItem('userType', type);
       setIsLoggedIn(true);
@@ -82,8 +60,10 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  // [핵심 수정] loginAsGuest 함수를 완전히 삭제합니다.
+  
   const selectUserType = async (type: UserType) => {
-    if (type !== 'visitor') {
+    if (type === 'business_owner' || type === 'resident') {
         try {
             await AsyncStorage.setItem('userType', type);
             setUserType(type);
@@ -100,6 +80,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     selectUserType,
+    // [핵심 수정] value 객체에서 loginAsGuest를 삭제합니다.
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

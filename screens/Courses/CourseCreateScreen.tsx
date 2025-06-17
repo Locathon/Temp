@@ -1,6 +1,8 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Courses\CourseCreateScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Alert, Modal, SafeAreaView, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { courseDetailsMap, Place, saveCourse } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
@@ -8,40 +10,30 @@ import { CourseStackParamList } from '../../navigation/CourseNavigator';
 type Props = NativeStackScreenProps<CourseStackParamList, 'CourseCreateScreen'>;
 
 export default function CourseCreateScreen({ route, navigation }: Props) {
-  // [버그 수정] newPlace 대신 updatedPlaces를 받습니다.
   const { courseId, updatedPlaces } = route.params || {};
   const isEditing = !!courseId;
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [selectedPlaces, setSelectedPlaces] = useState<Place[]>([]);
-  
-  const isInitialized = useRef(false);
-  
   const [modalVisible, setModalVisible] = useState(false);
   const [placeToDelete, setPlaceToDelete] = useState<Place | null>(null);
 
-  // [버그 수정] PlaceSearchScreen에서 전체 목록을 받아 state를 업데이트하는 로직
   useEffect(() => {
-    if (updatedPlaces) {
-      setSelectedPlaces(updatedPlaces);
-      // 무한 루프 방지를 위해 파라미터를 정리합니다.
-      // 이 로직은 updatedPlaces가 변경될 때만 실행되므로 안전합니다.
+    if (route.params?.updatedPlaces) {
+      setSelectedPlaces(route.params.updatedPlaces);
       navigation.setParams({ updatedPlaces: undefined });
     }
-  }, [updatedPlaces, navigation]);
+  }, [route.params?.updatedPlaces]);
 
-
-  // 컴포넌트 마운트 시 수정 모드 데이터 로드
   useEffect(() => {
-    if (isEditing && !isInitialized.current) {
+    if (isEditing) {
       const courseData = courseDetailsMap.get(courseId);
       if (courseData) {
         setTitle(courseData.title);
         setDescription(courseData.description);
         setSelectedPlaces(courseData.places);
       }
-      isInitialized.current = true;
     }
   }, [courseId, isEditing]);
 
@@ -51,8 +43,7 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
       return;
     }
     saveCourse({ id: courseId, title, description, places: selectedPlaces });
-    navigation.popToTop(); // 코스 홈으로 이동
-    navigation.navigate('CourseListScreen'); // 전체 코스 목록으로 이동
+    navigation.popToTop(); // [핵심 수정] 저장 후 코스 홈으로 돌아갑니다.
   };
 
   const handleDeletePlace = (place: Place) => {
@@ -63,6 +54,11 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
   
   const openDeleteModal = (place: Place) => {
     setPlaceToDelete(place);
+    setModalVisible(true);
+  };
+  
+  const openCancelModal = () => {
+    setPlaceToDelete(null);
     setModalVisible(true);
   };
 
@@ -79,7 +75,7 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
     navigation.setOptions({
       headerShown: true,
       headerTitle: () => <Text style={styles.headerTitle}>{isEditing ? '코스 수정' : '코스 만들기'}</Text>,
-      headerLeft: () => (<TouchableOpacity onPress={() => setModalVisible(true)}><Ionicons name="close-outline" size={28} color="#333" /></TouchableOpacity>),
+      headerLeft: () => (<TouchableOpacity onPress={openCancelModal}><Ionicons name="close-outline" size={28} color="#333" /></TouchableOpacity>),
       headerRight: () => (<TouchableOpacity style={styles.saveButton} onPress={handleSave}><Text style={styles.saveButtonText}>저장</Text></TouchableOpacity>),
       headerStyle: { backgroundColor: '#FFFFFF' },
       headerShadowVisible: false,
@@ -102,7 +98,7 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
         <View style={styles.inputGroup}>
           <Text style={styles.label}>포함된 장소 ({selectedPlaces.length})</Text>
           {selectedPlaces.map((place, index) => (
-            <View key={place.id} style={styles.placeCard}>
+            <View key={`${place.id}-${index}`} style={styles.placeCard}>
               <View style={styles.placeNumber}><Text style={styles.placeNumberText}>{index + 1}</Text></View>
               <View style={styles.placeInfo}>
                 <Text style={styles.placeName}>{place.name}</Text>
@@ -113,10 +109,9 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
               </TouchableOpacity>
             </View>
           ))}
-          {/* [버그 수정] 장소 검색 화면으로 이동 시, 현재 장소 목록을 'currentPlaces'로 전달 */}
           <TouchableOpacity 
             style={styles.addPlaceButton} 
-            onPress={() => navigation.navigate('PlaceSearchScreen', { courseId, currentPlaces: selectedPlaces })}
+            onPress={() => navigation.navigate('PlaceSearchScreen', { currentPlaces: selectedPlaces })}
           >
             <Ionicons name="add" size={24} color="#007AFF" />
             <Text style={styles.addPlaceButtonText}>장소 추가</Text>
@@ -144,7 +139,6 @@ export default function CourseCreateScreen({ route, navigation }: Props) {
   );
 }
 
-// 스타일 시트는 이전과 동일하게 유지됩니다.
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   headerTitle: { fontSize: 18, fontWeight: 'bold' },

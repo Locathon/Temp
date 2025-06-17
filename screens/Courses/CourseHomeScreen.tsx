@@ -24,14 +24,12 @@ type CourseHomeScreenNavigationProp = NativeStackNavigationProp<
 
 export default function CourseHomeScreen() {
   const navigation = useNavigation<CourseHomeScreenNavigationProp>();
-  // FEATURE (5): 저장한 코스 목록을 state로 관리하여 실시간 업데이트
-  const [currentSavedCourses, setCurrentSavedCourses] = useState(savedCourses);
+  
+  const [refreshKey, setRefreshKey] = useState(0);
 
-  // FEATURE (5): 이 화면이 다시 포커스될 때마다(예: 상세 화면에서 돌아올 때) 실행
   useFocusEffect(
     useCallback(() => {
-      // data/courseData.ts의 최신 savedCourses 배열로 state를 업데이트
-      setCurrentSavedCourses([...savedCourses]);
+      setRefreshKey(prevKey => prevKey + 1);
     }, [])
   );
 
@@ -67,18 +65,16 @@ export default function CourseHomeScreen() {
       <View style={styles.header}>
         <Text style={styles.headerTitle}>코스</Text>
         <View style={styles.iconGroup}>
-          {/* BUG FIX (3): 파라미터가 없는 navigate 호출 시 두 번째 인자 제거 */}
           <TouchableOpacity onPress={() => navigation.navigate('CourseSearchScreen')}>
             <Ionicons name="search-outline" size={24} color="#1C1C1E" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('CourseCreateScreen', {})}>
+          <TouchableOpacity onPress={() => navigation.navigate('CourseCreateScreen', { courseId: undefined })}>
             <Ionicons name="add-circle-outline" size={26} color="#1C1C1E" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false}>
-        {/* 추천 코스 섹션 */}
+      <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>느린행궁이 추천하는 코스</Text>
@@ -96,7 +92,6 @@ export default function CourseHomeScreen() {
           />
         </View>
         
-        {/* FEATURE (5): 저장한 코스 섹션 추가 */}
         <View style={styles.sectionContainer}>
             <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>저장한 코스</Text>
@@ -105,7 +100,7 @@ export default function CourseHomeScreen() {
                 </TouchableOpacity>
             </View>
             <FlatList
-                data={currentSavedCourses}
+                data={savedCourses}
                 renderItem={renderCourseItem}
                 keyExtractor={(item) => `saved-${item.id}`}
                 horizontal
@@ -119,7 +114,6 @@ export default function CourseHomeScreen() {
             />
         </View>
 
-        {/* 나의 코스 섹션 */}
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
             <Text style={styles.sectionTitle}>나의 코스</Text>
@@ -134,6 +128,11 @@ export default function CourseHomeScreen() {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.horizontalListContainer}
+            ListEmptyComponent={
+              <View style={styles.emptyListContainer}>
+                <Text style={styles.emptyListText}>내가 만든 코스가 없어요.</Text>
+              </View>
+            }
           />
         </View>
       </ScrollView>
@@ -142,9 +141,9 @@ export default function CourseHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#ECF0F3' },
+    container: { flex: 1, backgroundColor: '#ECF0F0' },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#ECF0F3' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1C1C1E' },
+    headerTitle: { fontSize: 21, fontWeight: 'bold', color: '#1C1C1E' },
     iconGroup: { flexDirection: 'row', alignItems: 'center', gap: 16 },
     sectionContainer: { marginTop: 24, minHeight: 100 },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },

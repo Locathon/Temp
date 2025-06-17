@@ -85,9 +85,6 @@ export default function StoreHomeScreen() {
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.headerIcon}>
-          <Ionicons name="chevron-back" size={24} color="#333" />
-        </TouchableOpacity>
         <Text style={styles.headerTitle}>스토어</Text>
         <TouchableOpacity onPress={() => navigation.navigate('EditStore')} style={styles.headerIcon}>
           <Ionicons name="ellipsis-horizontal" size={24} color="#333" />
@@ -329,7 +326,6 @@ const styles = StyleSheet.create({
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
@@ -344,7 +340,6 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#333',
-    textAlign: 'center',
     flex: 1,
   },
   container: {

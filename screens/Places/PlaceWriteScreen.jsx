@@ -133,6 +133,8 @@ export default function PlaceWriteScreen({ navigation }) {
         imageUrls: imageUrls,
       };
 
+      console.log('보낼 placeDto:', JSON.stringify(placeDto, null, 2));
+
       const res = await fetch('http://3.35.27.124:8080/places', {
         method: 'POST',
         headers: {
