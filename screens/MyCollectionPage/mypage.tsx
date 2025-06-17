@@ -81,16 +81,16 @@ const MyPageScreen = () => {
   return (
     
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>마이컬렉션</Text>
-      </View>
+        <View style={{alignItems: 'center' }}>
+          <Text style={styles.headerTitle}>마이페이지</Text>
+        </View>
       
       <ScrollView>
         {/* 마이페이지 타이틀 */}
         {/* <Text style={{ fontSize: 18, fontWeight: 'bold', alignSelf: 'center', marginVertical: 12 }}>마이페이지</Text> */}
 
         {/* 프로필 카드 */}
-        <View style={{ position: 'relative' }}>
+        <View style={{ position: 'relative', marginTop: 16 }}>
           <View style={{
             backgroundColor: '#fff',
             marginHorizontal: 16,
@@ -146,7 +146,7 @@ const MyPageScreen = () => {
               }}
             >
               <Ionicons name="archive-outline" size={20} color="#00AEEF" style={{ marginRight: 8 }} />
-              <Text style={{ fontSize: 16, color: '#000' }}>마이 컬렉션</Text>
+              <Text style={{ fontSize: 16, color: '#000', alignItems: 'center' }}>마이 컬렉션</Text>
             </TouchableOpacity>
           </View>
         </View>

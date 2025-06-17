@@ -1,6 +1,5 @@
 import { Ionicons, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
-import aiTransitionIcon from '../../assets/images/ai_transition.png';
-
+const aiTransitionIcon = require('../../assets/images/ai_transition.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 // Route params type for navigation
 type StoreParams = {
@@ -17,7 +16,9 @@ type StoreParams = {
   menuImages?: (string | null)[];
   qas?: { question: string; answer: string }[];
 };
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
+import { useCallback } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 import { useWindowDimensions } from 'react-native';
@@ -73,22 +74,31 @@ export default function StoreHomeScreen() {
   const [liked, setLiked] = useState(false);
   // For Q&A expand/collapse
   const [expandedIndex, setExpandedIndex] = useState<number | null>(null);
-  const [qaList, setQaList] = useState(() => {
-    const initialQAs = route.params?.qas;
-    return initialQAs && initialQAs.length > 0
-      ? initialQAs
-      : [{ question: '', answer: '' }];
-  });
+  // Log initial qas param for debugging
+  console.log('StoreHomeScreen 초기 route.params?.qas:', route.params?.qas);
+  const [qaList, setQaList] = useState<{ question: string; answer: string }[]>([]);
+  // Always set qaList from route.params.qas on first mount
+  useEffect(() => {
+    if (route.params?.qas && Array.isArray(route.params.qas)) {
+      console.log('초기 QAs 설정됨:', route.params.qas);
+      setQaList(route.params.qas);
+    } else {
+      console.log('초기 QAs 없음, 빈 배열로 초기화');
+      setQaList([]);
+    }
+  }, []);
+  useEffect(() => {
+    console.log('Q&A 리스트:', qaList);
+  }, [qaList]);
   const { width } = useWindowDimensions();
 
   return (
     <SafeAreaView style={styles.safeArea}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>스토어</Text>
-        <TouchableOpacity onPress={() => navigation.navigate('EditStore')} style={styles.headerIcon}>
-          <Ionicons name="ellipsis-horizontal" size={24} color="#333" />
-        </TouchableOpacity>
+        <View style={{ flex: 1, alignItems: 'center' }}>
+          <Text style={styles.headerTitle}>스토어</Text>
+        </View>
       </View>
 
       <ScrollView
@@ -170,7 +180,14 @@ export default function StoreHomeScreen() {
           >
             <Text style={styles.editButtonText}>스토어 편집</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('QASetup')}>
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() =>
+              navigation.navigate('QASetup', {
+                qaList: qaList.map(({ question, answer }) => ({ question, answer })),
+              })
+            }
+          >
             <Text style={styles.editButtonText}>Q&A 수정</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.sparkleButton} onPress={() => navigation.navigate('GenerateMarketing')}>
@@ -280,8 +297,8 @@ export default function StoreHomeScreen() {
 
         {activeTab === 'QA' && (
           <View style={{ marginTop: 24, marginHorizontal: 16 }}>
-            {(qas && qas.length > 0 && qas.some(q => q.question && q.answer)) ? (
-              qas.map((qa, idx) => (
+            {(qaList && qaList.length > 0) ? (
+              qaList.map((qa, idx) => (
                 <View key={idx} style={{ marginBottom: 24 }}>
                   <TouchableOpacity
                     onPress={() => setExpandedIndex(expandedIndex === idx ? null : idx)}
@@ -293,14 +310,8 @@ export default function StoreHomeScreen() {
                     <Text style={{ fontSize: 18, marginBottom: 10 }}>{expandedIndex === idx ? '˄' : '˅'}</Text>
                   </TouchableOpacity>
                   {expandedIndex === idx && (
-                    <View style={{
-                      backgroundColor: '#F2F4F7',
-                      padding: 14,
-                      borderRadius: 12,
-                    }}>
-                      <Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>
-                        {qa.answer}
-                      </Text>
+                    <View style={{ backgroundColor: '#F2F4F7', padding: 14, borderRadius: 12 }}>
+                      <Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>{qa.answer}</Text>
                     </View>
                   )}
                 </View>
@@ -326,6 +337,7 @@ const styles = StyleSheet.create({
     height: 56,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
     paddingHorizontal: 16,
     backgroundColor: '#FFFFFF',
     borderBottomWidth: 1,
@@ -340,7 +352,7 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: '700',
     color: '#333',
-    flex: 1,
+    textAlign: 'center',
   },
   container: {
     flex: 1,

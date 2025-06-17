@@ -27,6 +27,11 @@ export default function TabNavigator() {
         headerShown: false,
         tabBarActiveTintColor: TINT_COLOR,
         tabBarInactiveTintColor: INACTIVE_TINT_COLOR,
+        tabBarStyle: {
+          height: 0,
+          paddingBottom: 33,
+          paddingTop: 2,
+        },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: React.ComponentProps<typeof Ionicons>['name'];
 

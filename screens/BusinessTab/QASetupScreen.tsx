@@ -92,6 +92,21 @@ export default function QASetupScreen() {
           </TouchableOpacity>
         }
       />
+      <TouchableOpacity
+        style={{
+          backgroundColor: '#1C1C1E',
+          padding: 16,
+          borderRadius: 30,
+          alignItems: 'center',
+          marginTop: 16,
+        }}
+        onPress={() => {
+          const simplifiedQas = qaList.map(({ question, answer }) => ({ question, answer }));
+          navigation.navigate('BusinessHome', { qas: simplifiedQas });
+        }}
+      >
+        <Text style={{ color: '#fff', fontWeight: 'bold' }}>스토어 홈으로 이동</Text>
+      </TouchableOpacity>
     </View>
   );
 }
