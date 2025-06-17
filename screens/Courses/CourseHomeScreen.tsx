@@ -141,9 +141,9 @@ export default function CourseHomeScreen() {
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#ECF0F3' },
+    container: { flex: 1, backgroundColor: '#ECF0F0' },
     header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#ECF0F3' },
-    headerTitle: { fontSize: 24, fontWeight: 'bold', color: '#1C1C1E' },
+    headerTitle: { fontSize: 21, fontWeight: 'bold', color: '#1C1C1E' },
     iconGroup: { flexDirection: 'row', alignItems: 'center', gap: 16 },
     sectionContainer: { marginTop: 24, minHeight: 100 },
     sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },

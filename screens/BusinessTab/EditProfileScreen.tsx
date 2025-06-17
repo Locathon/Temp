@@ -95,7 +95,7 @@ export default function EditProfileScreen() {
   // --------------------
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={[styles.headerTitle, { textAlign: 'center', alignSelf: 'center' }]}>스토어 편집</Text>
+      <Text style={[styles.headerTitle, { alignSelf: 'center' }]}>스토어 편집</Text>
 
       <Text style={styles.label}>스토어 대표 사진</Text>
       <TouchableOpacity style={styles.imageUploadBox} onPress={() => pickImage()}>

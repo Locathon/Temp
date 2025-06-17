@@ -79,7 +79,12 @@ const MyPageScreen = () => {
   );
 
   return (
+    
     <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>마이컬렉션</Text>
+      </View>
+      
       <ScrollView>
         {/* 마이페이지 타이틀 */}
         {/* <Text style={{ fontSize: 18, fontWeight: 'bold', alignSelf: 'center', marginVertical: 12 }}>마이페이지</Text> */}
@@ -165,6 +170,20 @@ const MyPageScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  header: {
+  height: 56,
+  justifyContent: 'center',
+  alignItems: 'flex-start',
+  paddingHorizontal: 16,
+  backgroundColor: '#FFFFFF',
+  borderBottomWidth: 1,
+  borderBottomColor: '#E0E0E0',
+},
+headerTitle: {
+  fontSize: 20,
+  fontWeight: '700',
+  color: '#333',
+},
   container: { flex: 1, backgroundColor: '#FFFFFF' },
   profileSection: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20, },
   profileImage: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#005B9E' },
