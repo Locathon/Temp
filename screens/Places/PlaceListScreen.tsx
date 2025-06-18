@@ -181,130 +181,147 @@ export default function PlaceListScreen() {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#F4F5F7' },
+  container: {
+    flex: 1,
+    backgroundColor: '#ffffff',
+  },
 
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderBottomWidth: 1,
-    borderBottomColor: '#D1D1D6',
-    backgroundColor: '#F4F5F7',
+    borderBottomColor: '#e0e0e0',
+    backgroundColor: '#ffffff',
   },
 
   headerTitle: {
-    fontSize: 20,
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 21,
     fontWeight: '700',
-    color: '#2C2C2E',
+    color: '#222222',
+    marginLeft: 70,
   },
 
-  headerIcons: { flexDirection: 'row', alignItems: 'center' },
-  iconSpacing: { marginRight: 18 },
+  headerIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  iconSpacing: {
+    marginRight: 16,
+  },
 
   pickSection: {
     paddingVertical: 16,
-    backgroundColor: '#FAFAFC',
+    backgroundColor: '#f9f9f9',
   },
 
   pickHeader: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     paddingHorizontal: 20,
     marginBottom: 12,
-    color: '#1C1C1E',
+    color: '#1e1e1e',
   },
 
   pickCard: {
-    width: 180,
-    marginLeft: 12,
+    width: 170,
+    marginLeft: 16,
     marginRight: 8,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
-    // overflow: 'hidden',  <-- 제거 유지
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 4,
-    position: 'relative',  // 추가 - 절대 위치 아이콘을 위한 기준
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 3,
+    position: 'relative',
   },
 
   pickImage: {
     width: '100%',
-    height: 120,
+    height: 110,
     borderTopLeftRadius: 14,
     borderTopRightRadius: 14,
   },
 
   heartIcon: {
     position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    borderRadius: 14,
+    top: 10,
+    right: 10,
+    backgroundColor: 'rgba(255,255,255,0.95)',
+    borderRadius: 20,
     padding: 4,
     zIndex: 10,
   },
 
   pickTitle: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
     padding: 12,
-    color: '#2C2C2E',
+    color: '#333333',
   },
 
   promotionBanner: {
     paddingHorizontal: 20,
-    paddingVertical: 14,
-    backgroundColor: '#FAFAFC',
+    paddingVertical: 16,
+    backgroundColor: '#f2f2f7',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#D1D1D6',
+    borderColor: '#d1d1d6',
   },
 
   promotionText: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#3A3A3C',
+    color: '#2a2a2c',
   },
 
   listContainer: {
     paddingHorizontal: 20,
     paddingTop: 0,
     paddingBottom: 100,
-    backgroundColor: '#F4F5F7',
+    backgroundColor: '#ffffff',
   },
 
   card: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: '#ffffff',
     borderRadius: 14,
-    marginBottom: 16,
+    marginBottom: 18,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.05,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.08,
     shadowRadius: 10,
-    elevation: 3,
+    elevation: 4,
   },
 
-  thumbnail: { width: '100%', height: 200 },
+  thumbnail: {
+    width: '100%',
+    height: 180,
+    borderTopLeftRadius: 14,
+    borderTopRightRadius: 14,
+  },
 
-  cardContent: { padding: 18 },
+  cardContent: {
+    padding: 16,
+  },
 
   cardTitle: {
-    fontSize: 20,
+    fontSize: 18,
     fontWeight: '700',
     marginBottom: 6,
-    color: '#1C1C1E',
+    color: '#1c1c1e',
   },
 
   cardDescription: {
-    fontSize: 15,
-    color: '#48484A',
+    fontSize: 14,
+    color: '#555555',
   },
 
   emptyContainer: {
@@ -315,7 +332,7 @@ const styles = StyleSheet.create({
   },
 
   emptyText: {
-    fontSize: 17,
-    color: '#8E8E93',
+    fontSize: 16,
+    color: '#8e8e93',
   },
 });
