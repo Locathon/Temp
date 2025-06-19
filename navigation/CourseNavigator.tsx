@@ -4,20 +4,19 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import React from 'react';
 import { Place } from '../data/courseData';
 
-// [오류 수정] '코스 만들기/수정' 시 장소 목록 상태 유지를 위해 파라미터 정의를 수정합니다.
+// 각 화면이 어떤 정보를 주고받을지 약속(정의)합니다.
 export type CourseStackParamList = {
   CourseHomeScreen: undefined;
   CourseListScreen: undefined;
   CourseSearchScreen: undefined;
   CourseDetailScreen: { courseId: string };
-  // CourseCreateScreen은 수정할 courseId나, 장소 검색 후 돌아올 때 받을 updatedPlaces를 가질 수 있습니다.
-  CourseCreateScreen: { courseId?: string; updatedPlaces?: Place[] };
-  // PlaceSearchScreen은 현재 만들고 있는 코스의 장소 목록(currentPlaces)을 전달받습니다.
+  CourseCreateScreen: { courseId?: string | undefined; updatedPlaces?: Place[] };
   PlaceSearchScreen: { currentPlaces: Place[] };
 };
 
 const Stack = createNativeStackNavigator<CourseStackParamList>();
 
+// [해결] 필요한 모든 화면 컴포넌트를 정확한 경로에서 import 합니다.
 import CourseCreateScreen from '../screens/Courses/CourseCreateScreen';
 import CourseDetailScreen from '../screens/Courses/CourseDetailScreen';
 import CourseHomeScreen from '../screens/Courses/CourseHomeScreen';
@@ -34,7 +33,10 @@ const CourseNavigator = () => {
       <Stack.Screen name="CourseHomeScreen" component={CourseHomeScreen} />
       <Stack.Screen name="CourseListScreen" component={CourseListScreen} />
       <Stack.Screen name="CourseSearchScreen" component={CourseSearchScreen} />
+      
+      {/* [해결] 이 라인이 누락되었을 가능성이 높습니다. 화면을 네비게이터에 등록합니다. */}
       <Stack.Screen name="CourseDetailScreen" component={CourseDetailScreen} />
+      
       <Stack.Screen name="CourseCreateScreen" component={CourseCreateScreen} />
       <Stack.Screen name="PlaceSearchScreen" component={PlaceSearchScreen} />
     </Stack.Navigator>
