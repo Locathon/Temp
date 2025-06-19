@@ -178,7 +178,7 @@ export default function PlaceWriteScreen({ navigation }) {
 
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         <View style={styles.inputGroup}>
-          <Text style={styles.label}>장소 이름</Text>
+          <Text style={styles.label}>장소 검색</Text>
           <TextInput
             style={styles.input}
             placeholder="예: 수원 화성"
@@ -244,32 +244,85 @@ export default function PlaceWriteScreen({ navigation }) {
     </SafeAreaView>
   );
 }
-
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#fff' },
-  header: { flexDirection: 'row', justifyContent: 'space-between', padding: 16 },
-  headerTitle: { fontSize: 18, fontWeight: 'bold' },
-  saveButtonText: { color: '#007AFF', fontSize: 16 },
-  scrollContainer: { paddingBottom: 40 },
-  inputGroup: { paddingHorizontal: 20, marginVertical: 12 },
-  label: { fontSize: 16, marginBottom: 8 },
-  input: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: '#f9f9f9',
-    fontSize: 16,
+  container: { 
+    flex: 1, 
+    backgroundColor: '#FFFFFF' 
   },
-  map: { width: '100%', height: 200, borderRadius: 8 },
-  previewImage: { width: 80, height: 80, borderRadius: 8, marginRight: 8 },
+  header: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between', 
+    paddingHorizontal: 20, 
+    paddingVertical: 12, 
+    borderBottomWidth: 1, 
+    borderBottomColor: '#EAEAEA',
+    backgroundColor: '#FFFFFF',
+  },
+  headerTitle: { 
+    fontSize: 18, 
+    fontWeight: 'bold',
+    color: '#333333',
+  },
+  saveButton: { 
+    paddingHorizontal: 10, 
+    paddingVertical: 5, 
+    borderRadius: 8,
+  },
+  saveButtonText: { 
+    color: '#007AFF', 
+    fontSize: 16, 
+    fontWeight: '600',
+  },
+  scrollContainer: { 
+    padding: 20,
+  },
+  inputGroup: { 
+    marginBottom: 25,
+  },
+  label: { 
+    fontSize: 16, 
+    fontWeight: '600', 
+    color: '#333333', 
+    marginBottom: 10,
+  },
+  input: {
+    backgroundColor: '#F2F2F7', 
+    paddingHorizontal: 15, 
+    height: 50, 
+    borderRadius: 10, 
+    fontSize: 16,
+    color: '#000000',
+  },
+  textarea: {
+    height: 100, 
+    paddingTop: 15, 
+    textAlignVertical: 'top',
+    backgroundColor: '#F2F2F7', 
+    paddingHorizontal: 15, 
+    borderRadius: 10, 
+    fontSize: 16,
+    color: '#000000',
+  },
+  map: {
+    width: '100%', 
+    height: 200, 
+    borderRadius: 10,
+    marginTop: 8,
+  },
+  previewImage: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: 10, 
+    marginRight: 10, 
+    backgroundColor: '#F9F9F9',
+  },
   photoButton: {
     width: 80,
     height: 80,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 8,
-    backgroundColor: '#f0f0f0',
-    marginRight: 8,
+    borderRadius: 10,
+    backgroundColor: '#F9F9F9',
+    marginRight: 10,
   },
 });
