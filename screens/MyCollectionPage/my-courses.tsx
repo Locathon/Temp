@@ -24,24 +24,8 @@ type MyCourse = {
 export default function MyCoursesScreen({ navigation }: any) {
   const [selectedTab, setSelectedTab] = useState<'place' | 'course'>('place');
   const [places, setPlaces] = useState<MyCourse[]>([]);
+  const [courses, setCourses] = useState<MyCourse[]>([]);
   const [jwtToken, setJwtToken] = useState<string | null>(null);
-
-  const DUMMY_MY_COURSES: MyCourse[] = [
-    {
-      id: 'course1',
-      title: '행궁동 사진 맛집 코스',
-      placeCount: 3,
-      tags: ['#인생샷', '#감성카페', '#데이트'],
-      thumbnail: 'https://placehold.co/400x300/CCCCCC/FFFFFF?text=Course+1',
-    },
-    {
-      id: 'course2',
-      title: '혼자 걷기 좋은 산책길',
-      placeCount: 2,
-      tags: ['#산책', '#힐링', '#자연'],
-      thumbnail: 'https://placehold.co/400x300/AABBCC/FFFFFF?text=Course+2',
-    },
-  ];
 
   useEffect(() => {
     AsyncStorage.getItem('jwt')
@@ -81,6 +65,55 @@ export default function MyCoursesScreen({ navigation }: any) {
       .catch(err => {
         console.error('장소 불러오기 실패:', err);
       });
+
+    axios
+      .get('http://3.35.27.124:8080/courses', {
+        headers: {
+          Authorization: `Bearer ${jwtToken}`,
+        },
+      })
+      .then(res => {
+        const coursesFromApi = Array.isArray(res.data)
+          ? res.data
+          : Array.isArray(res.data.data)
+          ? res.data.data
+          : [];
+
+        const apiCourses: MyCourse[] = coursesFromApi.map((course: any) => ({
+          id: course.id.toString(),
+          title: course.name ?? '제목 없음',
+          placeCount: course.placeCount ?? 0,
+          tags: course.tags || ['#로컬추천'],
+          thumbnail:
+            course.imageUrls && course.imageUrls.length > 0
+              ? course.imageUrls[0]
+              : 'https://placehold.co/400x300/CCCCCC/FFFFFF?text=No+Image',
+        }));
+
+        setCourses(apiCourses);
+        // 임시 테스트 데이터 삽입 (API 결과가 0개일 때)
+        if (apiCourses.length === 0) {
+          setCourses([
+            {
+              id: 'temp1',
+              title: '썸탈 때 데이트 코스',
+              placeCount: 3,
+              tags: ['#데이트', '#힐링'],
+              thumbnail: 'https://placehold.co/100x100?text=코스1',
+            },
+            {
+              id: 'temp2',
+              title: '가족과 여행하기 좋은 힐링 코스',
+              placeCount: 4,
+              tags: ['#가족', '#여행'],
+              thumbnail: 'https://placehold.co/100x100?text=코스2',
+            },
+          ]);
+        }
+      })
+      .catch(err => {
+        console.error('코스 불러오기 실패:', err);
+      });
   }, [jwtToken]);
 
   const renderPlaceItem = ({ item }: { item: MyCourse }) => (
@@ -103,15 +136,24 @@ export default function MyCoursesScreen({ navigation }: any) {
 );
 
   const renderCourseItem = ({ item }: { item: MyCourse }) => (
-    <TouchableOpacity style={styles.rowCard}>
-      <Image source={{ uri: item.thumbnail }} style={styles.rowThumbnail} />
-      <View style={styles.rowContent}>
-        <Text style={styles.rowTitle}>{item.title}</Text>
-        <Text style={styles.rowSubtitle}>유은서</Text>
-      </View>
-      <Ionicons name="bookmark-outline" size={20} color="#BDBDBD" />
-    </TouchableOpacity>
-  );
+  <TouchableOpacity
+    style={styles.courseRow}
+    onPress={() => {
+      if (item.title === '가족과 여행하기 좋은 힐링 코스') {
+        navigation.navigate('MapCourseScreen', { courseId: item.id });
+      } else {
+        alert('준비 중입니다.');
+      }
+    }}
+  >
+    <Image source={{ uri: item.thumbnail }} style={styles.courseThumbnail} />
+    <View style={styles.courseTextContainer}>
+      <Text style={styles.courseTitle}>{item.title}</Text>
+      <Text style={styles.courseAuthor}>유은서</Text>
+    </View>
+    <Ionicons name="bookmark-outline" size={20} color="#BDBDBD" />
+  </TouchableOpacity>
+);
 
     return (
     <SafeAreaView style={styles.container}>
@@ -137,14 +179,14 @@ export default function MyCoursesScreen({ navigation }: any) {
           onPress={() => setSelectedTab('course')}
         >
           <Text style={[styles.tabText, selectedTab === 'course' && styles.activeTabText]}>
-            코스 ({DUMMY_MY_COURSES.length.toString().padStart(2, '0')})
+            코스 ({courses.length.toString().padStart(2, '0')})
           </Text>
         </TouchableOpacity>
       </View>
 
       <FlatList
         key={selectedTab}
-        data={selectedTab === 'place' ? places.slice(0, 2) : DUMMY_MY_COURSES}
+        data={selectedTab === 'place' ? places : courses}
         renderItem={selectedTab === 'place' ? renderPlaceItem : renderCourseItem}
         keyExtractor={item => item.id}
         contentContainerStyle={styles.listContainer}
@@ -165,24 +207,6 @@ export default function MyCoursesScreen({ navigation }: any) {
     </SafeAreaView>
   );
 }
-
-// 임시 데이터
-const DUMMY_MY_COURSES: MyCourse[] = [
-  {
-    id: 'course1',
-    title: '행궁동 사진 맛집 코스',
-    placeCount: 3,
-    tags: ['#인생샷', '#감성카페', '#데이트'],
-    thumbnail: 'https://placehold.co/400x300/CCCCCC/FFFFFF?text=Course+1',
-  },
-  {
-    id: 'course2',
-    title: '혼자 걷기 좋은 산책길',
-    placeCount: 2,
-    tags: ['#산책', '#힐링', '#자연'],
-    thumbnail: 'https://placehold.co/400x300/AABBCC/FFFFFF?text=Course+2',
-  },
-];
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#FFFFFF' },
@@ -314,5 +338,35 @@ headerTitle: {
   },
   gridReviewCount: {
     color: '#555',
+  },
+  courseRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: '#FFFFFF',
+    borderBottomWidth: 1,
+    borderBottomColor: '#F0F0F0',
+  },
+  courseThumbnail: {
+    width: 56,
+    height: 56,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#F2F2F2',
+  },
+  courseTextContainer: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  courseTitle: {
+    fontSize: 14,
+    fontWeight: 'bold',
+    color: '#222',
+    marginBottom: 4,
+  },
+  courseAuthor: {
+    fontSize: 12,
+    color: '#888',
   },
 });
