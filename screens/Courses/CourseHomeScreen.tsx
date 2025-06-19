@@ -5,16 +5,20 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import React, { useCallback, useState } from 'react';
 import {
-  FlatList,
   Image,
   SafeAreaView,
-  ScrollView,
+  SectionList,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Course, myCourses, recommendedCourses, savedCourses } from '../../data/courseData';
+import {
+  Course,
+  myCourses,
+  recommendedCourses,
+  savedCourses,
+} from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
 type CourseHomeScreenNavigationProp = NativeStackNavigationProp<
@@ -22,143 +26,212 @@ type CourseHomeScreenNavigationProp = NativeStackNavigationProp<
   'CourseHomeScreen'
 >;
 
+// 디자인팀의 요구사항을 반영한 새로운 코스 아이템 컴포넌트
+const CourseItem = ({
+  item,
+  navigation,
+}: {
+  item: Course;
+  navigation: CourseHomeScreenNavigationProp;
+}) => (
+  <TouchableOpacity
+    style={styles.courseCard}
+    onPress={() =>
+      navigation.navigate('CourseDetailScreen', { courseId: item.id })
+    }
+    activeOpacity={0.8}
+  >
+    <Image source={item.thumbnail} style={styles.thumbnail} />
+    <View style={styles.courseInfo}>
+      <Text style={styles.courseTitle} numberOfLines={2}>
+        {item.title}
+      </Text>
+      <Text style={styles.courseSubtitle} numberOfLines={1}>
+        {item.subtitle}
+      </Text>
+    </View>
+    <View style={styles.arrowContainer}>
+      <Ionicons name="chevron-forward" size={24} color="#92A0A9" />
+    </View>
+  </TouchableOpacity>
+);
+
 export default function CourseHomeScreen() {
   const navigation = useNavigation<CourseHomeScreenNavigationProp>();
-  
-  const [refreshKey, setRefreshKey] = useState(0);
 
+  // 화면이 포커스될 때마다 데이터를 새로고침하기 위한 로직
+  const [refreshKey, setRefreshKey] = useState(0);
   useFocusEffect(
     useCallback(() => {
-      setRefreshKey(prevKey => prevKey + 1);
+      setRefreshKey((prevKey) => prevKey + 1);
     }, [])
   );
 
-  const renderCourseItem = ({ item }: { item: Course }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        navigation.navigate('CourseDetailScreen', { courseId: item.id })
-      }
-      activeOpacity={0.8}
-    >
-      <Image source={item.thumbnail} style={styles.thumbnail} />
-      <View style={styles.cardContent}>
-        <Text style={styles.cardTitle} numberOfLines={1}>
-          {item.title}
-        </Text>
-        <Text style={styles.cardSubtitle} numberOfLines={1}>
-          {item.subtitle}
-        </Text>
-        <View style={styles.cardFooter}>
-          <Text style={styles.author}>by {item.author}</Text>
-          <View style={styles.likesContainer}>
-            <Ionicons name="heart" size={14} color="#EB5757" />
-            <Text style={styles.likesText}>{item.likes}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+  // SectionList에 사용할 데이터 구조로 변환
+  const courseSections = [
+    {
+      title: '느린행궁이 추천하는 코스',
+      data: recommendedCourses,
+      key: 'recommended',
+    },
+    {
+      title: '저장한 코스',
+      data: savedCourses,
+      key: 'saved',
+    },
+    {
+      title: '나의 코스',
+      data: myCourses,
+      key: 'my',
+    },
+  // 데이터가 없는 섹션은 아예 표시하지 않기 위해 filter를 사용합니다.
+  ].filter(section => section.data.length > 0);
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>코스</Text>
+        <Text style={styles.headerTitle}>행궁동 코스</Text>
         <View style={styles.iconGroup}>
-          <TouchableOpacity onPress={() => navigation.navigate('CourseSearchScreen')}>
-            <Ionicons name="search-outline" size={24} color="#1C1C1E" />
+          <TouchableOpacity
+            onPress={() => navigation.navigate('CourseSearchScreen')}
+          >
+            <Ionicons name="search-outline" size={28} color="#000000" />
           </TouchableOpacity>
-          <TouchableOpacity onPress={() => navigation.navigate('CourseCreateScreen', { courseId: undefined })}>
-            <Ionicons name="add-circle-outline" size={26} color="#1C1C1E" />
+          <TouchableOpacity
+            onPress={() =>
+              navigation.navigate('CourseCreateScreen', { courseId: undefined })
+            }
+          >
+            <Ionicons name="add-circle-outline" size={30} color="#000000" />
           </TouchableOpacity>
         </View>
       </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
-        <View style={styles.sectionContainer}>
+      {/* 코스 목록 (SectionList로 구현) */}
+      <SectionList
+        sections={courseSections}
+        keyExtractor={(item, index) => item.id + index}
+        renderItem={({ item }) => (
+          <CourseItem item={item} navigation={navigation} />
+        )}
+        renderSectionHeader={({ section: { title } }) => (
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>느린행궁이 추천하는 코스</Text>
-            <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CourseListScreen')}
+            >
               <Text style={styles.seeAllText}>전체보기</Text>
             </TouchableOpacity>
           </View>
-          <FlatList
-            data={recommendedCourses}
-            renderItem={renderCourseItem}
-            keyExtractor={(item) => item.id}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalListContainer}
-          />
-        </View>
-        
-        <View style={styles.sectionContainer}>
-            <View style={styles.sectionHeader}>
-                <Text style={styles.sectionTitle}>저장한 코스</Text>
-                <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
-                    <Text style={styles.seeAllText}>전체보기</Text>
-                </TouchableOpacity>
-            </View>
-            <FlatList
-                data={savedCourses}
-                renderItem={renderCourseItem}
-                keyExtractor={(item) => `saved-${item.id}`}
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.horizontalListContainer}
-                ListEmptyComponent={
-                    <View style={styles.emptyListContainer}>
-                        <Text style={styles.emptyListText}>저장한 코스가 없어요.</Text>
-                    </View>
-                }
-            />
-        </View>
-
-        <View style={styles.sectionContainer}>
-          <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>나의 코스</Text>
-             <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
-              <Text style={styles.seeAllText}>전체보기</Text>
-            </TouchableOpacity>
+        )}
+        ListEmptyComponent={
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>표시할 코스가 없습니다.</Text>
           </View>
-          <FlatList
-            data={myCourses}
-            renderItem={renderCourseItem}
-            keyExtractor={(item) => `my-${item.id}`}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.horizontalListContainer}
-            ListEmptyComponent={
-              <View style={styles.emptyListContainer}>
-                <Text style={styles.emptyListText}>내가 만든 코스가 없어요.</Text>
-              </View>
-            }
-          />
-        </View>
-      </ScrollView>
+        }
+        contentContainerStyle={styles.listContainer}
+        showsVerticalScrollIndicator={false}
+        extraData={refreshKey} // 데이터가 변경되었음을 알려주어 리스트를 새로고침
+      />
     </SafeAreaView>
   );
 }
 
+// 디자인팀의 요구사항을 반영한 새로운 StyleSheet
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#ECF0F0' },
-    header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 14, backgroundColor: '#ECF0F3' },
-    headerTitle: { fontSize: 21, fontWeight: 'bold', color: '#1C1C1E' },
-    iconGroup: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-    sectionContainer: { marginTop: 24, minHeight: 100 },
-    sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 20, marginBottom: 16 },
-    sectionTitle: { fontSize: 20, fontWeight: 'bold', color: '#1C1C1E' },
-    seeAllText: { fontSize: 14, color: '#007AFF' },
-    horizontalListContainer: { paddingHorizontal: 20, paddingRight: 40 },
-    card: { backgroundColor: '#FFFFFF', borderRadius: 12, width: 280, marginRight: 16, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.1, shadowRadius: 10, elevation: 5 },
-    thumbnail: { width: '100%', height: 160, borderTopLeftRadius: 12, borderTopRightRadius: 12 },
-    cardContent: { padding: 12 },
-    cardTitle: { fontSize: 16, fontWeight: 'bold', color: '#111111', marginBottom: 4 },
-    cardSubtitle: { fontSize: 13, color: '#6E6E73', marginBottom: 10 },
-    cardFooter: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
-    author: { fontSize: 12, color: '#8E8E93' },
-    likesContainer: { flexDirection: 'row', alignItems: 'center' },
-    likesText: { marginLeft: 4, fontSize: 12, color: '#3C3C43' },
-    emptyListContainer: { paddingHorizontal: 20, width: 280, justifyContent: 'center', alignItems: 'center',},
-    emptyListText: { color: '#8E8E93', fontSize: 15 },
+  container: {
+    flex: 1,
+    backgroundColor: '#ECF0F3',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 2,
+    borderBottomColor: '#000000',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    fontFamily: 'Pretendard Variable',
+    color: '#000000',
+  },
+  iconGroup: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 16,
+  },
+  listContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  seeAllText: {
+    fontSize: 14,
+    color: '#92A0A9',
+    fontWeight: '500',
+  },
+  courseCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
+    borderRadius: 30,
+    borderWidth: 2,
+    borderColor: '#000000',
+    padding: 12,
+    marginBottom: 20,
+    height: 95,
+  },
+  thumbnail: {
+    width: 71,
+    height: '100%',
+    borderRadius: 20,
+    backgroundColor: 'rgba(156, 171, 194, 0.35)',
+    borderWidth: 2,
+    borderColor: '#000000',
+  },
+  courseInfo: {
+    flex: 1,
+    marginLeft: 16,
+    justifyContent: 'center',
+    gap: 10,
+  },
+  courseTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#000000',
+  },
+  courseSubtitle: {
+    fontSize: 14,
+    color: '#6E6E73',
+  },
+  arrowContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingLeft: 10,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 50,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#92A0A9',
+  },
 });
