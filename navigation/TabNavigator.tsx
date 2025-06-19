@@ -7,6 +7,7 @@ import React from 'react';
 // 네비게이터들을 import 합니다.
 import { useAuth } from '../contexts/AuthContext'; // ⭐️ AuthContext에서 useAuth 훅을 가져옵니다.
 import BusinessNavigator from './BusinessNavigator';
+import BusinessNavigator_user from './BusinessNavigator_user';
 import CommunityNavigator from './CommunityNavigator';
 import CourseNavigator from './CourseNavigator';
 import MyCollectionPageNavigator from './MyCollectionPageNavigator';
@@ -66,6 +67,9 @@ export default function TabNavigator() {
       {/* [핵심 수정] userType이 'business_owner'일 경우에만 소상공인 탭을 보여줍니다. */}
       {userType === 'business_owner' && (
         <Tab.Screen name="소상공인" component={BusinessNavigator} />
+      )}
+      {userType === 'resident' && (
+        <Tab.Screen name="소상공인" component={BusinessNavigator_user} />
       )}
 
       <Tab.Screen name="마이컬렉션" component={MyCollectionPageNavigator} />
