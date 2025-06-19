@@ -1,62 +1,103 @@
-import React from 'react';
-import { View, Text, StyleSheet, Image, Button } from 'react-native';
+// C:\Users\mnb09\Desktop\Temp\screens\Business\BusinessProfileScreen.tsx
 
-const BusinessProfileScreen = () => {
+import React from 'react';
+import { Image, SafeAreaView, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+
+export default function BusinessProfileScreen() {
   return (
-    <View style={styles.container}>
-      <Image source={{ uri: 'https://via.placeholder.com/150' }} style={styles.image} />
-      <Text style={styles.name}>윤서 카페</Text>
-      <Text style={styles.description}>
-        따뜻한 분위기에서 직접 내린 커피를 즐길 수 있는 윤서 카페입니다. 신선한 원두와 수제 디저트를 제공합니다.
-      </Text>
-      <Text style={styles.infoLabel}>운영 시간</Text>
-      <Text style={styles.info}>월-금 09:00 ~ 18:00</Text>
-      <Text style={styles.infoLabel}>위치</Text>
-      <Text style={styles.info}>서울특별시 성동구 성수동1가</Text>
-      <View style={styles.buttonContainer}>
-        <Button title="정보 수정하기" onPress={() => {}} />
-      </View>
-    </View>
+    <SafeAreaView style={styles.safeArea}>
+        <View style={styles.container}>
+        {/* [문제 #4 해결] 이미지를 디저트 카페에 어울리는 로컬 에셋으로 변경 */}
+        <Image source={require('../../assets/images/desserts/cafe_logo.png')} style={styles.image} />
+        <Text style={styles.name}>행궁 디저트 연구소</Text>
+        <Text style={styles.description}>
+            매일 아침 신선한 재료로 만드는 수제 디저트와 스페셜티 커피를 즐겨보세요.
+        </Text>
+        <View style={styles.infoBox}>
+            <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>운영 시간</Text>
+                <Text style={styles.info}>매일 11:00 ~ 21:00</Text>
+            </View>
+             <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>휴무일</Text>
+                <Text style={styles.info}>월요일</Text>
+            </View>
+            <View style={styles.infoRow}>
+                <Text style={styles.infoLabel}>위치</Text>
+                <Text style={styles.info}>경기도 수원시 행궁동 238-234</Text>
+            </View>
+        </View>
+        <TouchableOpacity style={styles.button}>
+            <Text style={styles.buttonText}>프로필 수정하기</Text>
+        </TouchableOpacity>
+        </View>
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
-    padding: 20,
+    padding: 24,
     backgroundColor: '#fff',
     alignItems: 'center',
   },
   image: {
-    width: 150,
-    height: 150,
-    borderRadius: 75,
+    width: 120,
+    height: 120,
+    borderRadius: 60,
     marginBottom: 20,
+    borderWidth: 2,
+    borderColor: '#EAEAEA'
   },
   name: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 10,
+    marginBottom: 8,
   },
   description: {
     fontSize: 16,
     textAlign: 'center',
-    marginBottom: 20,
+    marginBottom: 30,
     color: '#555',
+    lineHeight: 24,
+  },
+  infoBox: {
+      width: '100%',
+      backgroundColor: '#F7F7F7',
+      borderRadius: 12,
+      padding: 20,
+  },
+  infoRow: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: '#EAEAEA'
   },
   infoLabel: {
     fontSize: 16,
     fontWeight: '600',
-    marginTop: 10,
   },
   info: {
     fontSize: 16,
     color: '#333',
   },
-  buttonContainer: {
+  button: {
     marginTop: 30,
     width: '100%',
+    backgroundColor: '#2F80ED',
+    paddingVertical: 15,
+    borderRadius: 12,
+    alignItems: 'center',
   },
+  buttonText: {
+      color: 'white',
+      fontSize: 16,
+      fontWeight: 'bold',
+  }
 });
-
-export default BusinessProfileScreen;
