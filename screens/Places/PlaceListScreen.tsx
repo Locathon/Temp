@@ -193,18 +193,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: '#eeeeee',
     backgroundColor: '#ffffff',
   },
 
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#222222',
-    marginLeft: 70,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1c1c1e',
+    marginLeft: 60,
   },
 
   headerIcons: {
@@ -218,36 +218,36 @@ const styles = StyleSheet.create({
 
   pickSection: {
     paddingVertical: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#ffffff',
   },
 
   pickHeader: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     paddingHorizontal: 20,
     marginBottom: 12,
-    color: '#1e1e1e',
+    color: '#1c1c1e',
   },
 
   pickCard: {
-    width: 170,
+    width: 160,
     marginLeft: 16,
     marginRight: 8,
     backgroundColor: '#ffffff',
-    borderRadius: 14,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 2,
     position: 'relative',
   },
 
   pickImage: {
     width: '100%',
-    height: 110,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: 100,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
 
   heartIcon: {
@@ -264,22 +264,22 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     padding: 12,
-    color: '#333333',
+    color: '#1c1c1e',
   },
 
   promotionBanner: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#d1d1d6',
+    borderColor: '#eeeeee',
   },
 
   promotionText: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#2a2a2c',
+    fontWeight: '600',
+    color: '#1c1c1e',
   },
 
   listContainer: {
@@ -291,37 +291,37 @@ const styles = StyleSheet.create({
 
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 14,
-    marginBottom: 18,
+    borderRadius: 12,
+    marginBottom: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
 
   thumbnail: {
     width: '100%',
-    height: 180,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: 160,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
 
   cardContent: {
-    padding: 16,
+    padding: 14,
   },
 
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 4,
     color: '#1c1c1e',
   },
 
   cardDescription: {
     fontSize: 14,
-    color: '#555555',
+    color: '#1c1c1e',
   },
 
   emptyContainer: {
@@ -332,7 +332,7 @@ const styles = StyleSheet.create({
   },
 
   emptyText: {
-    fontSize: 16,
-    color: '#8e8e93',
+    fontSize: 15,
+    color: '#1c1c1e',
   },
 });
