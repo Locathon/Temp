@@ -11,6 +11,7 @@ import Privacy from '../screens/MyCollectionPage/privacy';
 import ResidentAuthScreen from '../screens/MyCollectionPage/ResidentAuthScreen';
 import Settings from '../screens/MyCollectionPage/settings';
 import Terms from '../screens/MyCollectionPage/terms';
+import PlaceDetailScreen from '../screens/Places/PlaceDetailScreen';
 
 // ⭐️ 1단계에서 만든 파일을 import 합니다.
 import MyPlacesScreen from '../screens/MyCollectionPage/my-places';
@@ -35,6 +36,8 @@ const MyCollectionPageNavigator = () => {
         <Stack.Screen name="privacy" component={Privacy} />
         <Stack.Screen name="guide" component={Guide} />
         <Stack.Screen name="ResidentAuth" component={ResidentAuthScreen} />
+
+        <Stack.Screen name="PlaceDetail" component={PlaceDetailScreen} />
     </Stack.Navigator>
   );
 };
