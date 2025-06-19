@@ -80,16 +80,21 @@ export default function PlaceDetailScreen() {
 
       const data = await response.json();
 
-      if (!data.address && data.latitude && data.longitude) {
-        try {
-          const geo = await Geocoder.from(data.latitude, data.longitude);
-          const addr = geo.results[0]?.formatted_address;
-          data.address = addr ?? '주소 정보 없음';
-        } catch (geoError) {
-          console.warn('주소 변환 실패:', geoError);
-          data.address = '주소 정보 없음';
-        }
+    if (!data.address && data.latitude && data.longitude) {
+      try {
+        const geoRes = await fetch(
+          `https://maps.googleapis.com/maps/api/geocode/json?latlng=${data.latitude},${data.longitude}&language=ko&key=AIzaSyA38Wx1aAoueHqiOsWVlTYSIAvRtO6RW6g`
+        );
+
+        const geoJson = await geoRes.json();
+        const addr = geoJson.results[0]?.formatted_address;
+        data.address = addr ?? '주소 정보 없음';
+      } catch (geoError) {
+        console.warn('주소 변환 실패:', geoError);
+        data.address = '주소 정보 없음';
       }
+    }
+
 
       let urls: string[] = [];
       if (typeof data.imageUrls === 'string') {
@@ -194,7 +199,7 @@ export default function PlaceDetailScreen() {
 
             <View style={styles.infoRow}>
               <Ionicons name="time-outline" size={16} />
-              <Text style={styles.infoText}>운영 시간 정보가 필요해요</Text>
+              <Text style={styles.infoText}>화수목금토일 11:00 - 23:00</Text>
             </View>
           </View>
 
