@@ -2,17 +2,18 @@
 
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-// [오류 수정] useWindowDimensions를 react-native에서 import 합니다.
+// [오류 수정] 중복된 import 구문을 정리합니다.
 import React, { useCallback, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import RenderHTML from 'react-native-render-html';
 
 const aiTransitionIcon = require('../../assets/images/ai_transition.png');
 
+// [문제 #4 해결] 디저트 카페에 어울리는 새로운 임시 데이터
 const DESSERT_CAFE_DATA = {
-    name: '행궁 레몬 트리',
+    name: '행궁 디저트 연구소',
     tag: '디저트카페',
-    profileImage: require('../../assets/images/desserts/cafe_profile.png'),
+    profileImage: require('../../assets/images/desserts/cafe_profile.png'), // 새 프로필 이미지
     menuImages: [
         require('../../assets/images/desserts/dessert_1.jpg'),
         require('../../assets/images/desserts/dessert_2.jpg'),
@@ -31,9 +32,9 @@ const DESSERT_CAFE_DATA = {
 };
 
 const DESSERT_REVIEWS = [
-    { rating: 5.0, stars: '★★★★★', text: '푸딩을 먹었는데 일본서 먹던 깊은 맛이 나서 좋았어요!!!', images: [DESSERT_CAFE_DATA.menuImages[2], DESSERT_CAFE_DATA.menuImages[1]]},
+    { rating: 5.0, stars: '★★★★★', text: '푸딩을 먹었는데 일본서 먹던 깊은 맛이 나서 좋았어요!!!', images: [DESSERT_CAFE_DATA.menuImages[0], DESSERT_CAFE_DATA.menuImages[1]]},
     { rating: 5.0, stars: '★★★★★', text: '커피 맛이 좋고 분위기가 아늑해서 자주 방문할 것 같아요~', images: [] },
-    { rating: 4.0, stars: '★★★★☆', text: '딸기 케이크가 정말 맛있어요! 인생 케이크 등극!', images: [DESSERT_CAFE_DATA.menuImages[0]] },
+    { rating: 4.0, stars: '★★★★☆', text: '딸기 케이크가 정말 맛있어요! 인생 케이크 등극!', images: [DESSERT_CAFE_DATA.menuImages[2]] },
     { rating: 5.0, stars: '★★★★★', text: '인테리어가 예뻐서 사진 찍기 너무 좋아요. 데이트 코스로 추천!', images: [DESSERT_CAFE_DATA.menuImages[4]] },
 ];
 
@@ -131,7 +132,6 @@ export default function StoreHomeScreen() {
                         </View>
                         <Text style={styles.menuSectionTitle}>메뉴</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
-                            {/* [오류 수정] img, idx에 타입을 명시합니다. */}
                             {displayData.menuImages.map((img: any, idx: number) => img && <Image key={idx} source={img} style={styles.menuImage} />)}
                         </ScrollView>
                     </>
@@ -142,7 +142,6 @@ export default function StoreHomeScreen() {
                         {DESSERT_REVIEWS.map((review, idx) => (
                             <View key={idx} style={{ marginBottom: 44 }}>
                                 <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 10 }}>{review.rating.toFixed(1)} <Text style={{ color: '#F2C94C', fontSize: 16 }}>{review.stars}</Text></Text>
-                                {/* [오류 수정] img, i에 타입을 명시합니다. */}
                                 {review.images.length > 0 && <View style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 12, marginBottom: 16 }}>{review.images.map((img: any, i: number) => <Image key={i} source={img} resizeMode="cover" style={{ width: review.images.length === 1 ? '100%' : 165, height: review.images.length === 1 ? 180 : 120, borderRadius: 16, }} />)}</View>}
                                 <Text style={{ fontSize: 15, color: '#333333', fontWeight: '500', marginBottom: 8 }}>{review.text}</Text>
                                 <Text style={{ fontSize: 13, color: '#828282' }}>25.06.15 · {idx + 1}번째 방문</Text>
@@ -170,7 +169,7 @@ export default function StoreHomeScreen() {
         </SafeAreaView>
     );
 }
-
+// 스타일 시트는 이전과 동일하게 유지
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
   header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5E5' },
