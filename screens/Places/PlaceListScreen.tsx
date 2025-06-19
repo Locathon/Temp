@@ -1,3 +1,5 @@
+// C:\Users\mnb09\Desktop\Temp\screens\Places\PlaceListScreen.tsx
+
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useNavigation } from '@react-navigation/native';
@@ -72,6 +74,7 @@ export default function PlaceListScreen() {
         },
       })
       .then(res => {
+        // 두 브랜치의 안정적인 데이터 처리 로직을 결합
         const placesFromApi = Array.isArray(res.data)
           ? res.data
           : Array.isArray(res.data.data)
@@ -87,7 +90,6 @@ export default function PlaceListScreen() {
               ? { uri: place.imageUrls[0] }
               : require('../../assets/images/flying_suwon.jpg'),
         }));
-
         setPlaces(apiPlaces);
       })
       .catch(err => {
@@ -114,14 +116,9 @@ export default function PlaceListScreen() {
   const renderPickItem = (item: Place) => (
     <TouchableOpacity key={item.id} style={styles.pickCard} activeOpacity={0.8}>
       <Image
-        source={
-          typeof item.thumbnail === 'string'
-            ? { uri: item.thumbnail }
-            : item.thumbnail
-        }
+        source={typeof item.thumbnail === 'string' ? { uri: item.thumbnail } : item.thumbnail}
         style={styles.pickImage}
       />
-      {/* 하트 아이콘 오른쪽 위 */}
       <TouchableOpacity
         style={styles.heartIcon}
         activeOpacity={0.7}
@@ -181,75 +178,69 @@ export default function PlaceListScreen() {
     </SafeAreaView>
   );
 }
+
+// main 브랜치의 개선된 스타일과 feature 브랜치의 스타일을 병합합니다.
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#ffffff',
   },
-
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     paddingHorizontal: 20,
     paddingVertical: 14,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: '#eeeeee',
     backgroundColor: '#ffffff',
   },
-
   headerTitle: {
     flex: 1,
     textAlign: 'center',
-    fontSize: 21,
-    fontWeight: '700',
-    color: '#222222',
-    marginLeft: 70,
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#1c1c1e',
+    // feature 브랜치의 marginLeft를 적용하여 중앙 정렬을 보정
+    marginLeft: 60, 
   },
-
   headerIcons: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-
   iconSpacing: {
     marginRight: 16,
   },
-
   pickSection: {
     paddingVertical: 16,
-    backgroundColor: '#f9f9f9',
+    backgroundColor: '#ffffff',
   },
-
   pickHeader: {
     fontSize: 18,
-    fontWeight: '700',
+    fontWeight: '600',
     paddingHorizontal: 20,
     marginBottom: 12,
-    color: '#1e1e1e',
+    color: '#1c1c1e',
   },
-
   pickCard: {
-    width: 170,
+    width: 160,
     marginLeft: 16,
     marginRight: 8,
     backgroundColor: '#ffffff',
-    borderRadius: 14,
+    borderRadius: 12,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
     shadowRadius: 6,
-    elevation: 3,
+    elevation: 2,
     position: 'relative',
   },
-
   pickImage: {
     width: '100%',
-    height: 110,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: 100,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
-
   heartIcon: {
     position: 'absolute',
     top: 10,
@@ -259,80 +250,69 @@ const styles = StyleSheet.create({
     padding: 4,
     zIndex: 10,
   },
-
   pickTitle: {
     fontSize: 14,
     fontWeight: '600',
     padding: 12,
-    color: '#333333',
+    color: '#1c1c1e',
   },
-
   promotionBanner: {
     paddingHorizontal: 20,
     paddingVertical: 16,
-    backgroundColor: '#f2f2f7',
+    backgroundColor: '#ffffff',
     borderTopWidth: StyleSheet.hairlineWidth,
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderColor: '#d1d1d6',
+    borderColor: '#eeeeee',
   },
-
   promotionText: {
     fontSize: 17,
-    fontWeight: '700',
-    color: '#2a2a2c',
+    fontWeight: '600',
+    color: '#1c1c1e',
   },
-
   listContainer: {
     paddingHorizontal: 20,
     paddingTop: 0,
     paddingBottom: 100,
     backgroundColor: '#ffffff',
   },
-
   card: {
     backgroundColor: '#ffffff',
-    borderRadius: 14,
-    marginBottom: 18,
+    borderRadius: 12,
+    marginBottom: 16,
     overflow: 'hidden',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 10,
-    elevation: 4,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 8,
+    elevation: 3,
   },
-
   thumbnail: {
     width: '100%',
-    height: 180,
-    borderTopLeftRadius: 14,
-    borderTopRightRadius: 14,
+    height: 160,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
   },
-
   cardContent: {
-    padding: 16,
+    padding: 14,
   },
-
   cardTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    marginBottom: 6,
+    marginBottom: 4,
     color: '#1c1c1e',
   },
-
   cardDescription: {
     fontSize: 14,
-    color: '#555555',
+    color: '#1c1c1e',
   },
-
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     marginTop: '40%',
   },
-
   emptyText: {
-    fontSize: 16,
-    color: '#8e8e93',
+    fontSize: 15,
+    color: '#1c1c1e',
   },
 });

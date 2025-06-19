@@ -70,7 +70,7 @@ export default function CourseHomeScreen() {
   // SectionList에 사용할 데이터 구조로 변환
   const courseSections = [
     {
-      title: '느린행궁이 추천하는 코스',
+      title: '행온이 추천하는 코스',
       data: recommendedCourses,
       key: 'recommended',
     },
@@ -91,7 +91,7 @@ export default function CourseHomeScreen() {
     <SafeAreaView style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>행궁동 코스</Text>
+        <Text style={styles.headerTitle}>코스</Text>
         <View style={styles.iconGroup}>
           <TouchableOpacity
             onPress={() => navigation.navigate('CourseSearchScreen')}
@@ -138,34 +138,38 @@ export default function CourseHomeScreen() {
   );
 }
 
-// 디자인팀의 요구사항을 반영한 새로운 StyleSheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECF0F3',
+    backgroundColor: '#FFFFFF', // 배경 흰색
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    borderBottomWidth: 2,
-    borderBottomColor: '#000000',
-  },
-  headerTitle: {
-    fontSize: 22,
-    fontWeight: '700',
-    fontFamily: 'Pretendard Variable',
-    color: '#000000',
-  },
-  iconGroup: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center', // 가운데 정렬
+  paddingHorizontal: 24,
+  paddingVertical: 12,
+  borderBottomWidth: 1,
+  borderBottomColor: '#E0E0E0',
+  position: 'relative',
+},
+
+headerTitle: {
+  fontSize: 21,
+  fontWeight: '700',
+  fontFamily: 'Pretendard Variable',
+  color: '#222222',
+},
+
+iconGroup: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  gap: 20,
+  position: 'absolute',
+  right: 24,
+},
   listContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 16,
     paddingBottom: 20,
   },
   sectionHeader: {
@@ -173,51 +177,59 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginTop: 30,
-    marginBottom: 16,
+    marginBottom: 12,
+    paddingHorizontal: 4,
   },
   sectionTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#000000',
+    color: '#2F2F2F',
   },
   seeAllText: {
     fontSize: 14,
-    color: '#92A0A9',
-    fontWeight: '500',
+    color: '#1976D2',
+    fontWeight: '600',
   },
+  
   courseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: 'transparent',
-    borderRadius: 30,
-    borderWidth: 2,
-    borderColor: '#000000',
-    padding: 12,
-    marginBottom: 20,
-    height: 95,
-  },
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: '#FAFAFA',  // 약간 밝고 부드러운 배경
+  borderRadius: 16,
+  padding: 14,
+  marginBottom: 18,
+  height: 125, // 약간 낮춤
+
+  // iOS 그림자
+  shadowColor: '#000',
+  shadowOffset: { width: 0, height: 4 },
+  shadowOpacity: 0.12,
+  shadowRadius: 10,
+
+  // Android 그림자 (elevation)
+  elevation: 10,
+},
+
   thumbnail: {
-    width: 71,
-    height: '100%',
-    borderRadius: 20,
-    backgroundColor: 'rgba(156, 171, 194, 0.35)',
-    borderWidth: 2,
-    borderColor: '#000000',
+    width: 130,
+    height: 100,
+    borderRadius: 12,
+    backgroundColor: 'rgba(156, 171, 194, 0.1)',
   },
   courseInfo: {
     flex: 1,
     marginLeft: 16,
     justifyContent: 'center',
-    gap: 10,
+    gap: 6,
   },
   courseTitle: {
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: '700',
-    color: '#000000',
+    color: '#1A1A1A',
   },
   courseSubtitle: {
-    fontSize: 14,
-    color: '#6E6E73',
+    fontSize: 15,
+    color: '#7D7D7D',
   },
   arrowContainer: {
     justifyContent: 'center',
@@ -232,6 +244,6 @@ const styles = StyleSheet.create({
   },
   emptyText: {
     fontSize: 16,
-    color: '#92A0A9',
+    color: '#C0C0C0',
   },
 });
