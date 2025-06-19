@@ -21,13 +21,12 @@ import {
 } from '../../data/courseData';
 import { CourseStackParamList } from '../../navigation/CourseNavigator';
 
-// --- 타입 정의 ---
 type CourseHomeScreenNavigationProp = NativeStackNavigationProp<
   CourseStackParamList,
   'CourseHomeScreen'
 >;
 
-// --- 디자인팀의 요구사항을 반영한 새로운 코스 아이템 컴포넌트 ---
+// 디자인팀의 요구사항을 반영한 새로운 코스 아이템 컴포넌트
 const CourseItem = ({
   item,
   navigation,
@@ -42,10 +41,7 @@ const CourseItem = ({
     }
     activeOpacity={0.8}
   >
-    {/* 썸네일 이미지 */}
     <Image source={item.thumbnail} style={styles.thumbnail} />
-
-    {/* 코스 정보 (제목, 부제) */}
     <View style={styles.courseInfo}>
       <Text style={styles.courseTitle} numberOfLines={2}>
         {item.title}
@@ -54,8 +50,6 @@ const CourseItem = ({
         {item.subtitle}
       </Text>
     </View>
-
-    {/* 오른쪽 아이콘 영역 (더보기) */}
     <View style={styles.arrowContainer}>
       <Ionicons name="chevron-forward" size={24} color="#92A0A9" />
     </View>
@@ -90,7 +84,8 @@ export default function CourseHomeScreen() {
       data: myCourses,
       key: 'my',
     },
-  ];
+  // 데이터가 없는 섹션은 아예 표시하지 않기 위해 filter를 사용합니다.
+  ].filter(section => section.data.length > 0);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -113,26 +108,23 @@ export default function CourseHomeScreen() {
         </View>
       </View>
 
-      {/* 코스 목록 (SectionList로 변경) */}
+      {/* 코스 목록 (SectionList로 구현) */}
       <SectionList
         sections={courseSections}
         keyExtractor={(item, index) => item.id + index}
         renderItem={({ item }) => (
           <CourseItem item={item} navigation={navigation} />
         )}
-        renderSectionHeader={({ section: { title, data } }) =>
-          // 데이터가 있을 때만 섹션 헤더를 보여줌
-          data.length > 0 ? (
-            <View style={styles.sectionHeader}>
-              <Text style={styles.sectionTitle}>{title}</Text>
-              <TouchableOpacity
-                onPress={() => navigation.navigate('CourseListScreen')}
-              >
-                <Text style={styles.seeAllText}>전체보기</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null
-        }
+        renderSectionHeader={({ section: { title } }) => (
+          <View style={styles.sectionHeader}>
+            <Text style={styles.sectionTitle}>{title}</Text>
+            <TouchableOpacity
+              onPress={() => navigation.navigate('CourseListScreen')}
+            >
+              <Text style={styles.seeAllText}>전체보기</Text>
+            </TouchableOpacity>
+          </View>
+        )}
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyText}>표시할 코스가 없습니다.</Text>
@@ -146,11 +138,11 @@ export default function CourseHomeScreen() {
   );
 }
 
-// --- 디자인팀의 요구사항을 반영한 새로운 StyleSheet ---
+// 디자인팀의 요구사항을 반영한 새로운 StyleSheet
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#ECF0F3', // 디자인의 메인 배경색
+    backgroundColor: '#ECF0F3',
   },
   header: {
     flexDirection: 'row',
@@ -164,7 +156,6 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    // 'Pretendard Variable' 폰트는 프로젝트에 설치 및 설정되어 있어야 합니다.
     fontFamily: 'Pretendard Variable',
     color: '#000000',
   },
@@ -197,19 +188,19 @@ const styles = StyleSheet.create({
   courseCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'transparent', // 카드의 배경은 전체 배경색과 동일하게
+    backgroundColor: 'transparent',
     borderRadius: 30,
     borderWidth: 2,
     borderColor: '#000000',
     padding: 12,
-    marginBottom: 20, // 각 카드 사이의 간격
-    height: 95, // 디자인 명세서의 높이
+    marginBottom: 20,
+    height: 95,
   },
   thumbnail: {
-    width: 71, // 디자인 명세서 기반 크기
+    width: 71,
     height: '100%',
     borderRadius: 20,
-    backgroundColor: 'rgba(156, 171, 194, 0.35)', // 이미지 없을 때의 배경색
+    backgroundColor: 'rgba(156, 171, 194, 0.35)',
     borderWidth: 2,
     borderColor: '#000000',
   },
@@ -217,16 +208,16 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 16,
     justifyContent: 'center',
-    gap: 10, // 제목과 부제 사이의 간격
+    gap: 10,
   },
   courseTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#000000', // 실제 텍스트 색상
+    color: '#000000',
   },
   courseSubtitle: {
     fontSize: 14,
-    color: '#6E6E73', // 실제 텍스트 색상
+    color: '#6E6E73',
   },
   arrowContainer: {
     justifyContent: 'center',

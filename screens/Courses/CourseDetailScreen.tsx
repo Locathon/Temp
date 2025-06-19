@@ -116,8 +116,8 @@ export default function CourseDetailScreen() {
           initialRegion={{
             latitude: coordinates[0]?.latitude || 37.28,
             longitude: coordinates[0]?.longitude || 127.01,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
+            latitudeDelta: 0.001,
+            longitudeDelta: 0.001,
           }}
         >
           {coordinates.length > 1 && <Polyline coordinates={coordinates} strokeColor="#007AFF" strokeWidth={4} />}
