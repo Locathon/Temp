@@ -1,0 +1,214 @@
+import React from 'react';
+import { View, Text, StyleSheet, Image, FlatList, TouchableOpacity, SafeAreaView } from 'react-native';
+import { Ionicons, AntDesign } from '@expo/vector-icons';
+import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+
+type BusinessStackParamList = {
+  StoreMain: undefined;
+  BusinessHome_user: undefined;
+  Notification: undefined;
+  AutoQnAScreen: undefined;
+  NewPostScreen: undefined;
+  EditProfileScreen: undefined;
+  QASetup: undefined;
+  QAPreview: undefined;
+  GenerateMarketing: undefined;
+  MarketingDetail: undefined;
+  PhotoPicker: undefined;
+  PostDetail: undefined;
+  RegisterStore: undefined;
+  EditStore: undefined;
+};
+
+const STORE_DATA = [
+    {
+        id: '1',
+        rank: 1,
+        name: '정지영 커피 로스터즈',
+        address: '경기도 수원시 팔달구 신풍동 신풍로 42',
+        rating: 5.0,
+        reviews: 34,
+        likes: '1.1K',
+        rankChange: -1,
+    },
+    {
+        id: '2',
+        rank: 2,
+        name: '레몬트리',
+        address: '경기도 수원시 행궁동 238 - 234',
+        rating: 5.0,
+        reviews: 34,
+        likes: '1.1K',
+        rankChange: 1,
+    },
+    {
+        id: '3',
+        rank: 3,
+        name: '에그궁',
+        address: '경기 수원시 팔달구 화서문로 17번길 6-4',
+        rating: 5.0,
+        reviews: 34,
+        likes: '1.1K',
+        rankChange: 0,
+    },
+];
+
+export default function MerchantHomeScreen() {
+    const navigation = useNavigation<NativeStackNavigationProp<BusinessStackParamList>>();
+
+    const renderItem = ({ item }: { item: typeof STORE_DATA[number] }) => (
+        <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+                if (item.name === '레몬트리') {
+                    navigation.navigate('BusinessHome_user');
+                } else {
+                    alert('준비 중입니다!');
+                }
+            }}
+        >
+            <View style={styles.storeContainer}>
+                <View style={styles.rowTop}>
+                    <Text style={styles.rank}>{item.rank}</Text>
+                    <View style={styles.infoColumn}>
+                        <View style={styles.nameRow}>
+                            <Text style={styles.name}>{item.name}</Text>
+                            <AntDesign name="checkcircle" size={16} color="#2F80ED" style={{ marginLeft: 6 }} />
+                        </View>
+                        <Text style={styles.address}>{item.address}</Text>
+                        <View style={styles.ratingRow}>
+                            <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
+                            <Text style={styles.stars}>★★★★★</Text>
+                            <Text style={styles.reviews}>({item.reviews})</Text>
+                        </View>
+                    </View>
+                    <View style={styles.likeColumn}>
+                        <Ionicons name="heart-outline" size={20} color="#BDBDBD" />
+                        <Text style={styles.likes}>{item.likes}</Text>
+                    </View>
+                </View>
+
+                <View style={styles.imageRow}>
+                    {[0, 1, 2, 3].map((_, idx) => (
+                        <Image
+                            key={idx}
+                            style={styles.image}
+                            source={require('../../assets/images/onmelo_interior.jpg')} // 실제 이미지로 대체
+                            resizeMode="cover"
+                        />
+                    ))}
+                </View>
+            </View>
+        </TouchableOpacity>
+    );
+
+    return (
+        <SafeAreaView style={styles.safeArea}>
+            <Text style={styles.header}>스토어</Text>
+            <FlatList
+                data={STORE_DATA}
+                keyExtractor={(item) => item.id}
+                renderItem={renderItem}
+                contentContainerStyle={styles.listContent}
+            />
+        </SafeAreaView>
+    );
+}
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#fff',
+        paddingTop: 16,
+    },
+    header: {
+        fontSize: 20,
+        fontWeight: '700',
+        textAlign: 'center',
+        marginBottom: 16,
+        color: '#1C1C1E',
+    },
+    listContent: {
+        paddingHorizontal: 16,
+        paddingBottom: 24,
+    },
+    storeContainer: {
+        marginBottom: 40,
+    },
+    rowTop: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 8,
+    },
+    rank: {
+        fontSize: 22,
+        fontWeight: '700',
+        color: '#2F80ED',
+        marginRight: 16,
+        width: 28,
+        textAlign: 'center',
+    },
+    infoColumn: {
+        flex: 1,
+        marginLeft: 8,
+    },
+    nameRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    name: {
+        fontSize: 18,
+        fontWeight: '700',
+        color: '#1C1C1E',
+    },
+    address: {
+        fontSize: 14,
+        color: '#4F4F4F',
+        marginTop: 6,
+        marginBottom: 8,
+    },
+    ratingRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+    },
+    rating: {
+        fontSize: 14,
+        color: '#F2C94C',
+        fontWeight: '700',
+    },
+    stars: {
+        fontSize: 14,
+        color: '#F2C94C',
+        fontWeight: '700',
+        marginLeft: 6,
+    },
+    reviews: {
+        fontSize: 14,
+        color: '#4F4F4F',
+        marginLeft: 8,
+    },
+    likeColumn: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexDirection: 'column',
+        width: 50,
+    },
+    likes: {
+        fontSize: 13,
+        color: '#2F80ED',
+        marginTop: 6,
+        textAlign: 'center',
+    },
+    imageRow: {
+        flexDirection: 'row',
+        marginTop: 12,
+        justifyContent: 'space-between',
+    },
+    image: {
+        width: 90,
+        height: 90,
+        borderRadius: 10,
+    },
+});

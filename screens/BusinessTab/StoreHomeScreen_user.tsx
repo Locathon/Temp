@@ -36,7 +36,7 @@ const DUMMY_STORE_DATA = {
   address: '경기도 수원시 행궁동 238-234 경기빌딩 3층',
   phone: '1577-4851',
   website: 'http://kr.pinterest.com/pin',
-  rating: 5.0,
+  rating: 4.5,
   reviewCount: 89,
   description: '여행과 풍경의 기록, 느리게 걷는 발자국',
   stats: {
@@ -74,7 +74,7 @@ const DEFAULT_QAS = [
   },
 ];
 
-export default function StoreHomeScreen() {
+export default function StoreHomeScreen_user() {
   const navigation = useNavigation<any>();
   const route = useRoute<RouteProp<{ params: StoreParams }, 'params'>>();
   const {
@@ -187,40 +187,7 @@ export default function StoreHomeScreen() {
           />
         </View>
 
-        {/* Edit Buttons */}
-        <View style={styles.editButtonsRow}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() =>
-              navigation.navigate('EditStore', {
-                name,
-                description,
-                tag,
-                location,
-                startHour,
-                endHour,
-                phone,
-                website,
-                holidays,
-              })
-            }
-          >
-            <Text style={styles.editButtonText}>스토어 편집</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() =>
-              navigation.navigate('QASetup', {
-                qaList: qaList.map(({ question, answer }) => ({ question, answer })),
-              })
-            }
-          >
-            <Text style={styles.editButtonText}>Q&A 수정</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.sparkleButton} onPress={() => navigation.navigate('GenerateMarketing')}>
-            <Image source={aiTransitionIcon} style={{ width: 24, height: 24, tintColor: 'white' }} />
-          </TouchableOpacity>
-        </View>
+
 
         {/* Bottom Tabs */}
         <View style={styles.bottomTabs}>
@@ -250,28 +217,28 @@ export default function StoreHomeScreen() {
             {/* Info Blocks */}
             <View style={styles.infoBlocks}>
               <View style={styles.infoBlock}>
-                <Ionicons name="location-outline" size={24} color="#2F80ED" style={{marginTop: 2}} />
+                <Ionicons name="location-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>위치안내</Text>
                   <Text style={styles.infoContent}>{location || DUMMY_STORE_DATA.address}</Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
-                <Ionicons name="time-outline" size={24} color="#2F80ED" style={{marginTop: 2}} />
+                <Ionicons name="time-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>영업시간</Text>
                   <Text style={styles.infoContent}>{openingHours || DUMMY_STORE_DATA.openingHours}</Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
-                <Ionicons name="call-outline" size={24} color="#2F80ED" style={{marginTop: 2}} />
+                <Ionicons name="call-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>전화번호</Text>
                   <Text style={styles.infoContent}>{phone || DUMMY_STORE_DATA.phone}</Text>
                 </View>
               </View>
               <View style={styles.infoBlock}>
-                <Ionicons name="calendar-outline" size={24} color="#2F80ED" style={{marginTop: 2}} />
+                <Ionicons name="calendar-outline" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>휴무일</Text>
                   <Text style={styles.infoContent}>
@@ -280,7 +247,7 @@ export default function StoreHomeScreen() {
                 </View>
               </View>
               <View style={styles.infoBlock}>
-                <MaterialCommunityIcons name="web" size={24} color="#2F80ED" style={{marginTop: 2}} />
+                <MaterialCommunityIcons name="web" size={24} color="#2F80ED" />
                 <View style={styles.infoTextWrapper}>
                   <Text style={styles.infoTitle}>웹사이트</Text>
                   <Text style={styles.infoContent}>{website || DUMMY_STORE_DATA.website}</Text>
@@ -308,73 +275,72 @@ export default function StoreHomeScreen() {
 
         {activeTab === 'Review' && (
           <View style={{ marginTop: 24, marginHorizontal: 16 }}>
-            {[...Array(89)].map((_, idx) => {
-              const reviewTexts = [
-                '정말 맛있고 분위기도 좋아요!',
-                '또 방문하고 싶은 곳이에요 :)',
-                '직원분들도 친절하고 디저트가 최고였어요!',
-                '인테리어가 예쁘고 사진 찍기 좋아요!',
-                '커피 향이 진하고 여유로운 시간이었어요.',
-                '조용해서 공부하기 딱이에요.',
-                '메뉴가 다양해서 골라먹는 재미가 있어요!',
-                '가격도 적당하고 양도 푸짐했어요.',
-                '달콤한 디저트로 힐링했습니다.',
-                '오픈 시간 맞춰 갔더니 한적해서 좋았어요.',
-              ];
-              // Randomize visit count (1~5) and image count (0,1,2) and images
-              const visitCount = Math.floor(Math.random() * 5) + 1;
-              const imageCount = Math.floor(Math.random() * 3); // 0, 1, or 2
-              const images = Array.from(
-                { length: imageCount },
-                (_, i) => DUMMY_STORE_DATA.images[(idx + i) % DUMMY_STORE_DATA.images.length]
-              );
-              return (
-                <View key={idx} style={{ marginBottom: 44 }}>
-                  <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 10 }}>
-                    5.0 <Text style={{ color: '#F2C94C', fontSize: 16 }}>★★★★★</Text>
-                  </Text>
-                  <Text style={{ fontSize: 15, color: '#333333', fontWeight: '500', marginBottom: 8 }}>
-                    {reviewTexts[idx % reviewTexts.length]}
-                  </Text>
-                  {images.length > 0 && (
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        justifyContent: 'flex-start',
-                        gap: 12,
-                        marginBottom: 16,
-                      }}
-                    >
-                      {images.length === 1
-                        ? images.map((img, i) => (
-                            <Image
-                              key={i}
-                              source={img}
-                              resizeMode="cover"
-                              style={{
-                                width: '100%',
-                                height: 180,
-                                borderRadius: 16,
-                              }}
-                            />
-                          ))
-                        : images.map((img, i) => (
-                            <Image
-                              key={i}
-                              source={img}
-                              style={{
-                                width: 165,
-                                height: 120,
-                                borderRadius: 16,
-                              }}
-                            />
-                          ))}
-                    </View>
-                  )}
-                  <Text style={{ fontSize: 13, color: '#828282' }}>25.06.05 · {visitCount}번째 방문</Text>
-                </View>
-              );
-            })}
+            {[
+              {
+                rating: 5.0,
+                stars: '★★★★★',
+                images: [DUMMY_STORE_DATA.images[0], DUMMY_STORE_DATA.images[1]],
+                text: '푸딩을 먹었는데 일본서먹던 깊은 맛이 나서 좋았어요!!!',
+              },
+              {
+                rating: 5.0,
+                stars: '★★★★★',
+                images: [],
+                text: '커피 맛이 좋고 분위기가 아늑해서 자주 방문할 것 같아요~',
+              },
+              {
+                rating: 5.0,
+                stars: '★★★★★',
+                images: [DUMMY_STORE_DATA.images[2]],
+                text: '토마토 파스타랑 귀여운 머그컵까지 완벽했어요!',
+              },
+            ].map((review, idx) => (
+              <View key={idx} style={{ marginBottom: 44 }}>
+                <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 10 }}>
+                  {review.rating.toFixed(1)}{' '}
+                  <Text style={{ color: '#F2C94C', fontSize: 16 }}>{review.stars}</Text>
+                </Text>
+                {review.images.length > 0 && (
+                  <View
+                    style={{
+                      flexDirection: 'row',
+                      justifyContent: 'flex-start',
+                      gap: 12,
+                      marginBottom: 16,
+                    }}
+                  >
+                    {review.images.length === 1
+                      ? review.images.map((img, i) => (
+                          <Image
+                            key={i}
+                            source={img}
+                            resizeMode="cover"
+                            style={{
+                              width: '100%',
+                              height: 180,
+                              borderRadius: 16,
+                            }}
+                          />
+                        ))
+                      : review.images.map((img, i) => (
+                          <Image
+                            key={i}
+                            source={img}
+                            style={{
+                              width: 165,
+                              height: 120,
+                              borderRadius: 16,
+                            }}
+                          />
+                        ))}
+                  </View>
+                )}
+                <Text style={{ fontSize: 15, color: '#333333', fontWeight: '500', marginBottom: 8 }}>
+                  {review.text}
+                </Text>
+                <Text style={{ fontSize: 13, color: '#828282' }}>25.06.05 · 1번째 방문</Text>
+              </View>
+            ))}
           </View>
         )}
 
@@ -551,7 +517,6 @@ const styles = StyleSheet.create({
   },
   bottomTabs: {
     flexDirection: 'row',
-    marginHorizontal: 16,
     marginTop: 24,
     borderBottomWidth: 1,
     borderBottomColor: '#E0E0E0',
@@ -560,6 +525,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingVertical: 12,
     alignItems: 'center',
+    justifyContent: 'center',
     borderBottomWidth: 3,
     borderBottomColor: 'transparent',
   },
@@ -581,7 +547,7 @@ const styles = StyleSheet.create({
   infoBlock: {
     flexDirection: 'row',
     alignItems: 'flex-start',
-    marginBottom: 24,
+    marginBottom: 20,
   },
   infoTextWrapper: {
     marginLeft: 12,
@@ -611,8 +577,8 @@ const styles = StyleSheet.create({
     marginBottom: 32,
   },
   menuImage: {
-    width: 150,
-    height: 110,
+    width: 140,
+    height: 100,
     borderRadius: 12,
     marginRight: 12,
   },
