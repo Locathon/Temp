@@ -1,9 +1,8 @@
-// C:\Users\mnb09\Desktop\Temp\screens\MyCollectionPage\my-courses.tsx
-
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import axios from 'axios';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   FlatList,
   Image,
@@ -22,7 +21,7 @@ type MyCourse = {
   thumbnail: string;
 };
 
-export default function MyCoursesScreen({ navigation }: any) {
+export default function MyCoursesScreen({ navigation, route }: any) {
   const [selectedTab, setSelectedTab] = useState<'place' | 'course'>('place');
   const [places, setPlaces] = useState<MyCourse[]>([]);
   const [courses, setCourses] = useState<MyCourse[]>([]);
@@ -81,6 +80,31 @@ export default function MyCoursesScreen({ navigation }: any) {
         console.error('코스 불러오기 실패:', err);
       });
   }, [jwtToken]);
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchCopiedCourses = async () => {
+        try {
+          const copied = await AsyncStorage.getItem('copiedCourses');
+          const saved = await AsyncStorage.getItem('myCourses');
+          if (saved) {
+            const parsedSaved = JSON.parse(saved);
+            const formattedSaved: MyCourse[] = (Array.isArray(parsedSaved) ? parsedSaved : [parsedSaved]).map((course: any, index: number) => ({
+              id: course.id ?? `saved-${Date.now()}-${index}`,
+              title: course.title ?? '저장된 코스',
+              placeCount: course.placeCount ?? 0,
+              tags: course.tags ?? ['#내코스'],
+              thumbnail: course.thumbnail ?? 'https://placehold.co/100x100?text=저장됨',
+            }));
+            setCourses(prev => [...prev, ...formattedSaved]);
+          }
+        } catch (e) {
+          console.error('복사된 코스 불러오기 오류:', e);
+        }
+      };
+      fetchCopiedCourses();
+    }, [])
+  );
 
   const renderPlaceItem = ({ item }: { item: MyCourse }) => (
     <TouchableOpacity style={styles.gridCard} onPress={() => navigation.navigate('PlaceDetail', { placeId: item.id })}>
