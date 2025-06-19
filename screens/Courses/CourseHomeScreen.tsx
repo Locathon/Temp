@@ -77,7 +77,7 @@ export default function CourseHomeScreen() {
       <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
         <View style={styles.sectionContainer}>
           <View style={styles.sectionHeader}>
-            <Text style={styles.sectionTitle}>느린행궁이 추천하는 코스</Text>
+            <Text style={styles.sectionTitle}>행온이 추천하는 코스</Text>
             <TouchableOpacity onPress={() => navigation.navigate('CourseListScreen')}>
               <Text style={styles.seeAllText}>전체보기</Text>
             </TouchableOpacity>
