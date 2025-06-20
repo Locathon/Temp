@@ -35,7 +35,7 @@ const UserTypeSelectionScreen = () => {
           source={require('../../assets/images/splash-icon.png')} // 로고 이미지 경로
           style={styles.logo}
         />
-        <Text style={styles.title}>느린행궁에 오신 것을 환영합니다!</Text>
+        <Text style={styles.title}>행:온에 오신 것을 환영합니다!</Text>
         <Text style={styles.subtitle}>
           어떤 유형으로 행궁동을 즐겨볼까요?{'\n'}주민 인증 시 더 많은 혜택이 기다리고 있어요.
         </Text>

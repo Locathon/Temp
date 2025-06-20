@@ -70,7 +70,7 @@ export default function CourseHomeScreen() {
   // SectionList에 사용할 데이터 구조로 변환
   const courseSections = [
     {
-      title: '행온이 추천하는 코스',
+      title: '행:온이 추천하는 코스',
       data: recommendedCourses,
       key: 'recommended',
     },
