@@ -41,7 +41,7 @@ const STORE_DATA = [
   {
     id: '2',
     rank: 2,
-    name: '레몬트리',
+    name: '행궁 디저트 연구소',
     address: '경기도 수원시 행궁동 238 - 234',
     rating: 5.0,
     reviews: 34,
@@ -79,7 +79,7 @@ export default function MerchantHomeScreen() {
     <TouchableOpacity
       activeOpacity={0.8}
       onPress={() => {
-        if (item.name === '레몬트리') {
+        if (item.name === '행궁 디저트 연구소') {
           navigation.navigate('BusinessHome_user');
         } else {
           alert('준비 중입니다!');
@@ -92,7 +92,7 @@ export default function MerchantHomeScreen() {
           <View style={styles.infoColumn}>
             <View style={styles.nameRow}>
               <Text style={styles.name}>{item.name}</Text>
-              <AntDesign name="checkcircle" size={16} color="#2F80ED" style={{ marginLeft: 6 }} />
+              <AntDesign name="checkcircle" size={16} color="#48C8FF" style={{ marginLeft: 6 }} />
             </View>
             <Text style={styles.address}>{item.address}</Text>
             <View style={styles.ratingRow}>
@@ -138,14 +138,14 @@ const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
     backgroundColor: '#fff',
-    paddingTop: 16,
+    paddingTop: 12, // 기존: 16
   },
   header: {
     fontSize: 20,
     fontWeight: '700',
     textAlign: 'center',
-    marginBottom: 16,
-    color: '#1C1C1E',
+    marginBottom: 12,       // 기존: 16
+    color: '#000000',       // 기존: '#1C1C1E'
   },
   listContent: {
     paddingHorizontal: 16,
@@ -163,8 +163,8 @@ const styles = StyleSheet.create({
   rank: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#2F80ED',
-    marginRight: 16,
+    color: '#48C8FF',
+    marginRight: 8,
     width: 28,
     textAlign: 'center',
   },
@@ -184,8 +184,8 @@ const styles = StyleSheet.create({
   address: {
     fontSize: 14,
     color: '#4F4F4F',
-    marginTop: 6,
-    marginBottom: 8,
+    marginTop: 4,    // 기존: 6
+    marginBottom: 4, // 기존: 8
   },
   ratingRow: {
     flexDirection: 'row',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   likes: {
     fontSize: 13,
-    color: '#2F80ED',
+    color: '#48C8FF',
     marginTop: 6,
     textAlign: 'center',
   },
@@ -225,8 +225,8 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   image: {
-    width: 90,
-    height: 90,
+    width: 100,      // 기존: 90
+    height: 100,     // 기존: 90
     borderRadius: 10,
   },
 });

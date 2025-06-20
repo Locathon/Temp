@@ -138,9 +138,22 @@ const styles = StyleSheet.create({
   answerInput: { fontSize: 15, color: '#3C3C43', minHeight: 60, textAlignVertical: 'top' },
   deleteButton: { alignSelf: 'flex-end', marginTop: 8, paddingHorizontal: 12, paddingVertical: 6 },
   deleteButtonText: { color: '#FF3B30', fontSize: 14 },
-  addButton: { backgroundColor: '#F2F2F7', padding: 16, borderRadius: 12, alignItems: 'center', marginVertical: 16, marginHorizontal: 20, },
-  addButtonText: { color: '#007AFF', fontWeight: 'bold', fontSize: 16 },
+  addButton: {
+    backgroundColor: '#1C1C1E',      // 검정색 배경
+    paddingHorizontal: 24,           // 좌우 패딩 넉넉히
+    paddingVertical: 12,             // 상하 패딩 조정
+    borderRadius: 999,               // 완전한 pill 형태
+    alignItems: 'center',
+    alignSelf: 'center',             // 가운데 정렬
+    marginVertical: 16,
+  },
+
+  addButtonText: {
+    color: '#FFFFFF',                // 흰색 텍스트
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
   bottomButtonContainer: { position: 'absolute', bottom: 0, left: 0, right: 0, padding: 20, backgroundColor: 'white', borderTopWidth: 1, borderTopColor: '#F2F2F2' },
-  saveButton: { backgroundColor: '#2F80ED', padding: 16, borderRadius: 12, alignItems: 'center' },
+  saveButton: { backgroundColor: '#48C8FF', padding: 16, borderRadius: 12, alignItems: 'center' },
   saveButtonText: { color: 'white', fontWeight: 'bold', fontSize: 16 },
 });
