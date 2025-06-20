@@ -93,7 +93,7 @@ const GenerateMarketingScreen = () => {
                 contentWidth={width - 40}
                 source={{ html: `<div>${generatedText.replace(/\n/g, '<br />')}</div>` }}
                 tagsStyles={{
-                  span: { color: '#286FFD', fontWeight: 'bold' },
+                  span: { color: '#48C8FF', fontWeight: 'bold' },
                   div: { fontSize: 15, color: '#222' },
                 }}
               />
@@ -148,7 +148,10 @@ const GenerateMarketingScreen = () => {
                   onPress={() => setSns(item.label)}
                   activeOpacity={0.8}
                 >
-                  <Image source={item.icon} style={styles.snsIcon} />
+                  <Image
+                    source={item.icon}
+                    style={[styles.snsIcon, selected && { tintColor: '#FFFFFF' }]}
+                  />
                 </TouchableOpacity>
                 <Text style={[styles.snsLabel, selected && styles.snsLabelSelected]}>
                   {item.label}
@@ -236,7 +239,7 @@ const styles = StyleSheet.create({
     paddingBottom: 3,
   },
   textarea: {
-    height: 100,
+    height: 150,
     textAlignVertical: 'top',
     fontSize: 15,
     padding: 12,
@@ -304,8 +307,8 @@ const styles = StyleSheet.create({
     marginBottom: 6,
   },
   snsCircleSelected: {
-    backgroundColor: '#20A7FF',
-    borderColor: '#20A7FF',
+    backgroundColor: '#48C8FF',
+    borderColor: '#48C8FF',
   },
   snsIcon: {
     width: 24,
@@ -319,7 +322,7 @@ const styles = StyleSheet.create({
   },
   snsLabelSelected: {
     fontWeight: '600',
-    color: '#20A7FF',
+    color: '#333333',
   },
   bottomButtonWrapper: {
     position: 'absolute',

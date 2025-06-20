@@ -28,8 +28,8 @@ const STORE_DATA = [
     name: '정지영 커피 로스터즈',
     address: '경기도 수원시 팔달구 신풍동 신풍로 42',
     rating: 5.0,
-    reviews: 34,
-    likes: '1.1K',
+    reviews: 5,
+    likes: '1.3K',
     rankChange: -1,
     images: [
       require('../../assets/images/caffe/caffe01.jpg'),
@@ -43,9 +43,9 @@ const STORE_DATA = [
     rank: 2,
     name: '행궁 디저트 연구소',
     address: '경기도 수원시 행궁동 238 - 234',
-    rating: 5.0,
-    reviews: 34,
-    likes: '1.1K',
+    rating: 4.8,
+    reviews: 4,
+    likes: '1.2K',
     rankChange: 1,
     images: [
       require('../../assets/images/desserts/cafe_profile.jpg'),
@@ -59,8 +59,8 @@ const STORE_DATA = [
     rank: 3,
     name: '에그궁',
     address: '경기 수원시 팔달구 화서문로 17번길 6-4',
-    rating: 5.0,
-    reviews: 34,
+    rating: 4.6,
+    reviews: 3,
     likes: '1.1K',
     rankChange: 0,
     images: [
@@ -97,7 +97,9 @@ export default function MerchantHomeScreen() {
             <Text style={styles.address}>{item.address}</Text>
             <View style={styles.ratingRow}>
               <Text style={styles.rating}>{item.rating.toFixed(1)}</Text>
-              <Text style={styles.stars}>★★★★★</Text>
+              <Text style={styles.stars}>
+                {'★'.repeat(Math.floor(item.rating)) + '☆'.repeat(5 - Math.floor(item.rating))}
+              </Text>
               <Text style={styles.reviews}>({item.reviews})</Text>
             </View>
           </View>
