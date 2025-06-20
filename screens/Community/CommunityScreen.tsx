@@ -26,6 +26,8 @@ const CommunityScreen = () => {
   const toggleLike = (postId: string) => {
     setLikesMap(prev => ({ ...prev, [postId]: !prev[postId] }));
   };
+  
+  
 
   const handleAddComment = (postId: string) => {
     const comment = tempComments[postId]?.trim();
@@ -166,7 +168,7 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: 'center',
-    zIndex: -1,
+    zIndex: 1,
   },
   title: {
     fontSize: 18,

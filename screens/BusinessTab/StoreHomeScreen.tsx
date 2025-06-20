@@ -6,6 +6,7 @@ import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navig
 import React, { useCallback, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import RenderHTML from 'react-native-render-html';
+import * as Clipboard from 'expo-clipboard';
 
 const aiTransitionIcon = require('../../assets/images/ai_transition.png');
 
@@ -25,7 +26,7 @@ const DESSERT_CAFE_DATA = {
     phone: '031-123-4567',
     website: 'https://instagram.com/slow.haenggung',
     rating: 4.8,
-    reviewCount: 124,
+    reviewCount: 4,
     description: '매일 아침 신선한 재료로 만드는 수제 디저트와 스페셜티 커피를 즐겨보세요. 행궁동의 작은 골목에서 발견하는 달콤한 행복.',
     openingHours: '11:00 ~ 21:00',
     holidays: ['월요일'],
@@ -91,8 +92,22 @@ export default function StoreHomeScreen() {
                         <View style={styles.tagRow}>
                             <View style={styles.ratingRow}>
                                 <Text style={styles.ratingText}>{DESSERT_CAFE_DATA.rating.toFixed(1)}</Text>
-                                <Ionicons name="star" size={14} color="#F2C94C" style={{marginLeft: 4}}/>
-                                <Text style={styles.reviewCount}>({DESSERT_CAFE_DATA.reviewCount} 후기)</Text>
+                                {[...Array(5)].map((_, i) => (
+                                    <Ionicons
+                                        key={i}
+                                        name={
+                                            i < Math.floor(DESSERT_CAFE_DATA.rating)
+                                                ? 'star'
+                                                : i < DESSERT_CAFE_DATA.rating
+                                                    ? 'star-half'
+                                                    : 'star-outline'
+                                        }
+                                        size={14}
+                                        color="#F2C94C"
+                                        style={{ marginLeft: i === 0 ? 4 : 2 }}
+                                    />
+                                ))}
+                                <Text style={styles.reviewCount}>({DESSERT_CAFE_DATA.reviewCount})</Text>
                             </View>
                         </View>
                     </View>
@@ -124,11 +139,27 @@ export default function StoreHomeScreen() {
                 {activeTab === 'Home' && (
                     <>
                         <View style={styles.infoBlocks}>
-                            <View style={styles.infoBlock}><Ionicons name="location-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>위치안내</Text><Text style={styles.infoContent}>{displayData.address}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="time-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>영업시간</Text><Text style={styles.infoContent}>{displayData.openingHours}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="call-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>전화번호</Text><Text style={styles.infoContent}>{displayData.phone}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="calendar-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>휴무일</Text><Text style={styles.infoContent}>{displayData.holidays.join(', ')}</Text></View></View>
-                            <View style={styles.infoBlock}><MaterialCommunityIcons name="web" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>웹사이트</Text><Text style={styles.infoContent}>{displayData.website}</Text></View></View>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>위치안내</Text>
+                                <Text style={styles.infoContent}>{displayData.address}</Text>
+                            </View>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>영업시간</Text>
+                                <Text style={styles.infoContent}>{displayData.openingHours}</Text>
+                            </View>
+                            <View style={styles.infoBlock}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+                                <Text style={{ fontWeight: 'bold', marginRight: 10 }}>전화번호</Text>
+                                <Text style={{ color: '#555' }}>031-123-4567</Text>
+                                <TouchableOpacity onPress={handleCopy} style={{ marginLeft: 0 }}>
+                                  <Text style={{ color: '#48C8FF', fontWeight: '500' }}>복사</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>웹사이트</Text>
+                                <Text style={styles.infoContent}>{displayData.website}</Text>
+                            </View>
                         </View>
                         <Text style={styles.menuSectionTitle}>메뉴</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
@@ -142,7 +173,6 @@ export default function StoreHomeScreen() {
                         {DESSERT_REVIEWS.map((review, idx) => (
                             <View key={idx} style={{ marginBottom: 24 }}>
                                 <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-                                    <Image source={DESSERT_CAFE_DATA.profileImage} style={{ borderRadius: 9999, width: 32, height: 32, marginRight: 8 }} />
                                     <Image source={DESSERT_CAFE_DATA.profileImage} style={{ borderRadius: 9999, width: 32, height: 32, marginRight: 8 }} />
                                 </View>
                                 <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 10 }}>{review.rating.toFixed(1)} <Text style={{ color: '#F2C94C', fontSize: 16 }}>{review.stars}</Text></Text>
@@ -222,15 +252,34 @@ const styles = StyleSheet.create({
     },
   bottomTabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 24, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
   tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  activeTab: { borderBottomColor: '#2F80ED' },
+    activeTab: { borderBottomColor: '#48C8FF' },
   tabText: { fontSize: 16, color: '#828282', fontWeight: '600' },
-  activeTabText: { color: '#2F80ED' },
+    activeTabText: { color: '#48C8FF' },
   infoBlocks: { marginTop: 24, marginHorizontal: 16 },
-  infoBlock: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 24 },
-  infoTextWrapper: { marginLeft: 12, flex: 1 },
-  infoTitle: { fontSize: 16, fontWeight: '700', color: '#333333', marginBottom: 4 },
-  infoContent: { fontSize: 14, color: '#4F4F4F', lineHeight: 20 },
+  infoBlock: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  infoTitle: {
+    width: 80,
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#333333',
+  },
+  infoContent: {
+    fontSize: 14,
+    color: '#4F4F4F',
+    lineHeight: 20,
+    flex: 1,
+  },
   menuSectionTitle: { fontSize: 18, fontWeight: '700', color: '#333333', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
   menuScroll: { paddingLeft: 16, marginBottom: 32 },
   menuImage: { width: 150, height: 110, borderRadius: 12, marginRight: 12 },
 });
+
+    // 전화번호 복사 함수
+    const handleCopy = async () => {
+      await Clipboard.setStringAsync('031-123-4567');
+      alert('전화번호가 복사되었습니다');
+    };

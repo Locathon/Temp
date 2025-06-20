@@ -6,7 +6,7 @@ import { RouteProp, useFocusEffect, useNavigation, useRoute } from '@react-navig
 import React, { useCallback, useState } from 'react';
 import { Image, SafeAreaView, ScrollView, StyleSheet, Text, TouchableOpacity, View, useWindowDimensions } from 'react-native';
 import RenderHTML from 'react-native-render-html';
-
+import * as Clipboard from 'expo-clipboard';
 const DESSERT_CAFE_DATA = {
     name: '행궁 디저트 연구소',
     tag: '디저트카페',
@@ -22,7 +22,7 @@ const DESSERT_CAFE_DATA = {
     phone: '031-123-4567',
     website: 'https://instagram.com/slow.haenggung',
     rating: 4.8,
-    reviewCount: 124,
+    reviewCount: 4,
     description: '매일 아침 신선한 재료로 만드는 수제 디저트와 스페셜티 커피를 즐겨보세요. 행궁동의 작은 골목에서 발견하는 달콤한 행복.',
     openingHours: '11:00 ~ 21:00',
     holidays: ['월요일'],
@@ -104,7 +104,7 @@ export default function StoreHomeScreen_user() {
                                         style={{ marginLeft: i === 0 ? 4 : 2 }}
                                     />
                                 ))}
-                                <Text style={styles.reviewCount}>({DESSERT_CAFE_DATA.reviewCount} 후기)</Text>
+                                <Text style={styles.reviewCount}>({DESSERT_CAFE_DATA.reviewCount})</Text>
                             </View>
                         </View>
                     </View>
@@ -123,12 +123,28 @@ export default function StoreHomeScreen_user() {
 
                 {activeTab === 'Home' && (
                      <>
-                        <View style={styles.infoBlocks}>
-                            <View style={styles.infoBlock}><Ionicons name="location-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>위치안내</Text><Text style={styles.infoContent}>{displayData.address}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="time-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>영업시간</Text><Text style={styles.infoContent}>{displayData.openingHours}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="call-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>전화번호</Text><Text style={styles.infoContent}>{displayData.phone}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="calendar-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>휴무일</Text><Text style={styles.infoContent}>{displayData.holidays.join(', ')}</Text></View></View>
-                            <View style={styles.infoBlock}><MaterialCommunityIcons name="web" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>웹사이트</Text><Text style={styles.infoContent}>{displayData.website}</Text></View></View>
+<View style={styles.infoBlocks}>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>위치안내</Text>
+                                <Text style={styles.infoContent}>{displayData.address}</Text>
+                            </View>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>영업시간</Text>
+                                <Text style={styles.infoContent}>{displayData.openingHours}</Text>
+                            </View>
+                            <View style={styles.infoBlock}>
+                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
+                                <Text style={{ fontWeight: 'bold', marginRight: 10 }}>전화번호</Text>
+                                <Text style={{ color: '#555' }}>031-123-4567</Text>
+                                <TouchableOpacity onPress={handleCopy} style={{ marginLeft: 0 }}>
+                                  <Text style={{ color: '#48C8FF', fontWeight: '500' }}>복사</Text>
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                            <View style={styles.infoBlock}>
+                                <Text style={styles.infoTitle}>웹사이트</Text>
+                                <Text style={styles.infoContent}>{displayData.website}</Text>
+                            </View>
                         </View>
                         <Text style={styles.menuSectionTitle}>메뉴</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
@@ -171,32 +187,80 @@ export default function StoreHomeScreen_user() {
 }
 
 const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5E5' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
-  container: { flex: 1 },
-  imageGrid: { marginHorizontal: 16, marginTop: 16, alignItems: 'center', justifyContent: 'center' },
-  gridImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
-  storeInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginHorizontal: 16, marginTop: 8 },
-  storeName: { fontSize: 24, fontWeight: '700', color: '#333333' },
-  inlineStoreTag: { fontSize: 14, color: '#828282', marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, textAlignVertical: 'center' },
-  tagRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
-  ratingRow: { flexDirection: 'row', alignItems: 'center' },
-  ratingText: { fontSize: 14, color: '#4F4F4F' },
-  reviewCount: { fontSize: 14, color: '#828282', marginLeft: 6 },
-  likeButton: { alignItems: 'center' },
-  likeText: { fontSize: 12, color: '#828282', marginTop: 2 },
-  bottomTabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 24, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-  tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
+    safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
+    header: { height: 64, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5E5' },
+    headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
+    container: { flex: 1 },
+    imageGrid: { marginHorizontal: 16, marginTop: 16, alignItems: 'center', justifyContent: 'center' },
+    gridImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
+    storeInfoRow: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', marginHorizontal: 16, marginTop: 8 },
+    storeName: { fontSize: 24, fontWeight: '700', color: '#333333' },
+    inlineStoreTag: { fontSize: 14, color: '#828282', marginLeft: 8, paddingHorizontal: 8, paddingVertical: 2, textAlignVertical: 'center' },
+    tagRow: { flexDirection: 'row', alignItems: 'center', marginTop: 4 },
+    ratingRow: { flexDirection: 'row', alignItems: 'center' },
+    ratingText: { fontSize: 14, color: '#4F4F4F' },
+    reviewCount: { fontSize: 14, color: '#828282', marginLeft: 6 },
+    likeButton: { alignItems: 'center' },
+    likeText: { fontSize: 12, color: '#828282', marginTop: 2 },
+    editButtonsRow: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: 16,
+    },
+    editButton: {
+        width: '42%',
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#D3DDE3',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    editButtonText: {
+        fontSize: 16, // 기존 18 → 16
+        fontWeight: '600',
+        color: '#1C1C1E',
+    },
+    sparkleButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: '#48C8FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    bottomTabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 24, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
+    tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
     activeTab: { borderBottomColor: '#48C8FF' },
-  tabText: { fontSize: 16, color: '#828282', fontWeight: '600' },
+    tabText: { fontSize: 16, color: '#828282', fontWeight: '600' },
     activeTabText: { color: '#48C8FF' },
-  infoBlocks: { marginTop: 24, marginHorizontal: 16 },
-  infoBlock: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 24 },
-  infoTextWrapper: { marginLeft: 12, flex: 1 },
-  infoTitle: { fontSize: 16, fontWeight: '700', color: '#333333', marginBottom: 4 },
-  infoContent: { fontSize: 14, color: '#4F4F4F', lineHeight: 20 },
-  menuSectionTitle: { fontSize: 18, fontWeight: '700', color: '#333333', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
-  menuScroll: { paddingLeft: 16, marginBottom: 32 },
-  menuImage: { width: 150, height: 110, borderRadius: 12, marginRight: 12 },
-});
+    infoBlocks: { marginTop: 24, marginHorizontal: 16 },
+    infoBlock: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginBottom: 24,
+    },
+    infoTitle: {
+        width: 80,
+        fontSize: 16,
+        fontWeight: '700',
+        color: '#333333',
+    },
+    infoContent: {
+        fontSize: 14,
+        color: '#4F4F4F',
+        lineHeight: 20,
+        flex: 1,
+    },
+    menuSectionTitle: { fontSize: 18, fontWeight: '700', color: '#333333', marginHorizontal: 16, marginTop: 16, marginBottom: 8 },
+    menuScroll: { paddingLeft: 16, marginBottom: 32 },
+    menuImage: { width: 150, height: 110, borderRadius: 12, marginRight: 12 },
+    });
+    // 전화번호 복사 함수
+    const handleCopy = async () => {
+      await Clipboard.setStringAsync('031-123-4567');
+      alert('전화번호가 복사되었습니다');
+    };

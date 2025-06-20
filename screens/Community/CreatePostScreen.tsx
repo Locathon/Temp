@@ -2,6 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
+import { useRoute } from '@react-navigation/native';
 import {
   Alert,
   Image,
@@ -21,6 +22,10 @@ export default function CreatePostScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<any[]>([]);
+  const route = useRoute();
+
+  // 새 글 등록시 바로 반영
+
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
