@@ -10,7 +10,7 @@ import app_setting from '../screens/MyCollectionPage/app-setting';
 import edit_profile from '../screens/MyCollectionPage/edit-profile';
 import EditCourseScreen from '../screens/MyCollectionPage/EditCourseScreen';
 import Guide from '../screens/MyCollectionPage/guide';
-import MapCourseScreen from '../screens/MyCollectionPage/MapCourseScreen.jsx';
+import MapCourseScreen from '../screens/MyCollectionPage/MapCourseScreen';
 import my_courses from '../screens/MyCollectionPage/my-courses';
 import MyPlacesScreen from '../screens/MyCollectionPage/my-places';
 import my_reivews from '../screens/MyCollectionPage/my-reviews';
