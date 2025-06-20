@@ -106,7 +106,7 @@ const RegisterScreen = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <ScrollView contentContainerStyle={styles.container}>
             <Text style={styles.title}>회원가입</Text>
-            <Text style={styles.subtitle}>느린행궁과 함께할 정보를 입력해주세요.</Text>
+            <Text style={styles.subtitle}>행:온과 함께할 정보를 입력해주세요.</Text>
 
             {/* 닉네임 입력 그룹 */}
             <View style={styles.inputGroup}>

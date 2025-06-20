@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Locathon_Frontend",
+    "name": "행:온",
     "slug": "Locathon_Frontend",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -16,7 +16,8 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true
+      "edgeToEdgeEnabled": true,
+      "package": "com.yoonsuh0615.Locathon_Frontend"
     },
     "web": {
       "bundler": "metro",
@@ -37,6 +38,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "4a1f29b3-1c14-47ad-a3e9-97dd070a190b"
+      }
+    },
+    "owner": "yoonsuh0615"
   }
 }

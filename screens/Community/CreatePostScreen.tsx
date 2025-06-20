@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     container: { flex: 1, backgroundColor: '#FFFFFF' },
     header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
     headerTitle: { fontSize: 18, fontWeight: 'bold' },
-    submitButton: { backgroundColor: '#2F80ED', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
+    submitButton: { backgroundColor: '#48C8FF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
     submitButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
     titleInput: { padding: 16, fontSize: 18, fontWeight: 'bold' },
     divider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 16 },

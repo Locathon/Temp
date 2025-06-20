@@ -16,7 +16,7 @@ import PlaceStackNavigator from './PlaceStackNavigator';
 const Tab = createBottomTabNavigator();
 
 // Figma 디자인 가이드에 따른 색상
-const TINT_COLOR = '#2F80ED';
+const TINT_COLOR = '#48C8FF';
 const INACTIVE_TINT_COLOR = '#828282';
 
 export default function TabNavigator() {
@@ -29,10 +29,13 @@ export default function TabNavigator() {
         tabBarActiveTintColor: TINT_COLOR,
         tabBarInactiveTintColor: INACTIVE_TINT_COLOR,
         tabBarStyle: {
-          height: 0,
-          paddingBottom: 33,
-          paddingTop: 2,
+          height: 60, // 기존 height: 0 제거
+          paddingBottom: 5,
+          paddingTop: 4,
         },
+        tabBarLabelStyle: {
+          fontSize: 11, // 탭 아래 텍스트 크기
+      },
         tabBarIcon: ({ focused, color, size }) => {
           let iconName: React.ComponentProps<typeof Ionicons>['name'];
 
@@ -43,13 +46,13 @@ export default function TabNavigator() {
             case '코스':
               iconName = focused ? 'map' : 'map-outline';
               break;
-            case '장소':
+            case '홈':
               iconName = focused ? 'location' : 'location-outline';
               break;
             case '소상공인':
               iconName = focused ? 'storefront' : 'storefront-outline';
               break;
-            case '마이컬렉션':
+            case '마이페이지':
               iconName = focused ? 'person' : 'person-outline';
               break;
             default:
@@ -60,9 +63,6 @@ export default function TabNavigator() {
         },
       })}
     >
-      <Tab.Screen name="커뮤니티" component={CommunityNavigator} />
-      <Tab.Screen name="코스" component={CourseNavigator} />
-      <Tab.Screen name="장소" component={PlaceStackNavigator} />
       
       {/* [핵심 수정] userType이 'business_owner'일 경우에만 소상공인 탭을 보여줍니다. */}
       {userType === 'business_owner' && (
@@ -71,8 +71,10 @@ export default function TabNavigator() {
       {userType === 'resident' && (
         <Tab.Screen name="소상공인" component={BusinessNavigator_user} />
       )}
-
-      <Tab.Screen name="마이컬렉션" component={MyCollectionPageNavigator} />
+      <Tab.Screen name="코스" component={CourseNavigator} />
+      <Tab.Screen name="홈" component={PlaceStackNavigator} />
+      <Tab.Screen name="커뮤니티" component={CommunityNavigator} />
+      <Tab.Screen name="마이페이지" component={MyCollectionPageNavigator} />
     </Tab.Navigator>
   );
 }

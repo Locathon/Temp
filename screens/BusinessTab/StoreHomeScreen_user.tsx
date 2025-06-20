@@ -89,7 +89,21 @@ export default function StoreHomeScreen_user() {
                         <View style={styles.tagRow}>
                             <View style={styles.ratingRow}>
                                 <Text style={styles.ratingText}>{DESSERT_CAFE_DATA.rating.toFixed(1)}</Text>
-                                <Ionicons name="star" size={14} color="#F2C94C" style={{marginLeft: 4}}/>
+                                {[...Array(5)].map((_, i) => (
+                                    <Ionicons
+                                        key={i}
+                                        name={
+                                            i < Math.floor(DESSERT_CAFE_DATA.rating)
+                                                ? 'star'
+                                                : i < DESSERT_CAFE_DATA.rating
+                                                    ? 'star-half'
+                                                    : 'star-outline'
+                                        }
+                                        size={14}
+                                        color="#F2C94C"
+                                        style={{ marginLeft: i === 0 ? 4 : 2 }}
+                                    />
+                                ))}
                                 <Text style={styles.reviewCount}>({DESSERT_CAFE_DATA.reviewCount} 후기)</Text>
                             </View>
                         </View>
@@ -110,11 +124,11 @@ export default function StoreHomeScreen_user() {
                 {activeTab === 'Home' && (
                      <>
                         <View style={styles.infoBlocks}>
-                            <View style={styles.infoBlock}><Ionicons name="location-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>위치안내</Text><Text style={styles.infoContent}>{displayData.address}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="time-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>영업시간</Text><Text style={styles.infoContent}>{displayData.openingHours}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="call-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>전화번호</Text><Text style={styles.infoContent}>{displayData.phone}</Text></View></View>
-                            <View style={styles.infoBlock}><Ionicons name="calendar-outline" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>휴무일</Text><Text style={styles.infoContent}>{displayData.holidays.join(', ')}</Text></View></View>
-                            <View style={styles.infoBlock}><MaterialCommunityIcons name="web" size={24} color="#2F80ED" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>웹사이트</Text><Text style={styles.infoContent}>{displayData.website}</Text></View></View>
+                            <View style={styles.infoBlock}><Ionicons name="location-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>위치안내</Text><Text style={styles.infoContent}>{displayData.address}</Text></View></View>
+                            <View style={styles.infoBlock}><Ionicons name="time-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>영업시간</Text><Text style={styles.infoContent}>{displayData.openingHours}</Text></View></View>
+                            <View style={styles.infoBlock}><Ionicons name="call-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>전화번호</Text><Text style={styles.infoContent}>{displayData.phone}</Text></View></View>
+                            <View style={styles.infoBlock}><Ionicons name="calendar-outline" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>휴무일</Text><Text style={styles.infoContent}>{displayData.holidays.join(', ')}</Text></View></View>
+                            <View style={styles.infoBlock}><MaterialCommunityIcons name="web" size={24} color="#48C8FF" style={{marginTop: 2}} /><View style={styles.infoTextWrapper}><Text style={styles.infoTitle}>웹사이트</Text><Text style={styles.infoContent}>{displayData.website}</Text></View></View>
                         </View>
                         <Text style={styles.menuSectionTitle}>메뉴</Text>
                         <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.menuScroll}>
@@ -174,9 +188,9 @@ const styles = StyleSheet.create({
   likeText: { fontSize: 12, color: '#828282', marginTop: 2 },
   bottomTabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 24, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
   tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
-  activeTab: { borderBottomColor: '#2F80ED' },
+    activeTab: { borderBottomColor: '#48C8FF' },
   tabText: { fontSize: 16, color: '#828282', fontWeight: '600' },
-  activeTabText: { color: '#2F80ED' },
+    activeTabText: { color: '#48C8FF' },
   infoBlocks: { marginTop: 24, marginHorizontal: 16 },
   infoBlock: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 24 },
   infoTextWrapper: { marginLeft: 12, flex: 1 },

@@ -1,8 +1,6 @@
-// C:\Users\mnb09\Desktop\Temp\app\index.tsx
-
-import React, { useState, useRef } from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet } from 'react-native';
-import { Video, ResizeMode, AVPlaybackStatus, AVPlaybackStatusSuccess } from 'expo-av';
+import { WebView } from 'react-native-webview';
 import { useAuth } from '../contexts/AuthContext';
 import TabNavigator from '../navigation/TabNavigator';
 import UserTypeSelectionScreen from '../screens/Auth/UserTypeSelectionScreen';
@@ -12,25 +10,50 @@ import UserTypeSelectionScreen from '../screens/Auth/UserTypeSelectionScreen';
 export default function Index() {
   const { userType } = useAuth();
   const [isIntroFinished, setIsIntroFinished] = useState(false);
-  const videoRef = useRef(null);
 
   if (!isIntroFinished) {
     return (
       <View style={styles.container}>
-        <Video
-          ref={videoRef}
-          source={require('../assets/videos/intro.mp4')}
-          resizeMode={ResizeMode.COVER}
-          shouldPlay
-          onPlaybackStatusUpdate={(status: AVPlaybackStatus) => {
-            if (
-              status.isLoaded &&
-              (status as AVPlaybackStatusSuccess).didJustFinish
-            ) {
-              setIsIntroFinished(true);
-            }
+        <WebView
+          originWhitelist={['*']}
+          source={{
+            html: `
+              <!DOCTYPE html>
+              <html>
+              <head>
+                <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+                <style>
+                  html, body {
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: #fff;
+                    overflow: hidden;
+                  }
+                  dotlottie-player {
+                    position: fixed;
+                    inset: 0;
+                    width: 100%;
+                    height: 100%;
+                    transform: scale(1.1);
+                  }
+                </style>
+              </head>
+              <body>
+                <dotlottie-player
+                  src="https://lottie.host/5552237f-d88b-4ed5-b26a-0b63f6f7dd3d/adBEAJJ2pM.lottie"
+                  background="transparent"
+                  speed="1.5"
+                  autoplay
+                ></dotlottie-player>
+                <script src="https://unpkg.com/@dotlottie/player-component@latest/dist/dotlottie-player.js"></script>
+              </body>
+              </html>
+            `
           }}
-          style={styles.video}
+          style={{ flex: 1 }}
+          onLoadEnd={() => setTimeout(() => setIsIntroFinished(true), 3000)}
         />
       </View>
     );
@@ -49,8 +72,6 @@ export default function Index() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  video: {
-    flex: 1,
+    backgroundColor: '#fff',
   },
 });

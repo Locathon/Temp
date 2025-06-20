@@ -103,16 +103,16 @@ export default function StoreHomeScreen() {
                 </View>
                 <View style={{ marginHorizontal: 16, marginTop: 12 }}><RenderHTML contentWidth={width} source={{ html: displayData.description }} /></View>
                 
-                <View style={styles.editButtonsRow}>
-                    <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('EditStore', route.params || {})}>
-                        <Text style={styles.editButtonText}>스토어 편집</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('QASetup')}>
-                        <Text style={styles.editButtonText}>Q&A 수정</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={styles.sparkleButton} onPress={() => navigation.navigate('GenerateMarketing')}>
-                        <Image source={aiTransitionIcon} style={{ width: 24, height: 24, tintColor: 'white' }} />
-                    </TouchableOpacity>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginHorizontal: 16, marginTop: 16 }}>
+                  <TouchableOpacity style={[styles.editButton, { flex: 1, marginRight: 8 }]} onPress={() => navigation.navigate('EditStore', route.params || {})}>
+                    <Text style={styles.editButtonText}>스토어 편집</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={[styles.editButton, { flex: 1, marginRight: 8 }]} onPress={() => navigation.navigate('QASetup')}>
+                    <Text style={styles.editButtonText}>Q&A 수정</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity style={styles.sparkleButton} onPress={() => navigation.navigate('GenerateMarketing')}>
+                    <Image source={aiTransitionIcon} style={{ width: 20, height: 20, tintColor: 'white' }} />
+                  </TouchableOpacity>
                 </View>
 
                 <View style={styles.bottomTabs}>
@@ -140,7 +140,11 @@ export default function StoreHomeScreen() {
                 {activeTab === 'Review' && (
                     <View style={{ marginTop: 24, marginHorizontal: 16 }}>
                         {DESSERT_REVIEWS.map((review, idx) => (
-                            <View key={idx} style={{ marginBottom: 44 }}>
+                            <View key={idx} style={{ marginBottom: 24 }}>
+                                <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
+                                    <Image source={DESSERT_CAFE_DATA.profileImage} style={{ borderRadius: 9999, width: 32, height: 32, marginRight: 8 }} />
+                                    <Image source={DESSERT_CAFE_DATA.profileImage} style={{ borderRadius: 9999, width: 32, height: 32, marginRight: 8 }} />
+                                </View>
                                 <Text style={{ fontSize: 15, fontWeight: '600', color: '#333333', marginBottom: 10 }}>{review.rating.toFixed(1)} <Text style={{ color: '#F2C94C', fontSize: 16 }}>{review.stars}</Text></Text>
                                 {review.images.length > 0 && <View style={{ flexDirection: 'row', justifyContent: 'flex-start', gap: 12, marginBottom: 16 }}>{review.images.map((img: any, i: number) => <Image key={i} source={img} resizeMode="cover" style={{ width: review.images.length === 1 ? '100%' : 165, height: review.images.length === 1 ? 180 : 120, borderRadius: 16, }} />)}</View>}
                                 <Text style={{ fontSize: 15, color: '#333333', fontWeight: '500', marginBottom: 8 }}>{review.text}</Text>
@@ -154,12 +158,12 @@ export default function StoreHomeScreen() {
                     <View style={{ marginTop: 24, marginHorizontal: 16 }}>
                         {qaList.length > 0 ? (
                             qaList.map((qa, idx) => (
-                                <View key={idx} style={{ marginBottom: 24 }}>
+                                <View key={idx} style={{ marginBottom: 28 }}>
                                     <TouchableOpacity onPress={() => setExpandedIndex(expandedIndex === idx ? null : idx)} style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                                         <Text style={{ fontSize: 15, fontWeight: '600', color: '#1C1C1E', marginBottom: 10, flex: 1 }}>{qa.question}</Text>
                                         <Text style={{ fontSize: 18, marginBottom: 10 }}>{expandedIndex === idx ? '˄' : '˅'}</Text>
                                     </TouchableOpacity>
-                                    {expandedIndex === idx && <View style={{ backgroundColor: '#F2F4F7', padding: 14, borderRadius: 12 }}><Text style={{ fontSize: 14, color: '#4F4F4F', lineHeight: 20 }}>{qa.answer}</Text></View>}
+                                    {expandedIndex === idx && <View style={{ backgroundColor: '#F4F4F4', padding: 16, borderRadius: 12 }}><Text style={{ fontSize: 14, color: '#333333', lineHeight: 20 }}>{qa.answer}</Text></View>}
                                 </View>
                             ))
                         ) : <Text style={{ color: '#999' }}>등록된 Q&A가 없습니다.</Text>}
@@ -172,8 +176,8 @@ export default function StoreHomeScreen() {
 // 스타일 시트는 이전과 동일하게 유지
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: '#FFFFFF' },
-  header: { height: 56, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16, backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5E5' },
-  headerTitle: { fontSize: 20, fontWeight: '700', color: '#333' },
+  header: { height: 64, flexDirection: 'row', justifyContent: 'center', alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderBottomColor: '#E5E5E5' },
+  headerTitle: { fontSize: 22, fontWeight: 'bold', color: '#333' },
   container: { flex: 1 },
   imageGrid: { marginHorizontal: 16, marginTop: 16, alignItems: 'center', justifyContent: 'center' },
   gridImage: { width: '100%', height: 200, borderRadius: 12, marginBottom: 16 },
@@ -186,10 +190,36 @@ const styles = StyleSheet.create({
   reviewCount: { fontSize: 14, color: '#828282', marginLeft: 6 },
   likeButton: { alignItems: 'center' },
   likeText: { fontSize: 12, color: '#828282', marginTop: 2 },
-  editButtonsRow: { flexDirection: 'row', marginHorizontal: 16, marginTop: 20, justifyContent: 'space-between' },
-  editButton: { flex: 1, borderWidth: 1, borderColor: '#2F80ED', borderRadius: 24, backgroundColor: '#FFFFFF', paddingVertical: 8, marginHorizontal: 6, flexDirection: 'row', justifyContent: 'center', alignItems: 'center' },
-  editButtonText: { fontSize: 16, fontWeight: '600', color: '#2F80ED' },
-  sparkleButton: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#2F80ED', justifyContent: 'center', alignItems: 'center', marginLeft: 8, padding: 8 },
+  editButtonsRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginHorizontal: 16,
+    marginTop: 16,
+  },
+  editButton: {
+      width: '42%',
+      height: 48,
+      borderRadius: 24,
+      backgroundColor: '#FFFFFF',
+      borderWidth: 1,
+      borderColor: '#D3DDE3',
+      justifyContent: 'center',
+      alignItems: 'center',
+  },
+    editButtonText: {
+        fontSize: 16, // 기존 18 → 16
+        fontWeight: '600',
+        color: '#1C1C1E',
+  },
+    sparkleButton: {
+        width: 48,
+        height: 48,
+        borderRadius: 24,
+        backgroundColor: '#48C8FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
   bottomTabs: { flexDirection: 'row', marginHorizontal: 16, marginTop: 24, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
   tabButton: { flex: 1, paddingVertical: 12, alignItems: 'center', borderBottomWidth: 3, borderBottomColor: 'transparent' },
   activeTab: { borderBottomColor: '#2F80ED' },
