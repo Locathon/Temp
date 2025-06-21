@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import * as ImagePicker from 'expo-image-picker';
 import React, { useState } from 'react';
-import { useRoute } from '@react-navigation/native';
 import {
   Alert,
   Image,
@@ -12,7 +11,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { Post, posts } from '../../data/communityData';
 import { currentUser } from '../../data/userData';
@@ -22,10 +22,10 @@ export default function CreatePostScreen() {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
   const [images, setImages] = useState<any[]>([]);
-  const route = useRoute();
-
-  // 새 글 등록시 바로 반영
-
+  const [isLocationModalVisible, setLocationModalVisible] = useState(false);
+  const [searchKeyword, setSearchKeyword] = useState('');
+  const [searchResults, setSearchResults] = useState<string[]>(['정지영 커피 로스터즈', '에그궁']);
+  const [selectedLocation, setSelectedLocation] = useState<string | null>(null);
 
   const handlePickImage = async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -47,11 +47,11 @@ export default function CreatePostScreen() {
   };
 
   const handleSubmit = () => {
-    if (title.trim() === '' || content.trim() === '') {
-      Alert.alert('알림', '제목과 내용을 모두 입력해주세요.');
+    if (content.trim() === '') {
+      Alert.alert('알림', '내용을 입력해주세요.');
       return;
     }
-    
+
     const newPost: Post = {
       id: `post${Date.now()}`,
       userId: currentUser.id,
@@ -64,69 +64,215 @@ export default function CreatePostScreen() {
       iLiked: false,
       commentsCount: 0,
       comments: [],
-      distance: 0.1, 
+      distance: 0.1,
       createdAt: new Date(),
     };
 
     posts.unshift(newPost);
-    
-    Alert.alert('등록 완료', '게시물이 성공적으로 등록되었습니다.');
+
+    //Alert.alert('등록 완료', '게시물이 성공적으로 등록되었습니다.');
     navigation.goBack();
   };
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Ionicons name="close" size={24} color="#000" />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>글쓰기</Text>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>등록</Text>
-        </TouchableOpacity>
+      <View style={styles.titleWrapper}>
+        <Text style={styles.titleText}>새 포스트</Text>
       </View>
+      <ScrollView contentContainerStyle={{ flexGrow: 1, padding: 16 }}>
+        {/* 프로필 영역 */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+          <Ionicons name="person-circle" size={32} color="#48C8FF" />
+          <Text style={{ marginLeft: 8, fontWeight: 'bold' }}>
+            {currentUser.name || '사용자'}
+          </Text>
+        </View>
 
-      <ScrollView>
-        <TextInput
-          style={styles.titleInput}
-          placeholder="제목"
-          value={title}
-          onChangeText={setTitle}
-        />
-        <View style={styles.divider} />
+        {/* 선택된 장소 */}
+        {selectedLocation && (
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <Ionicons name="location-outline" size={20} color="#48C8FF" />
+            <Text style={{ marginLeft: 6, fontSize: 14, color: '#666' }}>{selectedLocation}</Text>
+          </View>
+        )}
+
+        {/* 본문 입력 */}
         <TextInput
           style={styles.contentInput}
-          placeholder="행궁동과 관련된 이야기를 공유해보세요..."
+          placeholder="어떤 이야기를 하고 싶으신가요?"
           multiline
           value={content}
           onChangeText={setContent}
         />
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imagePreviewContainer}>
-          {images.map((img, index) => (
-             <Image key={index} source={img} style={styles.previewImage} />
-          ))}
-        </ScrollView>
+
+        {/* 툴바 아이콘 (사진 선택, 위치 선택) */}
+        <View style={styles.toolbar}>
+          <TouchableOpacity onPress={handlePickImage}>
+            <Ionicons name="image-outline" size={28} color="#48C8FF" />
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setLocationModalVisible(true)}>
+            <Ionicons name="location-outline" size={28} color="#48C8FF" style={{ marginLeft: 16 }} />
+          </TouchableOpacity>
+        </View>
+
+        {/* 이미지 미리보기 */}
+        {images.length > 0 && (
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.imagePreviewContainer}
+          >
+            {images.map((img, index) => (
+              <Image key={index} source={img} style={styles.previewImage} />
+            ))}
+          </ScrollView>
+        )}
       </ScrollView>
 
-      <View style={styles.toolbar}>
-        <TouchableOpacity onPress={handlePickImage}>
-          <Ionicons name="image-outline" size={28} color="#828282" />
+      {/* 등록 버튼 하단 고정 */}
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[
+            styles.submitButton,
+            title.trim() === '' && content.trim() === '' && styles.disabledButton,
+          ]}
+          onPress={handleSubmit}
+          disabled={title.trim() === '' && content.trim() === ''}
+        >
+          <Text style={styles.submitButtonText}>등록하기</Text>
         </TouchableOpacity>
       </View>
+
+      {/* 장소 선택 모달 */}
+      {isLocationModalVisible && (
+        <TouchableWithoutFeedback onPress={() => setLocationModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContent}>
+              <View style={styles.dragBar} />
+              <View style={styles.searchBar}>
+                <Ionicons name="search" size={20} color="#999" />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="장소 이름을 입력해주세요"
+                  value={searchKeyword}
+                  onChangeText={setSearchKeyword}
+                />
+              </View>
+              <ScrollView>
+                {searchResults.map((item, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => {
+                      setSelectedLocation(item);
+                      setLocationModalVisible(false);
+                    }}
+                    style={[
+                      styles.resultItem,
+                      selectedLocation === item && styles.selectedResultItem, // 선택 시 회색 배경
+                    ]}
+                  >
+                    <Text style={{ fontSize: 16 }}>{item}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          </View>
+        </TouchableWithoutFeedback>
+      )}
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-    container: { flex: 1, backgroundColor: '#FFFFFF' },
-    header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 16, borderBottomWidth: 1, borderBottomColor: '#E0E0E0' },
-    headerTitle: { fontSize: 18, fontWeight: 'bold' },
-    submitButton: { backgroundColor: '#48C8FF', paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20 },
-    submitButtonText: { color: '#FFFFFF', fontWeight: 'bold' },
-    titleInput: { padding: 16, fontSize: 18, fontWeight: 'bold' },
-    divider: { height: 1, backgroundColor: '#F0F0F0', marginHorizontal: 16 },
-    contentInput: { padding: 16, fontSize: 16, minHeight: 200, textAlignVertical: 'top' },
-    imagePreviewContainer: { paddingLeft: 16, paddingBottom: 16 },
-    previewImage: { width: 100, height: 100, borderRadius: 8, marginRight: 8 },
-    toolbar: { flexDirection: 'row', padding: 16, borderTopWidth: 1, borderTopColor: '#E0E0E0', backgroundColor: '#FFF' },
+  selectedResultItem: {
+    backgroundColor: '#F1F1F1',
+  },
+  container: { flex: 1, backgroundColor: '#FFFFFF' },
+  titleWrapper: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: '#FFFFFF',
+  },
+  titleText: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#000',
+  },
+  contentInput: { padding: 16, fontSize: 16, minHeight: 100, textAlignVertical: 'top' },
+  toolbar: {
+    flexDirection: 'row',
+    marginTop: 12,
+    paddingHorizontal: 4,
+    backgroundColor: '#FFFFFF',
+  },
+  imagePreviewContainer: { paddingLeft: 16, paddingBottom: 16 },
+  previewImage: { width: 100, height: 100, borderRadius: 8, marginRight: 8 },
+  footer: {
+    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#EEE',
+    backgroundColor: '#FFF',
+  },
+  submitButton: {
+    backgroundColor: '#000000',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderRadius: 20,
+    alignItems: 'center',
+  },
+  submitButtonText: {
+    color: '#FFFFFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+  disabledButton: {
+    backgroundColor: '#B0BEC5',
+  },
+  // 모달
+  modalOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    top: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: 'rgba(0,0,0,0.3)',
+    justifyContent: 'flex-end',
+  },
+  modalContent: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 16,
+    borderTopRightRadius: 16,
+    paddingTop: 8,
+    height: 600,
+    maxHeight: '90%',
+  },
+  dragBar: {
+    width: 40,
+    height: 4,
+    backgroundColor: '#ccc',
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  searchBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#F1F1F1',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    height: 40,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 14,
+    marginLeft: 8,
+  },
+  resultItem: {
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+  },
 });
