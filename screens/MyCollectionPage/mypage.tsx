@@ -62,7 +62,7 @@ const MyPageScreen = () => {
                 <View style={styles.profileTextContainer}>
                   {/* [핵심] API 데이터 대신, 고정된 상수 값으로 정보를 표시합니다. */}
                   <Text style={styles.profileName}>현재닉네임</Text>
-                  <Text style={styles.profileId}>ID12340808</Text>
+                  <Text style={styles.profileId}>ID1234</Text>
                 </View>
               </View>
               <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('edit_profile')}>
