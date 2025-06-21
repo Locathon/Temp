@@ -12,8 +12,8 @@ import mypage from '../screens/MyCollectionPage/mypage';
 // 상세 페이지 및 수정 화면
 import EditCourseScreen from '../screens/MyCollectionPage/EditCourseScreen';
 import MapCourseScreen from '../screens/MyCollectionPage/MapCourseScreen';
+import PlaceDetailScreen from '../screens/MyCollectionPage/PlaceDetailScreen';
 import edit_profile from '../screens/MyCollectionPage/edit-profile';
-import PlaceDetailScreen from '../screens/Places/PlaceDetailScreen';
 
 // 설정 및 기타
 import ResidentAuthScreen from '../screens/MyCollectionPage/ResidentAuthScreen';
