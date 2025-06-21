@@ -1,17 +1,15 @@
-// screens/MyCollectionPage/my-courses.tsx
-
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import React, { useCallback, useState } from 'react';
 import {
-  FlatList,
-  Image,
-  ImageSourcePropType,
-  SafeAreaView,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
+    FlatList,
+    Image,
+    ImageSourcePropType,
+    SafeAreaView,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
 import { myCourses as myCoursesFromData, savedCourses as savedCoursesFromData } from '../../data/courseData';
@@ -61,12 +59,9 @@ export default function MyCoursesScreen() {
         <TouchableOpacity 
             style={styles.courseRow} 
             onPress={() => {
-                // [수정] 사용자의 요청에 따라 'EditCourseScreen'으로 이동하는 네비게이션을 복원합니다.
-                // 이를 통해 코스 복사/수정 기능으로 진입할 수 있습니다.
-                // 참고: 현재 EditCourseScreen은 선택된 코스의 데이터를 받아 수정하는 기능이 아니라,
-                // 자체적인 샘플 목록에서 코스를 선택하여 복사하도록 되어 있습니다.
-                // 선택한 'item'을 직접 수정하려면 EditCourseScreen의 수정이 필요합니다.
-                navigation.navigate('EditCourseScreen', { courseId: item.id });
+              // [핵심 수정] 코스를 클릭하면, 편집 화면(EditCourseScreen)이 아닌
+              // 지도 화면(MapCourseScreen)으로 courseId를 전달하며 이동합니다.
+              navigation.navigate('MapCourseScreen', { courseId: item.id });
             }}
         >
             <Image source={item.thumbnail} style={styles.courseThumbnail} />

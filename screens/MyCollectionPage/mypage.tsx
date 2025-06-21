@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import {
@@ -13,26 +12,16 @@ import {
 } from 'react-native';
 import { useAuth } from '../../contexts/AuthContext';
 
-// [오류 수정] 1. 메뉴 아이템에 대한 명확한 타입을 정의합니다.
-// icon의 타입을 Ionicons가 가진 name들의 집합으로 지정하여 타입 안정성을 확보합니다.
-type MenuItem = {
-  id: string;
-  title: string;
-  icon: React.ComponentProps<typeof Ionicons>['name'];
-  count?: number; // 활동 통계에서만 사용되므로 optional '?' 처리
-};
+// [핵심] API 통신 관련 로직이 모두 제거되어, 더 이상 UserProfile 타입이 필요 없습니다.
 
 const MyPageScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<any>();
+  // [핵심] 로그인 여부와 로그아웃 기능만 가져옵니다.
   const { isLoggedIn, logout } = useAuth();
 
-  const userNickname = '성이름';
-  const userProfileImageUrl = require('../../assets/images/default-profile.png');
-
-  <Image
-    source={userProfileImageUrl}
-    style={styles.profileImage}
-  />
+  // [핵심] API 요청 관련 상태(user, isLoading)를 모두 제거합니다.
+  
+  // [핵심] API를 호출하던 fetchUserInfo 함수와 useFocusEffect를 모두 제거합니다.
 
   const handleLogout = () => {
     Alert.alert('로그아웃', '정말 로그아웃 하시겠습니까?', [
@@ -41,165 +30,268 @@ const MyPageScreen = () => {
         text: '확인',
         onPress: async () => {
           await logout();
+          // 더 이상 user 상태를 초기화할 필요가 없습니다.
           Alert.alert('로그아웃', '로그아웃 되었습니다.');
         },
       },
     ]);
   };
-
-  const activityStats = {
-    places: isLoggedIn ? 12 : 0,
-    courses: isLoggedIn ? 5 : 0,
-    reviews: isLoggedIn ? 8 : 0,
-  };
   
-  // [오류 수정] 2. 정의한 MenuItem 타입을 배열에 적용합니다.
-  const activityItems: MenuItem[] = [
-    { id: 'my-courses', title: '내가 기록한 코스', icon: 'map-outline', count: activityStats.courses },
-    { id: 'my-places', title: '내가 기록한 장소', icon: 'location-outline', count: activityStats.places },
-    { id: 'my-reviews', title: '내가 남긴 후기', icon: 'chatbubble-ellipses-outline', count: activityStats.reviews },
-  ];
+  const navigateToLogin = () => {
+    navigation.navigate('Auth', { screen: 'Login' });
+  };
 
-  const settingItems: MenuItem[] = [
-    { id: 'ResidentAuth', title: '주민 인증', icon: 'shield-checkmark-outline' },
-    { id: 'settings', title: '설정', icon: 'settings-outline' },
-    { id: 'guide', title: '이용 가이드', icon: 'book-outline' },
-    { id: 'terms', title: '이용약관 및 정책', icon: 'document-text-outline' },
-  ];
-
-  // [오류 수정] 3. render 함수의 파라미터 타입을 'any' 대신 'MenuItem'으로 명확하게 지정합니다.
-  const renderMenuItem = (item: MenuItem) => (
-    <TouchableOpacity key={item.id} style={styles.menuItem} onPress={() => navigation.navigate(item.id as never)}>
-      <View style={styles.menuItemContent}>
-        <Ionicons name={item.icon} size={22} color="#4F4F4F" style={styles.menuIcon} />
-        <Text style={styles.menuTitle}>{item.title}</Text>
-      </View>
-      <Ionicons name="chevron-forward-outline" size={20} color="#C7C7CC" />
-    </TouchableOpacity>
-  );
+  // [핵심] 로딩 화면 로직을 제거하여, 즉시 화면을 보여줍니다.
 
   return (
-    
-    <SafeAreaView style={styles.container}>
-        <View style={{alignItems: 'center' }}>
-          <Text style={styles.headerTitle}>마이페이지</Text>
-        </View>
-      
-      <ScrollView>
-        {/* 마이페이지 타이틀 */}
-        {/* <Text style={{ fontSize: 18, fontWeight: 'bold', alignSelf: 'center', marginVertical: 12 }}>마이페이지</Text> */}
+    <SafeAreaView style={styles.safeArea}>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>마이페이지</Text>
+      </View>
+      <ScrollView style={styles.container}>
+        {/* [핵심] 오직 로그인 여부(isLoggedIn)만으로 화면을 결정합니다. */}
+        {isLoggedIn ? (
+          <>
+            {/* 프로필 카드 */}
+            <View style={styles.profileCard}>
+              <View style={styles.profileInfoContainer}>
+                <Image
+                  source={require('../../assets/images/default-profile.png')}
+                  style={styles.profileImage}
+                />
+                <View style={styles.profileTextContainer}>
+                  {/* [핵심] API 데이터 대신, 고정된 상수 값으로 정보를 표시합니다. */}
+                  <Text style={styles.profileName}>현재닉네임</Text>
+                  <Text style={styles.profileId}>ID12340808</Text>
+                </View>
+              </View>
+              <TouchableOpacity style={styles.editButton} onPress={() => navigation.navigate('edit_profile')}>
+                  <Image source={require('../../assets/images/edit.png')} style={{width: 14, height: 16}} />
+              </TouchableOpacity>
+            </View>
 
-        {/* 프로필 카드 */}
-        <View style={{ position: 'relative', marginTop: 16 }}>
-          <View style={{
-            backgroundColor: '#fff',
-            marginHorizontal: 16,
-            borderRadius: 12,
-            padding: 20,
-            shadowColor: '#000',
-            shadowOpacity: 0.1,
-            shadowRadius: 4,
-            elevation: 3,
-          }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-              <Image
-                source={userProfileImageUrl}
-                style={styles.profileImage}
-              />
-              <View style={{ marginLeft: 16 }}>
-                <Text style={{ fontSize: 18, fontWeight: 'bold' }}>{userNickname}</Text>
-                <Text style={{ color: '#828282', marginTop: 4 }}>ID12340808</Text>
+            {/* 마이 컬렉션 버튼 */}
+            <TouchableOpacity style={styles.myCollectionButton} onPress={() => navigation.navigate('MyCollection')}>
+                <Image source={require('../../assets/images/MyCollection.png')} style={{width: 24, height: 24}} />
+              <Text style={styles.myCollectionButtonText}>마이 컬렉션</Text>
+            </TouchableOpacity>
+
+            {/* 설정 */}
+            <View style={styles.settingSection}>
+              <Text style={styles.sectionTitle}>설정</Text>
+              <View style={styles.settingItemsContainer}>
+                <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('ResidentAuth')}>
+                  <Text style={styles.settingItemText}>인증 설정</Text>
+                </TouchableOpacity>
+                <View style={styles.separator} />
+                <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('app-setting')}>
+                  <Text style={styles.settingItemText}>앱 설정</Text>
+                </TouchableOpacity>
               </View>
             </View>
-            <TouchableOpacity
-              style={{
-                position: 'absolute',
-                top: 16,
-                right: 16,
-                width: 36,
-                height: 36,
-                borderRadius: 18,
-                backgroundColor: '#EAF6FF',
-                justifyContent: 'center',
-                alignItems: 'center',
-                zIndex: 10,
-              }}
-              onPress={() => navigation.navigate('edit_profile' as never)}
-            >
-              <Image
-                source={require('../../assets/images/edit.png')}
-                style={{ width: 20, height: 20 }}
-                resizeMode="contain"
-              />
-            </TouchableOpacity>
 
-            <TouchableOpacity
-              onPress={() => navigation.navigate('my-courses' as never)}
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-                backgroundColor: '#F7F9FB',
-                borderRadius: 10,
-                paddingVertical: 12,
-                paddingHorizontal: 16,
-                marginTop: 20,
-              }}
-            >
-              <Ionicons name="archive-outline" size={20} color="#00AEEF" style={{ marginRight: 8 }} />
-              <Text style={{ fontSize: 16, color: '#000', alignItems: 'center' }}>마이 컬렉션</Text>
+            {/* 고객센터 */}
+            <View style={styles.settingSection}>
+              <Text style={styles.sectionTitle}>고객센터</Text>
+              <View style={styles.settingItemsContainer}>
+                <TouchableOpacity style={styles.settingItem}>
+                  <Text style={styles.settingItemText}>의견 남기기</Text>
+                </TouchableOpacity>
+                <View style={styles.separator} />
+                <TouchableOpacity style={styles.settingItem} onPress={() => navigation.navigate('privacy')}>
+                  <Text style={styles.settingItemText}>약관 및 정책 보기</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+
+             {/* 로그아웃 버튼 */}
+            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+              <Text style={styles.logoutButtonText}>로그아웃</Text>
+            </TouchableOpacity>
+          </>
+        ) : (
+          <View style={styles.loginPromptContainer}>
+            <Text style={styles.loginPromptText}>로그인이 필요합니다.</Text>
+            <TouchableOpacity style={styles.loginButton} onPress={navigateToLogin}>
+              <Text style={styles.loginButtonText}>로그인/회원가입</Text>
             </TouchableOpacity>
           </View>
-        </View>
-
-        {/* 설정 구분선 */}
-        <Text style={{ marginLeft: 16, marginTop: 24, marginBottom: 4, color: '#9E9E9E' }}>설정</Text>
-        <View style={styles.menuSection}>
-          {renderMenuItem(settingItems[0])}
-          {renderMenuItem(settingItems[1])}
-        </View>
-
-        {/* 고객센터 구분선 */}
-        <Text style={{ marginLeft: 16, marginTop: 24, marginBottom: 4, color: '#9E9E9E' }}>고객센터</Text>
-        <View style={styles.menuSection}>
-          {renderMenuItem(settingItems[2])}
-          {renderMenuItem(settingItems[3])}
-        </View>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
 };
 
+
 const styles = StyleSheet.create({
-  header: {
-  height: 56,
-  justifyContent: 'center',
-  alignItems: 'flex-start',
-  paddingHorizontal: 16,
-  backgroundColor: '#FFFFFF',
-  borderBottomWidth: 1,
-  borderBottomColor: '#E0E0E0',
-},
-headerTitle: {
-  fontSize: 20,
-  fontWeight: '700',
-  color: '#333',
-},
-  container: { flex: 1, backgroundColor: '#FFFFFF' },
-  profileSection: { flexDirection: 'row', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 20, },
-  profileImage: { width: 60, height: 60, borderRadius: 30, backgroundColor: '#005B9E' },
-  profileInfo: { flex: 1, marginLeft: 16 },
-  nickname: { fontSize: 20, fontWeight: 'bold' },
-  editProfileText: { fontSize: 14, color: '#828282', marginTop: 4 },
-  section: { backgroundColor: '#FFFFFF', borderRadius: 10, marginHorizontal: 16, marginTop: 12, paddingVertical: 8 },
-  activityRow: { flexDirection: 'row', justifyContent: 'space-around' },
-  activityItem: { alignItems: 'center', padding: 8, },
-  activityTitle: { fontSize: 14, color: '#4F4F4F', marginTop: 8 },
-  activityCount: { fontSize: 20, fontWeight: 'bold', color: '#2F80ED', marginTop: 4 },
-  menuSection: { backgroundColor: '#FFFFFF', borderRadius: 10, marginHorizontal: 16, marginTop: 12, overflow: 'hidden' },
-  menuItem: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingVertical: 18, paddingHorizontal: 16, borderBottomWidth: 0.5, borderBottomColor: '#E0E0E0' },
-  menuItemContent: { flexDirection: 'row', alignItems: 'center' },
-  menuIcon: { marginRight: 16 },
-  menuTitle: { fontSize: 16 },
+    safeArea: {
+        flex: 1,
+        backgroundColor: '#FEFEFE',
+      },
+      container: {
+        flex: 1,
+        backgroundColor: '#FEFEFE',
+      },
+      loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      header: {
+        height: 44,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#FEFEFE',
+        borderBottomWidth: 1,
+        borderBottomColor: '#EBEEEF'
+      },
+      headerTitle: {
+        fontSize: 18,
+        fontWeight: '400',
+        color: '#121212',
+        fontFamily: 'Pretendard-Regular',
+      },
+      profileCard: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        marginHorizontal: 16,
+        marginTop: 36,
+        padding: 16,
+        backgroundColor: '#FEFEFE',
+        borderWidth: 1,
+        borderColor: '#DCE2E4',
+        borderRadius: 20,
+        height: 120,
+      },
+      profileInfoContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+      },
+      profileImage: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: '#006CA6',
+      },
+      profileTextContainer: {
+        marginLeft: 16,
+        gap: 4,
+      },
+      profileName: {
+        fontSize: 20,
+        fontWeight: '500',
+        color: '#121212',
+        fontFamily: 'Pretendard-Medium',
+      },
+      profileId: {
+        fontSize: 16,
+        fontWeight: '400',
+        color: '#7E8B91',
+        fontFamily: 'Pretendard-Regular',
+      },
+      editButton: {
+        width: 28,
+        height: 28,
+        borderRadius: 14,
+        backgroundColor: '#48C8FF',
+        justifyContent: 'center',
+        alignItems: 'center',
+      },
+      myCollectionButton: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginHorizontal: 16,
+        marginTop: 16,
+        height: 48,
+        backgroundColor: '#F8F9FA',
+        borderWidth: 1,
+        borderColor: '#EBEEEF',
+        borderRadius: 12,
+        gap: 16,
+      },
+      myCollectionButtonText: {
+        fontSize: 16,
+        fontWeight: '400',
+        color: '#121212',
+        fontFamily: 'Pretendard-Regular',
+      },
+      settingSection: {
+        marginTop: 32,
+        marginHorizontal: 16,
+      },
+      sectionTitle: {
+        fontSize: 14,
+        fontWeight: '500',
+        color: '#93A2A9',
+        marginBottom: 8,
+        fontFamily: 'Pretendard-Medium',
+      },
+      settingItemsContainer: {
+        backgroundColor: '#FEFEFE',
+        borderRadius: 12,
+        overflow: 'hidden',
+      },
+      settingItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#FEFEFE',
+        paddingHorizontal: 16,
+        height: 48,
+      },
+      settingItemText: {
+        fontSize: 16,
+        fontWeight: '400',
+        color: '#121212',
+        fontFamily: 'Pretendard-Regular',
+      },
+      separator: {
+        height: 1,
+        backgroundColor: '#DCE2E4',
+      },
+      loginPromptContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingTop: 100, // 콘텐츠를 수직 중앙에 더 가깝게 배치
+        paddingBottom: 100,
+      },
+      loginPromptText: {
+        fontSize: 16,
+        color: '#828282',
+        marginBottom: 20,
+        fontFamily: 'Pretendard-Regular',
+      },
+      loginButton: {
+        backgroundColor: '#48C8FF',
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 25,
+      },
+      loginButtonText: {
+        color: '#FFFFFF',
+        fontSize: 16,
+        fontWeight: 'bold',
+        fontFamily: 'Pretendard-Bold',
+      },
+      logoutButton: {
+        margin: 16, // 좌우, 상하 여백을 한 번에 적용
+        marginTop: 32,
+        height: 48,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F8F9FA',
+        borderWidth: 1,
+        borderColor: '#EBEEEF',
+        borderRadius: 12,
+      },
+      logoutButtonText: {
+        color: '#FF4D4F',
+        fontSize: 16,
+        fontWeight: '400',
+        fontFamily: 'Pretendard-Regular'
+      },
 });
 
 export default MyPageScreen;
