@@ -106,14 +106,22 @@ const CommunityScreen = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.centerTitle}>
+        {/* 제목 중앙 정렬 */}
+        <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
           <Text style={styles.title}>커뮤니티</Text>
         </View>
-        <View style={styles.headerIcons}>
+
+        {/* 오른쪽 아이콘: 절대 위치 */}
+        <View style={{ position: 'absolute', right: 16, flexDirection: 'row' }}>
           <TouchableOpacity onPress={() => navigation.navigate('Search')}>
             <Ionicons name="search-outline" size={24} color="#000" />
           </TouchableOpacity>
-          <TouchableOpacity style={{ marginLeft: 16 }} onPress={() => navigation.navigate('Notification')}>
+          <TouchableOpacity
+            style={{ marginLeft: 16 }}
+            onPress={() => {
+              navigation.navigate('CreatePost');
+            }}
+          >
             <Ionicons name="add" size={24} color="#000" />
           </TouchableOpacity>
         </View>
@@ -145,6 +153,7 @@ const CommunityScreen = () => {
         <Ionicons name="add" size={24} color="#FFF" />
         <Text style={styles.fabText}>새로운 포스트</Text>
       </TouchableOpacity>
+      
     </SafeAreaView>
   );
 };
@@ -156,12 +165,11 @@ const styles = StyleSheet.create({
   header: {
     height: 56,
     flexDirection: 'row',
-    justifyContent: 'flex-end',
     alignItems: 'center',
-    paddingHorizontal: 16,
+    justifyContent: 'center',
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
-    position: 'relative',
+    paddingHorizontal: 0,
   },
   centerTitle: {
     position: 'absolute',
@@ -181,7 +189,7 @@ const styles = StyleSheet.create({
   sortTabs: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 0,
+    paddingHorizontal: 16,
     borderBottomWidth: 1,
     borderBottomColor: '#E5E5E5',
     marginHorizontal: 16,
@@ -193,8 +201,9 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
   },
   activeSortButton: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#3ECFFF', // ⬅ 변경됨
+    // borderBottomWidth: 2,
+    borderBottomColor: '#3ECFFF',
+    width: '120%', // 탭 전체 너비 적용
   },
   sortText: {
     fontSize: 15,
@@ -228,6 +237,7 @@ const styles = StyleSheet.create({
   avatar: { width: 36, height: 36, borderRadius: 18, marginRight: 10 },
   authorName: { fontWeight: 'bold', fontSize: 14, color: '#222' },
   timestamp: { fontSize: 12, color: '#999' },
+
   categoryBadge: {
     backgroundColor: '#F1F1F1',
     paddingHorizontal: 8,
@@ -305,6 +315,7 @@ const styles = StyleSheet.create({
     height: 60,    // 필요에 따라 조절
     resizeMode: 'contain',
   },
+  
 });
 
 export default CommunityScreen;
